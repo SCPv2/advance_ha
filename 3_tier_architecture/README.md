@@ -1,9 +1,9 @@
 # 고가용성 3계층 아키텍처 구성
 
 ## 실습 준비
-- [과정 소개](https://github.com/SCPv2/ce_advance_introduction/blob/main/README.md) 실습 준비 사항 중 Key Pair, 인증키, DNS 사전 준비 필요
-- Terraform을 처음 접하시는 분은 '[Terraform을 이용한 인프라 구성 자동화](https://github.com/SCPv2/ce_advance_introduction/blob/main/README.md)' 차시 수강 필요
-- Terraform으로 기존 환경 구성
+- Key Pair, 인증키, DNS 사전 준비 필요 ([과정 소개](https://github.com/SCPv2/ce_advance_introduction/blob/main/README.md) 참조)
+- Terraform을 처음 접하시는 분은 '[Terraform을 이용한 인프라 구성 자동화](https://github.com/SCPv2/ce_advance_introduction/blob/main/README.md)' 차시 참고
+- Terraform으로 실습 환경 구성
 
 ```
 terraform init
@@ -12,82 +12,73 @@ terraform plan
 terraform apply --auto-approve
 ```
 
+## 통신 제어 규칙 구성
 
-### 1. 3-Tier 분산 환경 구축 (권장 - 운영환경)
+### Firewall
+|Deployment|Firewall|Source|Destination|Service|Action|Direction|Description|
+|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----|
+|Terraform|IGW|10.1.1.110, 10.1.1.111,<br> 10.1.2.121, 10.1.3.131|0.0.0.0/0|TCP 80, 443|Allow|Outbound|HTTP/HTTPS outbound from vms to Internet|
+|Terraform|IGW|Your Public IP|10.1.1.110|TCP 3389|Allow|Inbound|RDP inbound to bastion|
+|Manual|IGW|Your Public IP|10.1.1.111|TCP 80|Allow|Inbound|HTTP inbound to web vm|
 
+### Security Group
+|Deployment|Security Group|Direction|Target Address<br>Remote SG|Service|Description|
+|:-----:|:-----:|:-----:|:-----:|:-----:|:-----|
+|Terrafom|bastionSG|Inbound|Your Public IP|TCP 3389|RDP inbound to bastion VM|
+|Terrafom|bastionSG|Outbound|0.0.0.0/0|TCP 80|HTTP outbound to Internet|
+|Terrafom|bastionSG|Outbound|0.0.0.0/0|TCP 443|HTTPS outbound to Internet|
+|Manual|bastionSG|Outbound|dbSG|TCP 22|SSH outbound to db vm |
+|Manual|bastionSG|Outbound|webSG|TCP 22|SSH outbound to web vm |
+|Manual|bastionSG|Outbound|appSG|TCP 22|SSH outbound to app vm |
+|||||||
+|Terrafom|webSG|Outbound|0.0.0.0/0|TCP 443|HTTPS outbound to Internet|
+|Terrafom|webSG|Outbound|0.0.0.0/0|TCP 80|HTTP outbound to Internet|
+|Manual|webSG|Inbound|bastionSG|TCP 22|SSH inbound from bastion|
+|Manual|webSG|Inbound|Your Public IP|TCP 80|HTTP inbound from your PC|
+|Manual|webSG|Outbound|appSG|TCP 3000|API outbound to app vm |
+|Manual|webSG|Inbound|bastionSG|TCP 80|HTTP inbound from bastion|
+|||||||
+|Terrafom|appSG|Outbound|0.0.0.0/0|TCP 80|HTTP outbound to Internet|
+|Terrafom|appSG|Outbound|0.0.0.0/0|TCP 443|HTTPS outbound to Internet|
+|Manual|appSG|Inbound|bastionSG|TCP 22|SSH inbound from bastion|
+|Manual|appSG|Outbound|dbSG|TCP 2866|db connection outbound to db vm |
+|Manual|appSG|Inbound|webSG|TCP 3000|API inbound from web vm |
+|||||||
+|Terrafom|dbSG|Outbound|0.0.0.0/0|TCP 443|HTTPS outbound to Internet|
+|Terrafom|dbSG|Outbound|0.0.0.0/0|TCP 80|HTTP outbound to Internet|
+|Manual|dbSG|Inbound|appSG|TCP 2866|db connection inbound from app vm |
+|Manual|dbSG|Inbound|bastionSG|TCP 22|SSH inbound from bastion|
+
+## 데이터베이스 서버 설치 (PostgreSQL 16.8)
 ```bash
-# 1단계: DB 서버 설치
-cd deployment/db/standalone/
-sudo bash install_postgresql_rocky.sh
 
-# 2단계: App 서버 설치
-cd deployment/app/
-sudo bash install_app_server.sh
+cd /home/rocky/
 
-# 3단계: Web 서버 설치
-cd deployment/web/
-sudo bash install_web_server.sh
+git clone https://github.com/SCPv2/ceweb.git
+
+sudo bash /home/rocky/ceweb/db-server/vm_db/install_postgresql_vm.sh
+
 ```
 
-### 2. 올인원 서버 구축 (개발/테스트 환경)
+## 애플리케이션 서버 설치 (node.js 2.0)
+
 ```bash
-cd deployment/etc/
-sudo bash install_script.sh
+
+cd /home/rocky/
+
+git clone https://github.com/SCPv2/ceweb.git
+
+sudo bash /home/rocky/ceweb/app-server/install_app_server.sh
+
 ```
 
-### 3. 외부 DB 서버 사용
+## 웹 서버 설치 (Nginx)
+
 ```bash
-# DB 서버에 스키마 설치
-cd deployment/db/externaldb/
-bash install_schema_remote.sh
 
-# App 서버 설치 (외부 DB 연결)
-cd deployment/app/
-sudo bash install_app_server.sh
+cd /home/rocky/
+
+git clone https://github.com/SCPv2/ceweb.git
+
+sudo bash /home/rocky/ceweb/web-server/install_web_server.sh
 ```
-
-### 4. 기존 서버 코드 업데이트
-```bash
-cd deployment/etc/
-bash quick_deploy.sh /path/to/new/code
-```
-
-## 📋 각 폴더별 설명
-
-### `/web` - 웹 서버 (Nginx)
-- **목적**: 정적 파일 서빙 및 API 프록시 역할
-- **포트**: 80 (HTTP), 443 (HTTPS)
-- **기능**: HTML/CSS/JS 서빙, `/api/*` 요청을 App 서버로 프록시
-
-### `/app` - 애플리케이션 서버 (Node.js)
-- **목적**: API 처리 및 비즈니스 로직 실행
-- **포트**: 3000
-- **기능**: RESTful API, DB 연결, 주문 처리
-
-### `/db/standalone` - PostgreSQL 단독 설치
-- **목적**: 전용 DB 서버 구축
-- **포트**: 2866 (커스텀 포트)
-- **기능**: 데이터베이스, 사용자 관리, 백업 시스템
-
-### `/db/externaldb` - 외부 DB 연결
-- **목적**: 기존 DB 서버 또는 클라우드 DB 사용
-- **기능**: 원격 스키마 설치, DB 연결 설정
-
-### `/etc` - 유틸리티 및 가이드
-- **목적**: 공통 도구, 통합 설치 스크립트, 아키텍처 문서
-- **포함**: JWT 키 생성, 전체 가이드, 빠른 배포 도구
-
-## 🔧 사전 요구사항
-
-- **OS**: Rocky Linux 9.4
-- **권한**: sudo/root 권한 필요
-- **네트워크**: 서버간 통신 포트 오픈 (80, 3000, 2866)
-- **도메인**: www.cesvc.net, app.cesvc.net, db.cesvc.net (선택사항)
-
-## 🔍 트러블슈팅
-
-각 폴더의 가이드 문서 참조:
-- 웹 서버: `web/WEB_SERVER_SETUP_GUIDE.md`
-- 앱 서버: `app/APP_SERVER_SETUP_GUIDE.md`  
-- DB 서버: `db/standalone/postgresql_rocky_linux_install.md`
-- 아키텍처: `etc/PORTS_AND_ARCHITECTURE.md`
