@@ -1,10 +1,10 @@
 # 고가용성 3계층 아키텍처 구성
 
-
-
-
-## 실습 환경 구성
+## 실습 준비
+- [과정 소개](https://github.com/SCPv2/ce_advance_introduction/blob/main/README.md) 실습 준비 사항 중 Key Pair, 인증키, DNS 사전 준비 필요
+- Terraform을 처음 접하시는 분은 '[Terraform을 이용한 인프라 구성 자동화](https://github.com/SCPv2/ce_advance_introduction/blob/main/README.md)' 차시 수강 필요
 - Terraform으로 기존 환경 구성
+
 ```
 terraform init
 terraform validate
