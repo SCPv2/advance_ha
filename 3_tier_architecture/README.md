@@ -90,11 +90,8 @@ sudo bash install_postgresql_vm.sh
 ```bash
 
 cd /home/rocky/
-
 git clone https://github.com/SCPv2/ceweb.git
-
 cd /home/rocky/ceweb/app-server/
-
 sudo bash install_app_server.sh
 
 ```
