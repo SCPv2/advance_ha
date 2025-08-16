@@ -1,5 +1,5 @@
 ########################################################
-# 사용자 입력 항목
+# 수강자 입력 항목
 ########################################################
 variable "keypair_name" {
   type        = string
@@ -10,7 +10,7 @@ variable "keypair_name" {
 variable "user_public_ip" {
   type        = string
   description = "Public IP address of user PC"
-  default     = "14.39.93.74"                           # 사용자 PC의 Public IP 주소 입력
+  default     = "0.0.0.0"                                # 수강자 PC의 Public IP 주소 입력
 }
 
 ########################################################

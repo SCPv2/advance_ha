@@ -12,6 +12,23 @@ terraform plan
 terraform apply --auto-approve
 ```
 
+## DNS 설정
+
+### Private DNS
+```
+Private DNS Name : cesvc
+VPC              : VPC1
+Hosted Zone      : cesvc.net
+www              : A 레코드, 10.1.1.111, 300
+app              : A 레코드, 10.1.2.121, 300
+db               : A 레코드, 10.1.3.131, 300
+```
+Public Domain Name
+```
+등록할 Hosted Zone명 : your.domain.name.net    # 과정소개에서 생성한 Public Domain명
+www                 : A 레코드, web server 또는 web load balancer IP 주소, 300 
+```
+
 ## 통신 제어 규칙 구성
 
 ### Firewall
@@ -47,6 +64,26 @@ terraform apply --auto-approve
 |Terrafom|dbSG|Outbound|0.0.0.0/0|TCP 443|HTTPS outbound to Internet|
 |Terrafom|dbSG|Outbound|0.0.0.0/0|TCP 80|HTTP outbound to Internet|
 |Manual|dbSG|Inbound|appSG|TCP 2866|db connection inbound from app vm |
+|Manual|dbSG|Inbound|bastionSG|TCP 22|SSH inbound from bastion|
+
+## Bastion Host에 RDP 접속
+
+ - Putty 설치(install_putty.ps1)
+ - 인증키(mykey.ppk)를 bastion으로 복사
+ - web, app, db vm에 SSH 접속
+
+
+### Security Group
+|Deployment|Security Group|Direction|Target Address<br>Remote SG|Service|Description|
+|:-----:|:-----:|:-----:|:-----:|:-----:|:-----|
+|Manual|bastionSG|Outbound|dbSG|TCP 22|SSH outbound to db vm |
+|Manual|bastionSG|Outbound|webSG|TCP 22|SSH outbound to web vm |
+|Manual|bastionSG|Outbound|appSG|TCP 22|SSH outbound to app vm |
+|||||||
+|Manual|webSG|Inbound|bastionSG|TCP 22|SSH inbound from bastion|
+|||||||
+|Manual|appSG|Inbound|bastionSG|TCP 22|SSH inbound from bastion|
+|||||||
 |Manual|dbSG|Inbound|bastionSG|TCP 22|SSH inbound from bastion|
 
 ## 데이터베이스 서버 설치 (PostgreSQL 16.8)

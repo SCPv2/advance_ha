@@ -264,7 +264,6 @@ resource "samsungcloudplatformv2_security_group_security_group_rule" "db_https_o
 ########################################################
 # Subnet에 NAT Gateway 연결
 ########################################################
-
 resource "samsungcloudplatformv2_vpc_nat_gateway" "web_natgateway" {
     subnet_id = samsungcloudplatformv2_vpc_subnet.subnets["Subnet11"].id
     publicip_id = samsungcloudplatformv2_vpc_publicip.publicips["PIP2"].id
