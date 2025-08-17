@@ -74,31 +74,30 @@ www                 : A 레코드, web server 또는 web load balancer IP 주소
 
 ## 데이터베이스 서버 설치 (PostgreSQL 16.8)
 ```bash
-
+sudo dnf update -y
+sudo dnf install git -y
 cd /home/rocky/
-
 git clone https://github.com/SCPv2/ceweb.git
-
 cd /home/rocky/ceweb/db-server/vm_db/
-
 sudo bash install_postgresql_vm.sh
-
 ```
 
 ## 애플리케이션 서버 설치 (node.js 2.0)
 
 ```bash
-
+sudo dnf update -y
+sudo dnf install git -y
 cd /home/rocky/
 git clone https://github.com/SCPv2/ceweb.git
 cd /home/rocky/ceweb/app-server/
 sudo bash install_app_server.sh
-
 ```
 
 ## 웹 서버 설치 (Nginx)
 
 ```bash
+sudo dnf update -y
+sudo dnf install git -y
 cd /home/rocky/
 git clone https://github.com/SCPv2/ceweb.git
 cd /home/rocky/ceweb/web-server/
