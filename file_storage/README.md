@@ -4,7 +4,7 @@
 '[고가용성 3계층 아키텍처 구성](../3_tier_architecture/README.md)' 에서 이어지는 실습입니다.
 
 ## File Storage 생성
-```"console"
+```
 볼륨명 : cefs
 디스크 유형 : HDD
 프로토콜 : NFS
