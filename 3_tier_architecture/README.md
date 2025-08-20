@@ -262,6 +262,12 @@ sudo bash install_web_server.sh
 - www : 10.1.1.100 (webLB Service IP)
 - app : 10.1.2.100 (appLB Service IP)
 
+# app vm 애플리케이션 재기동 명령
+```
+pm2 status
+pm2 start creative-energy-api
+```
+
 ## 자원 삭제
 
 이번 Chapter는 차시별 작업이 다음 차시로 계속 이어집니다. 자원 삭제가 필요한 경우 아래 작업을 수행하십시오.
