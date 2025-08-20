@@ -262,10 +262,10 @@ sudo bash install_web_server.sh
 - www : 10.1.1.100 (webLB Service IP)
 - app : 10.1.2.100 (appLB Service IP)
 
-# app vm 애플리케이션 재기동 명령
+# appvm212r vm 애플리케이션 재기동 명령
 ```
-pm2 status
-pm2 start creative-energy-api
+cd /home/rocky/ceweb/app-server
+pm2 start ecosystem.config.js
 ```
 
 ## 자원 삭제
