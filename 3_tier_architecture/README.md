@@ -1,45 +1,58 @@
 # 고가용성 3계층 아키텍처 구성
 
-## 실습 준비
-- Key Pair, 인증키, DNS 사전 준비 필요 ([과정 소개](https://github.com/SCPv2/ce_advance_introduction/blob/main/README.md) 참조)
-- Terraform을 처음 접하시는 분은 '[Terraform을 이용한 인프라 구성 자동화](https://github.com/SCPv2/ce_advance_introduction/blob/main/README.md)' 차시 참고
-- Terraform으로 실습 환경 구성
+## 선행 실습
 
+### 선택 '[과정 소개](https://github.com/SCPv2/ce_advance_introduction/blob/main/README.md)'
+
+- Key Pair, 인증키, DNS 등 사전 준비
+
+### 선택 '[Terraform을 이용한 클라우드 자원 배포](https://github.com/SCPv2/advance_iac/blob/main/terraform/README.md)'
+
+- Samsung Cloud Platform v2 기반 Terraform 학습
+
+## 실습 환경 배포
+
+**&#128906; 사용자 변수 입력 (\load_balancing\variables.tf)**
+
+```hcl
+variable "user_public_ip" {
+  type        = string
+  description = "Public IP address of user PC"
+  default     = "x.x.x.x"                           # 수강자 PC의 Public IP 주소 입력
+}
 ```
+
+**&#128906; Terraform 자원 배포 템플릿 실행**
+
+```bash
+cd C:\scpv2advance\advance_ha\3_tier_architecture\
 terraform init
 terraform validate
 terraform plan
+
 terraform apply --auto-approve
 ```
 
-## DNS 설정
+## 환경 검토
 
-### Private DNS 확인 - VPC1에 연결
-```
-Private DNS Name : cesvc
-VPC              : VPC1
-Hosted Zone      : cesvc.net
-www              : A 레코드, 10.1.1.111, 300
-app              : A 레코드, 10.1.2.121, 300
-db               : A 레코드, 10.1.3.131, 300
-```
-### Public Domain Name 확인
-```
-등록할 Hosted Zone명 : your.domain.name.net    # 과정소개에서 생성한 Public Domain명
-www                 : A 레코드, web server 또는 web load balancer IP 주소, 300 
-```
-
-## 기본 구성된 통신제어 규칙
+- Architectuer Diagram
+- VPC CIDR
+- Subnet CIDR
+- Virtual Server OS, Public IP, Private IP
+- Firewall 규칙
+- Security Group 규칙
 
 ### Firewall
+
 |Deployment|Firewall|Source|Destination|Service|Action|Direction|Description|
 |:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----|
-|Terraform|IGW|10.1.1.110, 10.1.1.111,<br> 10.1.2.121, 10.1.3.131|0.0.0.0/0|TCP 80, 443|Allow|Outbound|HTTP/HTTPS outbound from vms to Internet|
+|Terraform|IGW|10.1.1.110, 10.1.1.111, 10.1.2.121, 10.1.3.131|0.0.0.0/0|TCP 80, 443|Allow|Outbound|HTTP/HTTPS outbound from vms to Internet|
 |Terraform|IGW|Your Public IP|10.1.1.110|TCP 3389|Allow|Inbound|RDP inbound to bastion|
 |Add|IGW|Your Public IP|10.1.1.111|TCP 80|Allow|Inbound|HTTP inbound to web vm|
 
 ### Security Group
-|Deployment|Security Group|Direction|Target Address<br>Remote SG|Service|Description|
+
+|Deployment|Security Group|Direction|Target Address/Remote SG|Service|Description|
 |:-----:|:-----:|:-----:|:-----:|:-----:|:-----|
 |Terrafom|bastionSG|Inbound|Your Public IP|TCP 3389|RDP inbound to bastion VM|
 |Terrafom|bastionSG|Outbound|0.0.0.0/0|TCP 80|HTTP outbound to Internet|
@@ -66,13 +79,35 @@ www                 : A 레코드, web server 또는 web load balancer IP 주소
 |Add|dbSG|Inbound|appSG|TCP 2866|db connection inbound from app vm |
 |Add|dbSG|Inbound|bastionSG|TCP 22|SSH inbound from bastion|
 
-## Bastion Host에 RDP 접속
+### Load Balancer용 Public IP 예약
 
- - Putty 설치(install_putty.ps1) 및 구성(Pageant에 키 로드, Connection>SSH>Auth>Allow agent Forwarding 체크)
- - 인증키(mykey.ppk)를 bastion으로 복사
- - web, app, db vm에 SSH 접속을 위한 Security Group 구성
+- 구분 : Internet Gateway
 
-## 데이터베이스 서버 설치 (PostgreSQL 16.8)
+### Private DNS 확인 - VPC1에 연결
+
+- Private DNS Name : cesvc
+- VPC              : VPC1
+- Hosted Zone      : cesvc.net
+- www              : A 레코드, 10.1.1.111, 300
+- app              : A 레코드, 10.1.2.121, 300
+- db               : A 레코드, 10.1.3.131, 300
+
+### Public Domian Name 확인
+
+- Public Domain Name: '[과정소개](https://github.com/SCPv2/advance_introduction)'에서 등록한 도메인명
+- Hosted Zone       : '[과정소개](https://github.com/SCPv2/advance_introduction)'에서 등록한 도메인명
+- www               : A 레코드, 바로 앞에서 만든 Public IP, 300
+
+## 서버 구성
+
+### vm 접속
+
+**&#128906; Bastion Host RDP 접속**
+
+**&#128906; web, app, db vm SSH 접속**
+
+### 데이터베이스 서버 설치 (PostgreSQL 16.8)
+
 ```bash
 sudo dnf update -y
 sudo dnf install git -y
@@ -82,7 +117,7 @@ cd /home/rocky/ceweb/db-server/vm_db/
 sudo bash install_postgresql_vm.sh
 ```
 
-## 애플리케이션 서버 설치 (node.js 2.0)
+### 애플리케이션 서버 설치 (node.js 2.0)
 
 ```bash
 sudo dnf update -y
@@ -93,7 +128,7 @@ cd /home/rocky/ceweb/app-server/
 sudo bash install_app_server.sh
 ```
 
-## 웹 서버 설치 (Nginx)
+### 웹 서버 설치 (Nginx)
 
 ```bash
 sudo dnf update -y
@@ -104,109 +139,113 @@ cd /home/rocky/ceweb/web-server/
 sudo bash install_web_server.sh
 ```
 
-# 고가용성  서버 구성 작업
+## 고가용성을 위한 서버 이중화
 
-## webvm, appvm 이미지 생성 및 서버 생성
-```
-webvm image : webvm111r-img
-appvm image : appvm121r-img
-```
-## web Load Balancer 생성
+### webvm, appvm 이미지 생성 및 서버 생성
 
-```
-Load Balancer명: weblb
-서비스 구분 :  L4
-VPC : VPC1
-Service Subnet : Subnet11
-Sevice IP      : 10.1.1.100
-Public NAT IP  : 사용
-Firewall 사용   : 사용
-Firewall 로그 저장 여부 : 사용
-```
-## web LB 서버 그룹 생성
-```
-LB 서버 그룹명 : weblbgrp
-VPC           : VPC1
-Service Subnet : Subnet11
-부하 분산 : Round Robin
-프로토콜 : TCP
-LB 헬스 체크 : HTTP_Default_Port80
+- webvm image : webvm111r-img
+- appvm image : appvm121r-img
 
-연결된 자원 : webvm111r, webvm112r
-가중치 : 1
-```
-## web Listener 생성
-```
-Listener명 : weblistener
-프로토콜 : TCP
-서비스 포트 : 80
-LB 서버 그룹 : weblbgrp
-세션 유지 시간 : 120초
-지속성 : 소스 IP
-Insert Client IP : 미사용
-```
+### web Load Balancer 생성
 
-## app Load Balancer 생성
-```
-Load Balancer명 : applb
-서비스 구분 :  L4
-VPC : VPC1
-Service Subnet : Subnet12
-Sevice IP : 10.1.2.100
-Public NAT IP : 사용 안함
-Firewall 사용 : 사용
-Firewall 로그 저장 여부 : 사용
-```
-## app 헬스 체크 생성
-```
-LB 헬스 체크명: app_healthcheck
-VPC : VPC1
-Service Subnet : Subnet12
-헬스 체크 방식 
-프로토콜 : TCP
-헬스 체크 포트 : 3000
-주기 : 5
-대기 시간 : 5
-탐지 횟수 : 3
-```
-## app LB 서버 그룹
-```
-LB 서버 그룹명 : applbgrp
-VPC           : VPC1
-Service Subnet : Subnet12
-부하 분산 : Round Robin
-프로토콜 : TCP
-LB 헬스 체크 : Happ_healthcheck
+- Load Balancer명: weblb
 
-연결된 자원 : appvm121r, appvm122r
-가중치 : 1
-```
-## web Listener 생성
-```
-Listener명 : applistener
-프로토콜 : TCP
-서비스 포트 : 3000
-LB 서버 그룹 : applbgrp
-세션 유지 시간 : 120초
-지속성 : 소스 IP
-Insert Client IP : 미사용
-```
+- 서비스 구분 :  L4
+- VPC : VPC1
+- Service Subnet : Subnet11
+- Sevice IP      : 10.1.1.100
+- Public NAT IP  : 사용
+- Firewall 사용   : 사용
+- Firewall 로그 저장 여부 : 사용
 
+### web LB 서버 그룹 생성
 
-## Firewall 구성
+- LB 서버 그룹명 : weblbgrp
+- VPC           : VPC1
+- Service Subnet : Subnet11
+- 부하 분산 : Round Robin
+- 프로토콜 : TCP
+- LB 헬스 체크 : HTTP_Default_Port80
+
+- 연결된 자원 : webvm111r, webvm112r
+- 가중치 : 1
+
+### web Listener 생성
+
+- Listener명 : weblistener
+
+- 프로토콜 : TCP
+- 서비스 포트 : 80
+- LB 서버 그룹 : weblbgrp
+- 세션 유지 시간 : 120초
+- 지속성 : 소스 IP
+- Insert Client IP : 미사용
+
+### app Load Balancer 생성
+
+- Load Balancer명 : applb
+
+- 서비스 구분 :  L4
+- VPC : VPC1
+- Service Subnet : Subnet12
+- Sevice IP : 10.1.2.100
+- Public NAT IP : 사용 안함
+- Firewall 사용 : 사용
+- Firewall 로그 저장 여부 : 사용
+
+### app 헬스 체크 생성
+
+- LB 헬스 체크명: app_healthcheck
+- VPC : VPC1
+- Service Subnet : Subnet12
+- 헬스 체크 방식
+- 프로토콜 : TCP
+- 헬스 체크 포트 : 3000
+- 주기 : 5
+- 대기 시간 : 5
+- 탐지 횟수 : 3
+
+### app LB 서버 그룹
+
+- LB 서버 그룹명 : applbgrp
+- VPC           : VPC1
+- Service Subnet : Subnet12
+- 부하 분산 : Round Robin
+- 프로토콜 : TCP
+- LB 헬스 체크 : Happ_healthcheck
+
+- 연결된 자원 : appvm121r, appvm122r
+- 가중치 : 1
+
+### app Listener 생성
+
+- Listener명 : applistener
+
+- 프로토콜 : TCP
+- 서비스 포트 : 3000
+- LB 서버 그룹 : applbgrp
+- 세션 유지 시간 : 120초
+- 지속성 : 소스 IP
+- Insert Client IP : 미사용
+
+## 통신 제어 규칙 추가
+
+### Firewall 구성
+
 |Deployment|Firewall|Source|Destination|Service|Action|Direction|Description|
 |:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----|
 |Delete|IGW|Your Public IP|10.1.1.111|TCP 80|Allow|Inbound|HTTP inbound to web vm|
-|Add|IGW|Your Public IP|10.1.1.100<br>(Service IP)|TCP 80|Allow|Inbound|클라이언트 → LB 연결|
-|Add|web Load Balancer|Your Public IP|10.1.1.100<br>(Service IP)|TCP 80|Allow|Outbound|클라이언트 → LB 연결|
-|Add|web Load Balancer|webLB Source NAT IP|10.1.1.111, 10.1.1.112<br>(webvm IP)|TCP 80|Allow|Inbound|LB → 멤버 연결|
-|Add|web Load Balancer|webLB 헬스 체크 IP|10.1.1.111, 10.1.1.112<br>(webvm IP)|TCP 80|Allow|Inbound|LB → 멤버 헬스 체크|
-|Add|app Load Balancer|10.1.1.111, 10.1.1.112<br>(webvm IP)|10.1.2.100<br>(Service IP)|3000|Allow|Outbound|클라이언트 → LB 연결|
-|Add|app Load Balancer|appLB Source NAT IP|10.1.2.121, 10.1.2.122<br>(appvm IP)|3000|Allow|Inbound|LB → 멤버 연결|
-|Add|app Load Balancer|appLB 헬스 체크 IP|10.1.2.121, 10.1.2.122<br>(appvm IP)|3000|Allow|Inbound|LB → 멤버 헬스 체크|
+|Add|IGW|Your Public IP|10.1.1.100 (Service IP)|TCP 80|Allow|Inbound|클라이언트 → LB 연결|
+|Add|web Load Balancer|Your Public IP|10.1.1.100 (Service IP)|TCP 80|Allow|Outbound|클라이언트 → LB 연결|
+|Add|web Load Balancer|webLB Source NAT IP|10.1.1.111, 10.1.1.112 (webvm IP)|TCP 80|Allow|Inbound|LB → 멤버 연결|
+|Add|web Load Balancer|webLB 헬스 체크 IP|10.1.1.111, 10.1.1.112 (webvm IP)|TCP 80|Allow|Inbound|LB → 멤버 헬스 체크|
+|Add|app Load Balancer|10.1.1.111, 10.1.1.112 (webvm IP)|10.1.2.100 (Service IP)|3000|Allow|Outbound|클라이언트 → LB 연결|
+|Add|app Load Balancer|appLB Source NAT IP|10.1.2.121, 10.1.2.122 (appvm IP)|3000|Allow|Inbound|LB → 멤버 연결|
+|Add|app Load Balancer|appLB 헬스 체크 IP|10.1.2.121, 10.1.2.122 (appvm IP)|3000|Allow|Inbound|LB → 멤버 헬스 체크|
 
-## Security Group 구성
-|Deployment|Security Group|Direction|Target Address<br>Remote SG|Service|Description|
+### Security Group 구성
+
+|Deployment|Security Group|Direction|Target Address / Remote SG|Service|Description|
 |:-----:|:-----:|:-----:|:-----:|:-----:|:-----|
 |Delete|webSG|Inbound|Your Public IP|TCP 80|HTTP inbound from your PC|
 |Add|webSG|Inbound|webLB Source NAT IP|TCP 80|HTTP inbound from Load Balancer|
@@ -219,7 +258,29 @@ Insert Client IP : 미사용
 |Add|webSG|Inbound|appLB 헬스 체크 IP|3000|Healthcheck 3000 inbound from Load Balancer|
 
 ## DNS 변경
+
+- www : 10.1.1.100 (webLB Service IP)
+- app : 10.1.2.100 (appLB Service IP)
+
+# appvm212r vm 애플리케이션 재기동 명령
 ```
-www : 10.1.1.100 (webLB Service IP)
-app : 10.1.2.100 (appLB Service IP)
+cd /home/rocky/ceweb/app-server
+pm2 start ecosystem.config.js
+```
+
+## 자원 삭제
+
+이번 Chapter는 차시별 작업이 다음 차시로 계속 이어집니다. 자원 삭제가 필요한 경우 아래 작업을 수행하십시오.
+
+### Load Balancer 삭제
+
+### webvn112r, appvm212r 삭제
+
+### Public IP 삭제
+
+### 자동 배포 자원 삭제
+
+```bash
+cd C:\scpv2advance\advance_networking\vpn\scp_deployment
+terraform destroy --auto-approve
 ```

@@ -10,7 +10,7 @@ variable "keypair_name" {
 variable "user_public_ip" {
   type        = string
   description = "Public IP address of user PC"
-  default     = "0.0.0.0"                                # 수강자 PC의 Public IP 주소 입력
+  default     = "x.x.x.x"                                # 수강자 PC의 Public IP 주소 입력
 }
 
 ########################################################
