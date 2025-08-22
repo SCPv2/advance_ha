@@ -22,6 +22,7 @@ resource "samsungcloudplatformv2_vpc_vpc" "vpcs" {
   name        = each.value.name
   cidr        = each.value.cidr
   description = lookup(each.value, "description", null)
+  tags        = var.common_tags
 }
 
 ########################################################
@@ -33,6 +34,7 @@ resource "samsungcloudplatformv2_vpc_internet_gateway" "igw" {
   vpc_id            = each.value.id
   firewall_enabled  = true
   firewall_loggable = false
+  tags              = var.common_tags
 
   depends_on = [samsungcloudplatformv2_vpc_vpc.vpcs]
 }
@@ -47,6 +49,7 @@ resource "samsungcloudplatformv2_vpc_subnet" "subnets" {
   type        = each.value.type
   description = each.value.description
   vpc_id      = samsungcloudplatformv2_vpc_vpc.vpcs[each.value.vpc_name].id
+  tags        = var.common_tags
 
   depends_on  = [samsungcloudplatformv2_vpc_internet_gateway.igw]
 }
@@ -65,6 +68,7 @@ resource "samsungcloudplatformv2_vpc_publicip" "publicips" {
   for_each    = { for pip in var.public_ips : pip.name => pip }
   type        = "IGW"
   description = each.value.description
+  tags        = var.common_tags
 
  depends_on = [samsungcloudplatformv2_vpc_subnet.subnets] 
 }
@@ -75,21 +79,25 @@ resource "samsungcloudplatformv2_vpc_publicip" "publicips" {
 resource "samsungcloudplatformv2_security_group_security_group" "bastion_sg" {
   name        = var.security_group_bastion
   loggable    = false
+  tags        = var.common_tags
 }
 
 resource "samsungcloudplatformv2_security_group_security_group" "web_sg" {
   name        = var.security_group_web
   loggable    = false
+  tags        = var.common_tags
 }
 
 resource "samsungcloudplatformv2_security_group_security_group" "app_sg" {
   name        = var.security_group_app
   loggable    = false
+  tags        = var.common_tags
 }
 
 resource "samsungcloudplatformv2_security_group_security_group" "db_sg" {
   name        = var.security_group_db
   loggable    = false
+  tags        = var.common_tags
 }
 
 ########################################################
@@ -268,6 +276,7 @@ resource "samsungcloudplatformv2_vpc_nat_gateway" "web_natgateway" {
     subnet_id = samsungcloudplatformv2_vpc_subnet.subnets["Subnet11"].id
     publicip_id = samsungcloudplatformv2_vpc_publicip.publicips["PIP2"].id
     description = "NAT for web"
+    tags        = var.common_tags
 
     depends_on = [
     samsungcloudplatformv2_security_group_security_group.bastion_sg,
@@ -280,6 +289,7 @@ resource "samsungcloudplatformv2_vpc_nat_gateway" "app_natgateway" {
     subnet_id = samsungcloudplatformv2_vpc_subnet.subnets["Subnet12"].id
     publicip_id = samsungcloudplatformv2_vpc_publicip.publicips["PIP3"].id
     description = "NAT for app"
+    tags        = var.common_tags
 
     depends_on = [
     samsungcloudplatformv2_security_group_security_group.bastion_sg,
@@ -292,6 +302,7 @@ resource "samsungcloudplatformv2_vpc_nat_gateway" "db_natgateway" {
     subnet_id = samsungcloudplatformv2_vpc_subnet.subnets["Subnet13"].id
     publicip_id = samsungcloudplatformv2_vpc_publicip.publicips["PIP4"].id
     description = "NAT for db"
+    tags        = var.common_tags
 
     depends_on = [
     samsungcloudplatformv2_security_group_security_group.bastion_sg,
@@ -308,6 +319,7 @@ resource "samsungcloudplatformv2_vpc_port" "bastion_port" {
   description       = "bastion port"
   subnet_id         = samsungcloudplatformv2_vpc_subnet.subnets["Subnet11"].id
   fixed_ip_address  = var.bastion_ip
+  tags              = var.common_tags
 
   security_groups = [samsungcloudplatformv2_security_group_security_group.bastion_sg.id]
 
@@ -322,6 +334,7 @@ resource "samsungcloudplatformv2_vpc_port" "web_port" {
   description       = "web port"
   subnet_id         = samsungcloudplatformv2_vpc_subnet.subnets["Subnet11"].id
   fixed_ip_address  = var.web_ip
+  tags              = var.common_tags
 
   security_groups = [samsungcloudplatformv2_security_group_security_group.web_sg.id]
 
@@ -336,6 +349,7 @@ resource "samsungcloudplatformv2_vpc_port" "app_port" {
   description       = "app port"
   subnet_id         = samsungcloudplatformv2_vpc_subnet.subnets["Subnet12"].id
   fixed_ip_address  = var.app_ip
+  tags              = var.common_tags
 
   security_groups = [samsungcloudplatformv2_security_group_security_group.app_sg.id]
 
@@ -350,6 +364,7 @@ resource "samsungcloudplatformv2_vpc_port" "db_port" {
   description       = "db port"
   subnet_id         = samsungcloudplatformv2_vpc_subnet.subnets["Subnet13"].id
   fixed_ip_address  = var.db_ip
+  tags              = var.common_tags
 
   security_groups = [samsungcloudplatformv2_security_group_security_group.db_sg.id]
 
@@ -415,6 +430,7 @@ resource "samsungcloudplatformv2_virtualserver_server" "vm1" {
   keypair_name   = data.samsungcloudplatformv2_virtualserver_keypair.kp.name
   server_type_id = var.server_type_id
   state ="ACTIVE"
+  tags           = var.common_tags
   boot_volume = {
     size                  = var.boot_volume_windows.size
     type                  = var.boot_volume_windows.type
@@ -442,6 +458,7 @@ resource "samsungcloudplatformv2_virtualserver_server" "vm2" {
   keypair_name   = data.samsungcloudplatformv2_virtualserver_keypair.kp.name
   server_type_id = var.server_type_id
   state ="ACTIVE"
+  tags           = var.common_tags
   boot_volume = {
     size                  = var.boot_volume_rocky.size
     type                  = var.boot_volume_rocky.type
@@ -468,7 +485,8 @@ resource "samsungcloudplatformv2_virtualserver_server" "vm3" {
   name           = var.vm_app.name
   keypair_name   = data.samsungcloudplatformv2_virtualserver_keypair.kp.name
   server_type_id = var.server_type_id
-  state ="ACTIVE" 
+  state ="ACTIVE"
+  tags           = var.common_tags 
   boot_volume = {
     size                  = var.boot_volume_rocky.size
     type                  = var.boot_volume_rocky.type
@@ -496,6 +514,7 @@ resource "samsungcloudplatformv2_virtualserver_server" "vm4" {
   keypair_name   = data.samsungcloudplatformv2_virtualserver_keypair.kp.name
   server_type_id = var.server_type_id
   state ="ACTIVE"
+  tags           = var.common_tags
 
   boot_volume = {
     size                  = var.boot_volume_rocky.size

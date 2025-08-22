@@ -13,6 +13,48 @@ variable "common_tags" {
 ########################################################
 # 수강자 입력 항목
 ########################################################
+variable "private_hosted_zone_id" {
+  type        = string
+  description = "Private Hosted Zone ID for domain"
+  default     = ""                                    # Private Hosted Zone ID 입력 필요 : 콘솔에서 등록하고 입력 필요.
+}
+
+variable "public_domain_name" {
+  type        = string
+  description = "Public domain name (e.g., example.com)"
+  default     = ""                                     # 사용자 Public 도메인으로 변경
+}
+
+variable "private_domain_name" {
+  type        = string
+  description = "Private domain name (e.g., internal.local)"
+  default     = ""                                     # 사용자 Private 도메인으로 변경
+}
+
+variable "object_storage_bucket_string" {
+  type        = string
+  description = "Samsung Cloud Platform Object Storage bucket string"
+  default     = ""                                      # Object Storage bucket string 입력 필요
+}
+
+variable "object_storage_access_key_id" {
+  type        = string
+  description = "Samsung Cloud Platform Object Storage Access Key ID"
+  default     = ""                                      # Object Storage Access Key ID 입력 필요
+}
+
+variable "object_storage_secret_access_key" {
+  type        = string
+  description = "Samsung Cloud Platform Object Storage Secret Access Key"
+  default     = ""                                      # Object Storage Secret Key 입력 필요
+  sensitive   = true
+}
+
+variable "public_hosted_zone_id" {
+  type        = string
+  description = "Public Hosted Zone ID for domain"
+  default     = ""                                      # Public Hosted Zone ID 입력 필요
+}
 variable "keypair_name" {
   type        = string
   description = "Key Pair to access VM"
@@ -22,7 +64,7 @@ variable "keypair_name" {
 variable "user_public_ip" {
   type        = string
   description = "Public IP address of user PC"
-  default     = "x.x.x.x"                               # 수강자 PC의 Public IP 주소 입력
+  default     = "x.x.x.x"                                # 수강자 PC의 Public IP 주소 입력
 }
 
 ########################################################
@@ -44,6 +86,18 @@ variable "app_ip" {
   type        = string
   description = "Private IP address of app VM"
   default     = "10.1.2.121"                           
+}
+
+variable "web_ip2" {
+  type        = string
+  description = "Private IP address of web VM2"
+  default     = "10.1.1.112"                           
+}
+
+variable "app_ip2" {
+  type        = string
+  description = "Private IP address of app VM2"
+  default     = "10.1.2.122"                           
 }
 
 variable "db_ip" {
@@ -202,6 +256,17 @@ variable "vm_web" {
   }
 }
 
+variable "vm_web2" {
+  type = object({
+    name = string
+    description = string
+  })
+  default = {
+    name = "webvm112r"
+    description = "web VM2"
+  }
+}
+
 variable "vm_app" {
   type = object({
     name = string
@@ -210,6 +275,17 @@ variable "vm_app" {
   default = {
     name = "appvm121r"
     description = "app VM1"
+  }
+}
+
+variable "vm_app2" {
+  type = object({
+    name = string
+    description = string
+  })
+  default = {
+    name = "appvm122r"
+    description = "app VM2"
   }
 }
 
@@ -248,4 +324,19 @@ variable "boot_volume_rocky" {
     type                  = "SSD"
     delete_on_termination = true
   }
+}
+
+########################################################
+# Load Balancer 변수 정의
+########################################################
+variable "web_lb_service_ip" {
+  type        = string
+  description = "Service IP for Web Load Balancer"
+  default     = "10.1.1.100"
+}
+
+variable "app_lb_service_ip" {
+  type        = string
+  description = "Service IP for App Load Balancer"
+  default     = "10.1.2.100"
 }
