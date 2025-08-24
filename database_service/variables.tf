@@ -12,61 +12,65 @@ variable "common_tags" {
 
 ########################################################
 # 1. 사용자 입력 변수 (USER_INPUT_VARIABLES)
-# 사용자가 대화형으로 수정 가능한 필수 입력 항목
+#    사용자가 대화형으로 수정 가능한 필수 입력 항목
+#    ceweb 애플리케이션과 Terraform에서 공통으로 사용하는 변수입니다.
+#    master_config.json에서 요구하는 변수 중 일부가 포함됩니다.
+#    이 파트에는 새로운 변수를 추가할 수 없습니다.
 ########################################################
 
 variable "private_domain_name" {
   type        = string
   description = "[USER_INPUT] Private domain name (e.g., internal.local)"
-  default     = ""
+  default     = "ceservice.net"
 }
 
 variable "private_hosted_zone_id" {
   type        = string
   description = "[USER_INPUT] Private Hosted Zone ID for domain"
-  default     = ""
+  default     = "975bba7b0f0b4359af97519e8bcff842"
 }
 
 variable "public_domain_name" {
   type        = string
   description = "[USER_INPUT] Public domain name (e.g., example.com)"
-  default     = ""
+  default     = "creative-energy.net"
 }
 
 variable "keypair_name" {
   type        = string
   description = "[USER_INPUT] Key Pair to access VM"
-  default     = "mykey"
+  default     = "stkey"
 }
 
 variable "user_public_ip" {
   type        = string
   description = "[USER_INPUT] Public IP address of user PC"
-  default     = ""
+  default     = "14.39.93.74"
 }
 
 variable "object_storage_access_key_id" {
   type        = string
   description = "[USER_INPUT] Object Storage access key ID"
-  default     = ""
+  default     = "put_the_value_if_you_use_object_storage_in_this_lab"
 }
 
 variable "object_storage_secret_access_key" {
   type        = string
   description = "[USER_INPUT] Object Storage secret access key"
-  default     = ""
+  default     = "put_the_value_if_you_use_object_storage_in_this_lab"
 }
 
 variable "object_storage_bucket_string" {
   type        = string
   description = "[USER_INPUT] Object Storage bucket string"
-  default     = ""
+  default     = "put_the_value_if_you_use_object_storage_in_this_lab"
 }
-
 
 ########################################################
 # 2. ceweb 애플리케이션 필수 변수 (CEWEB_REQUIRED_VARIABLES)
-# ceweb 애플리케이션이 master_config.json에서 요구하는 변수들
+#    ceweb 애플리케이션과 Terraform에서 공통으로 사용하는 변수입니다.
+#    master_config.json에서 요구하는 변수 중 일부가 포함됩니다.
+#    이 파트에는 새로운 변수를 추가할 수 없습니다.
 ########################################################
 
 variable "app_server_port" {
@@ -235,12 +239,14 @@ variable "company_name" {
 variable "admin_email" {
   type        = string
   description = "[CEWEB_REQUIRED] Administrator email"
-  default     = "revotty@ars4mundus@gmail.com"
+  default     = "ars4mundus@gmail.com"
 }
 
 ########################################################
 # 3. Terraform 인프라 변수 (TERRAFORM_INFRASTRUCTURE_VARIABLES)
-# Terraform 리소스 생성에만 필요한 변수들
+#    Terraform 리소스 생성에만 필요한 변수들
+#    이 파트에는 새로운 변수를 추가할 수 있습니다.
+#    단, 이 파트의 변수는 main.tf에서만 사용됩니다.
 ########################################################
 
 variable "bastion_ip" {
@@ -279,68 +285,97 @@ variable "db_ip" {
   default     = "10.1.3.131"
 }
 
-variable "vpcs" {
-  description = "VPC for Creative Energy [TERRAFORM_INFRA]"
-  type = list(object({
-    name        = string
-    cidr        = string
-    description = optional(string)
-  }))
-  default = [
-    {
-      name        = "VPC1"
-      cidr        = "10.1.0.0/16"
-      description = "ceweb VPC"
-    }
-  ]
+# VPC Configuration Variables
+variable "vpc_name" {
+  type        = string
+  description = "VPC name [TERRAFORM_INFRA]"
+  default     = "VPC1"
 }
 
-variable "subnets" {
-  description = "Subnet for Creative Energy [TERRAFORM_INFRA]"
-  type = list(object({
-    name        = string
-    cidr        = string
-    type        = string
-    vpc_name    = string
-    description = string
-  }))
-  default = [
-    {
-      name        = "Subnet11"
-      cidr        = "10.1.1.0/24"
-      type        = "GENERAL"
-      vpc_name    = "VPC1"
-      description = "ceweb Subnet"
-    },
-    {
-      name        = "Subnet12"
-      cidr        = "10.1.2.0/24"
-      type        = "GENERAL"
-      vpc_name    = "VPC1"
-      description = "bbweb Subnet"
-    },
-    {
-      name        = "Subnet13"
-      cidr        = "10.1.3.0/24"
-      type        = "GENERAL"
-      vpc_name    = "VPC1"
-      description = "bbweb Subnet"
-    }
-  ]
+variable "vpc_cidr" {
+  type        = string
+  description = "VPC CIDR block [TERRAFORM_INFRA]"
+  default     = "10.1.0.0/16"
 }
 
-variable "public_ips" {
-  type = list(object({
-    name        = string
-    description = string
-  }))
-  description = "Public IP configuration [TERRAFORM_INFRA]"
-  default = [
-    { name = "PIP1", description = "Public IP for VM" },
-    { name = "PIP2", description = "Public IP for VM" },
-    { name = "PIP3", description = "Public IP for VM" },
-    { name = "PIP4", description = "Public IP for VM" }
-  ]
+variable "vpc_description" {
+  type        = string
+  description = "VPC description [TERRAFORM_INFRA]"
+  default     = "ceweb VPC"
+}
+
+# Subnet Configuration Variables
+variable "web_subnet_name" {
+  type        = string
+  description = "Web subnet name [TERRAFORM_INFRA]"
+  default     = "Subnet11"
+}
+
+variable "web_subnet_cidr" {
+  type        = string
+  description = "Web subnet CIDR block [TERRAFORM_INFRA]"
+  default     = "10.1.1.0/24"
+}
+
+variable "app_subnet_name" {
+  type        = string
+  description = "App subnet name [TERRAFORM_INFRA]"
+  default     = "Subnet12"
+}
+
+variable "app_subnet_cidr" {
+  type        = string
+  description = "App subnet CIDR block [TERRAFORM_INFRA]"
+  default     = "10.1.2.0/24"
+}
+
+variable "db_subnet_name" {
+  type        = string
+  description = "DB subnet name [TERRAFORM_INFRA]"
+  default     = "Subnet13"
+}
+
+variable "db_subnet_cidr" {
+  type        = string
+  description = "DB subnet CIDR block [TERRAFORM_INFRA]"
+  default     = "10.1.3.0/24"
+}
+
+variable "subnet_type" {
+  type        = string
+  description = "Subnet type [TERRAFORM_INFRA]"
+  default     = "GENERAL"
+}
+
+# Public IP Configuration Variables
+variable "pip1_name" {
+  type        = string
+  description = "Public IP 1 name [TERRAFORM_INFRA]"
+  default     = "PIP1"
+}
+
+variable "pip2_name" {
+  type        = string
+  description = "Public IP 2 name [TERRAFORM_INFRA]"
+  default     = "PIP2"
+}
+
+variable "pip3_name" {
+  type        = string
+  description = "Public IP 3 name [TERRAFORM_INFRA]"
+  default     = "PIP3"
+}
+
+variable "pip4_name" {
+  type        = string
+  description = "Public IP 4 name [TERRAFORM_INFRA]"
+  default     = "PIP4"
+}
+
+variable "public_ip_description" {
+  type        = string
+  description = "Public IP description [TERRAFORM_INFRA]"
+  default     = "Public IP for VM"
 }
 
 variable "security_group_bastion" {
@@ -397,102 +432,122 @@ variable "server_type_id" {
   default     = "s1v1m2"
 }
 
-variable "vm_bastion" {
-  type = object({
-    name        = string
-    description = string
-  })
-  description = "Bastion VM configuration [TERRAFORM_INFRA]"
-  default = {
-    name        = "bastionvm110w"
-    description = "bastion VM"
-  }
+# VM Configuration Variables
+variable "vm_bastion_name" {
+  type        = string
+  description = "Bastion VM name [TERRAFORM_INFRA]"
+  default     = "bastionvm110w"
 }
 
-variable "vm_web" {
-  type = object({
-    name        = string
-    description = string
-  })
-  description = "Web VM configuration [TERRAFORM_INFRA]"
-  default = {
-    name        = "webvm111r"
-    description = "web VM1"
-  }
+variable "vm_bastion_description" {
+  type        = string
+  description = "Bastion VM description [TERRAFORM_INFRA]"
+  default     = "bastion VM"
 }
 
-variable "vm_web2" {
-  type = object({
-    name        = string
-    description = string
-  })
-  description = "Web VM2 configuration [TERRAFORM_INFRA]"
-  default = {
-    name        = "webvm112r"
-    description = "web VM2"
-  }
+variable "vm_web_name" {
+  type        = string
+  description = "Web VM name [TERRAFORM_INFRA]"
+  default     = "webvm111r"
 }
 
-variable "vm_app" {
-  type = object({
-    name        = string
-    description = string
-  })
-  description = "App VM configuration [TERRAFORM_INFRA]"
-  default = {
-    name        = "appvm121r"
-    description = "app VM1"
-  }
+variable "vm_web_description" {
+  type        = string
+  description = "Web VM description [TERRAFORM_INFRA]"
+  default     = "web VM1"
 }
 
-variable "vm_app2" {
-  type = object({
-    name        = string
-    description = string
-  })
-  description = "App VM2 configuration [TERRAFORM_INFRA]"
-  default = {
-    name        = "appvm122r"
-    description = "app VM2"
-  }
+variable "vm_web2_name" {
+  type        = string
+  description = "Web VM2 name [TERRAFORM_INFRA]"
+  default     = "webvm112r"
 }
 
-variable "vm_db" {
-  type = object({
-    name        = string
-    description = string
-  })
-  description = "DB VM configuration [TERRAFORM_INFRA]"
-  default = {
-    name        = "dbvm131r"
-    description = "db VM"
-  }
+variable "vm_web2_description" {
+  type        = string
+  description = "Web VM2 description [TERRAFORM_INFRA]"
+  default     = "web VM2"
 }
 
-variable "boot_volume_windows" {
-  type = object({
-    size                  = number
-    type                  = optional(string)
-    delete_on_termination = optional(bool)
-  })
-  description = "Windows boot volume configuration [TERRAFORM_INFRA]"
-  default = {
-    size                  = 32
-    type                  = "SSD"
-    delete_on_termination = true
-  }
+variable "vm_app_name" {
+  type        = string
+  description = "App VM name [TERRAFORM_INFRA]"
+  default     = "appvm121r"
 }
 
-variable "boot_volume_rocky" {
-  type = object({
-    size                  = number
-    type                  = optional(string)
-    delete_on_termination = optional(bool)
-  })
-  description = "Rocky boot volume configuration [TERRAFORM_INFRA]"
-  default = {
-    size                  = 16
-    type                  = "SSD"
-    delete_on_termination = true
-  }
+variable "vm_app_description" {
+  type        = string
+  description = "App VM description [TERRAFORM_INFRA]"
+  default     = "app VM1"
 }
+
+variable "vm_app2_name" {
+  type        = string
+  description = "App VM2 name [TERRAFORM_INFRA]"
+  default     = "appvm122r"
+}
+
+variable "vm_app2_description" {
+  type        = string
+  description = "App VM2 description [TERRAFORM_INFRA]"
+  default     = "app VM2"
+}
+
+variable "vm_db_name" {
+  type        = string
+  description = "DB VM name [TERRAFORM_INFRA]"
+  default     = "dbvm131r"
+}
+
+variable "vm_db_description" {
+  type        = string
+  description = "DB VM description [TERRAFORM_INFRA]"
+  default     = "db VM"
+}
+
+# Boot Volume Configuration Variables
+variable "windows_boot_volume_size" {
+  type        = number
+  description = "Windows boot volume size in GB [TERRAFORM_INFRA]"
+  default     = 32
+}
+
+variable "windows_boot_volume_type" {
+  type        = string
+  description = "Windows boot volume type [TERRAFORM_INFRA]"
+  default     = "SSD"
+}
+
+variable "windows_boot_volume_delete_on_termination" {
+  type        = bool
+  description = "Delete Windows boot volume on termination [TERRAFORM_INFRA]"
+  default     = true
+}
+
+variable "rocky_boot_volume_size" {
+  type        = number
+  description = "Rocky boot volume size in GB [TERRAFORM_INFRA]"
+  default     = 16
+}
+
+variable "rocky_boot_volume_type" {
+  type        = string
+  description = "Rocky boot volume type [TERRAFORM_INFRA]"
+  default     = "SSD"
+}
+
+variable "rocky_boot_volume_delete_on_termination" {
+  type        = bool
+  description = "Delete Rocky boot volume on termination [TERRAFORM_INFRA]"
+  default     = true
+}
+
+
+
+
+
+
+
+
+
+

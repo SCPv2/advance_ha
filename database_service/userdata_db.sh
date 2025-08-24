@@ -1,10 +1,10 @@
-#!/bin/bash
+﻿#!/bin/bash
 
 # Creative Energy Database Server Auto-Installation Script
 # Rocky Linux 9.4 PostgreSQL Database Server Setup
 # Terraform UserData Script for Samsung Cloud Platform
 
-set -euxo pipefail
+set -euo pipefail
 
 # Create log file for troubleshooting
 LOGFILE="/var/log/userdata_db.log"
@@ -15,11 +15,71 @@ echo "===================="
 echo "DB Server Init Started: $(date)"
 echo "===================="
 
-# Update system packages
+# Wait for internet connection (HTTP-based check for security group compatibility)
+echo "[0/6] Waiting for internet connection..."
+MAX_WAIT=300  # 5 minutes maximum wait
+WAIT_COUNT=0
+until curl -s --connect-timeout 5 http://www.google.com > /dev/null 2>&1; do
+    echo "Waiting for internet connection... ($((WAIT_COUNT * 10))s elapsed)"
+    sleep 10
+    WAIT_COUNT=$((WAIT_COUNT + 1))
+    if [ $WAIT_COUNT -gt $((MAX_WAIT / 10)) ]; then
+        echo "Internet connection timeout after $MAX_WAIT seconds"
+        exit 1
+    fi
+done
+echo "Internet connection established"
+
+# Wait for Rocky Linux mirrors to be accessible
+echo "[0.5/6] Checking Rocky Linux repositories..."
+until curl -s --connect-timeout 10 https://mirrors.rockylinux.org > /dev/null 2>&1; do
+    echo "Waiting for Rocky Linux mirrors..."
+    sleep 15
+done
+echo "Rocky Linux repositories accessible"
+
+# Update system packages with retry logic
 echo "[1/6] System update..."
-sudo dnf install -y epel-release
+for attempt in 1 2 3 4 5; do
+    echo "Package installation attempt $attempt/5"
+    if sudo dnf clean all && sudo dnf install -y epel-release; then
+        echo "EPEL repository installed successfully"
+        break
+    else
+        echo "EPEL installation attempt $attempt failed"
+        if [ $attempt -eq 5 ]; then
+            echo "All package installation attempts failed"
+            exit 1
+        fi
+        echo "Retrying in 30 seconds..."
+        sleep 30
+    fi
+done
+
+# Update packages with error handling
+set +e  # Temporarily disable exit on error for updates
 sudo dnf -y update
-sudo dnf install -y wget curl git vim nano htop net-tools bind-utils netcat telnet
+UPDATE_RESULT=$?
+set -e  # Re-enable exit on error
+
+if [ $UPDATE_RESULT -ne 0 ]; then
+    echo "System update had issues, but continuing with installation..."
+fi
+
+# Install additional packages with retry
+for attempt in 1 2 3; do
+    if sudo dnf install -y wget curl git vim nano htop net-tools bind-utils netcat telnet; then
+        echo "Additional packages installed successfully"
+        break
+    else
+        echo "Additional packages installation attempt $attempt failed"
+        if [ $attempt -eq 3 ]; then
+            echo "Additional packages installation failed, but continuing..."
+        else
+            sleep 20
+        fi
+    fi
+done
 
 # Clone application repository
 echo "[2/6] Cloning application repository..."
@@ -30,30 +90,30 @@ sudo -u rocky git clone https://github.com/SCPv2/ceweb.git
 echo "[2.5/6] Creating master configuration from terraform variables..."
 
 # Variables injected by PowerShell deploy script
-PUBLIC_DOMAIN_NAME="${public_domain_name}"
-PRIVATE_DOMAIN_NAME="${private_domain_name}"
-USER_PUBLIC_IP="${user_public_ip}"
-KEYPAIR_NAME="${keypair_name}"
-PRIVATE_HOSTED_ZONE_ID="${private_hosted_zone_id}"
+PUBLIC_DOMAIN_NAME="creative-energy.net"
+PRIVATE_DOMAIN_NAME="ceservice.net"
+USER_PUBLIC_IP="14.39.93.74"
+KEYPAIR_NAME="stkey"
+PRIVATE_HOSTED_ZONE_ID="975bba7b0f0b4359af97519e8bcff842"
 
-VPC_CIDR="${vpc_cidr}"
-WEB_SUBNET_CIDR="${web_subnet_cidr}"
-APP_SUBNET_CIDR="${app_subnet_cidr}"
-DB_SUBNET_CIDR="${db_subnet_cidr}"
+VPC_CIDR="10.1.0.0/16"
+WEB_SUBNET_CIDR="10.1.1.0/24"
+APP_SUBNET_CIDR="10.1.2.0/24"
+DB_SUBNET_CIDR="10.1.3.0/24"
 
-BASTION_IP="${bastion_ip}"
-WEB_IP="${web_ip}"
-WEB_IP2="${web_ip2}"
-APP_IP="${app_ip}"
-APP_IP2="${app_ip2}"
-DB_IP="${db_ip}"
+BASTION_IP="10.1.1.110"
+WEB_IP="10.1.1.111"
+WEB_IP2="10.1.1.112"
+APP_IP="10.1.2.121"
+APP_IP2="10.1.2.122"
+DB_IP="10.1.3.131"
 
-WEB_LB_SERVICE_IP="${web_lb_service_ip}"
-APP_LB_SERVICE_IP="${app_lb_service_ip}"
+WEB_LB_SERVICE_IP="10.1.1.100"
+APP_LB_SERVICE_IP="10.1.2.100"
 
-APP_SERVER_PORT="${app_server_port}"
-DATABASE_PORT="${database_port}"
-DATABASE_NAME="${database_name}"
+APP_SERVER_PORT="3000"
+DATABASE_PORT="2866"
+DATABASE_NAME="creative_energy_db"
 
 # Create master_config.json with terraform variables
 cat > /home/rocky/master_config.json << EOF
@@ -67,8 +127,8 @@ cat > /home/rocky/master_config.json << EOF
   },
   "infrastructure": {
     "domain": {
-      "public_domain_name": "$PUBLIC_DOMAIN_NAME",
-      "private_domain_name": "$PRIVATE_DOMAIN_NAME",
+      "public_domain_name": "creative-energy.net",
+      "private_domain_name": "ceservice.net",
       "private_hosted_zone_id": "$PRIVATE_HOSTED_ZONE_ID"
     },
     "network": {
@@ -191,7 +251,7 @@ chown rocky:rocky /home/rocky/DB_Server_Ready.log
 
 echo "===================="
 echo "DB Server Init Completed: $(date)"
-echo "DB Connection: db.${private_domain_name}:2866"
+echo "DB Connection: db.ceservice.net:2866"
 echo "Database: cedb"
 echo "Admin User: ceadmin"
 echo "===================="

@@ -17,11 +17,10 @@ provider "samsungcloudplatformv2" {
 ########################################################
 # VPC 자원 생성
 ########################################################
-resource "samsungcloudplatformv2_vpc_vpc" "vpcs" {
-  for_each    = { for v in var.vpcs : v.name => v }
-  name        = each.value.name
-  cidr        = each.value.cidr
-  description = lookup(each.value, "description", null)
+resource "samsungcloudplatformv2_vpc_vpc" "vpc" {
+  name        = var.vpc_name
+  cidr        = var.vpc_cidr
+  description = var.vpc_description
   tags        = var.common_tags
 }
 
@@ -29,26 +28,46 @@ resource "samsungcloudplatformv2_vpc_vpc" "vpcs" {
 # Internet Gateway 생성, VPC 연결
 ########################################################
 resource "samsungcloudplatformv2_vpc_internet_gateway" "igw" {
-  for_each          = samsungcloudplatformv2_vpc_vpc.vpcs
   type              = "IGW"
-  vpc_id            = each.value.id
+  vpc_id            = samsungcloudplatformv2_vpc_vpc.vpc.id
   firewall_enabled  = true
   firewall_loggable = false
   tags              = var.common_tags
 
-  depends_on = [samsungcloudplatformv2_vpc_vpc.vpcs]
+  depends_on = [samsungcloudplatformv2_vpc_vpc.vpc]
 }
 
 ########################################################
 # Subnet 자원 생성
 ########################################################
-resource "samsungcloudplatformv2_vpc_subnet" "subnets" {
-  for_each    = { for sb in var.subnets : sb.name => sb }
-  name        = each.value.name
-  cidr        = each.value.cidr
-  type        = each.value.type
-  description = each.value.description
-  vpc_id      = samsungcloudplatformv2_vpc_vpc.vpcs[each.value.vpc_name].id
+resource "samsungcloudplatformv2_vpc_subnet" "web_subnet" {
+  name        = var.web_subnet_name
+  cidr        = var.web_subnet_cidr
+  type        = var.subnet_type
+  description = "ceweb Subnet"
+  vpc_id      = samsungcloudplatformv2_vpc_vpc.vpc.id
+  tags        = var.common_tags
+
+  depends_on = [samsungcloudplatformv2_vpc_internet_gateway.igw]
+}
+
+resource "samsungcloudplatformv2_vpc_subnet" "app_subnet" {
+  name        = var.app_subnet_name
+  cidr        = var.app_subnet_cidr
+  type        = var.subnet_type
+  description = "App Subnet"
+  vpc_id      = samsungcloudplatformv2_vpc_vpc.vpc.id
+  tags        = var.common_tags
+
+  depends_on = [samsungcloudplatformv2_vpc_internet_gateway.igw]
+}
+
+resource "samsungcloudplatformv2_vpc_subnet" "db_subnet" {
+  name        = var.db_subnet_name
+  cidr        = var.db_subnet_cidr
+  type        = var.subnet_type
+  description = "DB Subnet"
+  vpc_id      = samsungcloudplatformv2_vpc_vpc.vpc.id
   tags        = var.common_tags
 
   depends_on = [samsungcloudplatformv2_vpc_internet_gateway.igw]
@@ -74,7 +93,7 @@ resource "samsungcloudplatformv2_dns_record" "www_initial" {
     description = "Initial DNS record for web server (will be updated to LB IP manually)"
   }
 
-  depends_on = [samsungcloudplatformv2_vpc_subnet.subnets]
+  depends_on = [samsungcloudplatformv2_vpc_subnet.web_subnet, samsungcloudplatformv2_vpc_subnet.app_subnet, samsungcloudplatformv2_vpc_subnet.db_subnet]
 }
 
 resource "samsungcloudplatformv2_dns_record" "app_initial" {
@@ -87,7 +106,7 @@ resource "samsungcloudplatformv2_dns_record" "app_initial" {
     description = "Initial DNS record for app server (will be updated to LB IP manually)"
   }
 
-  depends_on = [samsungcloudplatformv2_vpc_subnet.subnets]
+  depends_on = [samsungcloudplatformv2_vpc_subnet.web_subnet, samsungcloudplatformv2_vpc_subnet.app_subnet, samsungcloudplatformv2_vpc_subnet.db_subnet]
 }
 
 resource "samsungcloudplatformv2_dns_record" "db_record" {
@@ -100,19 +119,38 @@ resource "samsungcloudplatformv2_dns_record" "db_record" {
     description = "DNS record for database server (permanent)"
   }
 
-  depends_on = [samsungcloudplatformv2_vpc_subnet.subnets]
+  depends_on = [samsungcloudplatformv2_vpc_subnet.web_subnet, samsungcloudplatformv2_vpc_subnet.app_subnet, samsungcloudplatformv2_vpc_subnet.db_subnet]
 }
 
 ########################################################
 # Public IP
 ########################################################
-resource "samsungcloudplatformv2_vpc_publicip" "publicips" {
-  for_each    = { for pip in var.public_ips : pip.name => pip }
+resource "samsungcloudplatformv2_vpc_publicip" "pip1" {
   type        = "IGW"
-  description = each.value.description
+  description = var.public_ip_description
   tags        = var.common_tags
+  depends_on  = [samsungcloudplatformv2_vpc_subnet.web_subnet, samsungcloudplatformv2_vpc_subnet.app_subnet, samsungcloudplatformv2_vpc_subnet.db_subnet]
+}
 
-  depends_on = [samsungcloudplatformv2_vpc_subnet.subnets]
+resource "samsungcloudplatformv2_vpc_publicip" "pip2" {
+  type        = "IGW"
+  description = var.public_ip_description
+  tags        = var.common_tags
+  depends_on  = [samsungcloudplatformv2_vpc_subnet.web_subnet, samsungcloudplatformv2_vpc_subnet.app_subnet, samsungcloudplatformv2_vpc_subnet.db_subnet]
+}
+
+resource "samsungcloudplatformv2_vpc_publicip" "pip3" {
+  type        = "IGW"
+  description = var.public_ip_description
+  tags        = var.common_tags
+  depends_on  = [samsungcloudplatformv2_vpc_subnet.web_subnet, samsungcloudplatformv2_vpc_subnet.app_subnet, samsungcloudplatformv2_vpc_subnet.db_subnet]
+}
+
+resource "samsungcloudplatformv2_vpc_publicip" "pip4" {
+  type        = "IGW"
+  description = var.public_ip_description
+  tags        = var.common_tags
+  depends_on  = [samsungcloudplatformv2_vpc_subnet.web_subnet, samsungcloudplatformv2_vpc_subnet.app_subnet, samsungcloudplatformv2_vpc_subnet.db_subnet]
 }
 
 ########################################################
@@ -333,41 +371,41 @@ resource "samsungcloudplatformv2_security_group_security_group_rule" "db_https_o
 # Subnet에 NAT Gateway 연결
 ########################################################
 resource "samsungcloudplatformv2_vpc_nat_gateway" "web_natgateway" {
-  subnet_id   = samsungcloudplatformv2_vpc_subnet.subnets["Subnet11"].id
-  publicip_id = samsungcloudplatformv2_vpc_publicip.publicips["PIP2"].id
+  subnet_id   = samsungcloudplatformv2_vpc_subnet.web_subnet.id
+  publicip_id = samsungcloudplatformv2_vpc_publicip.pip2.id
   description = "NAT for web"
   tags        = var.common_tags
 
   depends_on = [
     samsungcloudplatformv2_security_group_security_group.bastion_sg,
-    samsungcloudplatformv2_vpc_subnet.subnets,
-    samsungcloudplatformv2_vpc_publicip.publicips
+    samsungcloudplatformv2_vpc_subnet.web_subnet, samsungcloudplatformv2_vpc_subnet.app_subnet, samsungcloudplatformv2_vpc_subnet.db_subnet,
+    samsungcloudplatformv2_vpc_publicip.pip1, samsungcloudplatformv2_vpc_publicip.pip2, samsungcloudplatformv2_vpc_publicip.pip3, samsungcloudplatformv2_vpc_publicip.pip4
   ]
 }
 
 resource "samsungcloudplatformv2_vpc_nat_gateway" "app_natgateway" {
-  subnet_id   = samsungcloudplatformv2_vpc_subnet.subnets["Subnet12"].id
-  publicip_id = samsungcloudplatformv2_vpc_publicip.publicips["PIP3"].id
+  subnet_id   = samsungcloudplatformv2_vpc_subnet.app_subnet.id
+  publicip_id = samsungcloudplatformv2_vpc_publicip.pip3.id
   description = "NAT for app"
   tags        = var.common_tags
 
   depends_on = [
     samsungcloudplatformv2_security_group_security_group.bastion_sg,
-    samsungcloudplatformv2_vpc_subnet.subnets,
-    samsungcloudplatformv2_vpc_publicip.publicips
+    samsungcloudplatformv2_vpc_subnet.web_subnet, samsungcloudplatformv2_vpc_subnet.app_subnet, samsungcloudplatformv2_vpc_subnet.db_subnet,
+    samsungcloudplatformv2_vpc_publicip.pip1, samsungcloudplatformv2_vpc_publicip.pip2, samsungcloudplatformv2_vpc_publicip.pip3, samsungcloudplatformv2_vpc_publicip.pip4
   ]
 }
 
 resource "samsungcloudplatformv2_vpc_nat_gateway" "db_natgateway" {
-  subnet_id   = samsungcloudplatformv2_vpc_subnet.subnets["Subnet13"].id
-  publicip_id = samsungcloudplatformv2_vpc_publicip.publicips["PIP4"].id
+  subnet_id   = samsungcloudplatformv2_vpc_subnet.db_subnet.id
+  publicip_id = samsungcloudplatformv2_vpc_publicip.pip4.id
   description = "NAT for db"
   tags        = var.common_tags
 
   depends_on = [
     samsungcloudplatformv2_security_group_security_group.bastion_sg,
-    samsungcloudplatformv2_vpc_subnet.subnets,
-    samsungcloudplatformv2_vpc_publicip.publicips
+    samsungcloudplatformv2_vpc_subnet.web_subnet, samsungcloudplatformv2_vpc_subnet.app_subnet, samsungcloudplatformv2_vpc_subnet.db_subnet,
+    samsungcloudplatformv2_vpc_publicip.pip1, samsungcloudplatformv2_vpc_publicip.pip2, samsungcloudplatformv2_vpc_publicip.pip3, samsungcloudplatformv2_vpc_publicip.pip4
   ]
 }
 
@@ -377,7 +415,7 @@ resource "samsungcloudplatformv2_vpc_nat_gateway" "db_natgateway" {
 resource "samsungcloudplatformv2_vpc_port" "bastion_port" {
   name             = "bastionport"
   description      = "bastion port"
-  subnet_id        = samsungcloudplatformv2_vpc_subnet.subnets["Subnet11"].id
+  subnet_id        = samsungcloudplatformv2_vpc_subnet.web_subnet.id
   fixed_ip_address = var.bastion_ip
   tags             = var.common_tags
 
@@ -385,14 +423,14 @@ resource "samsungcloudplatformv2_vpc_port" "bastion_port" {
 
   depends_on = [
     samsungcloudplatformv2_security_group_security_group.bastion_sg,
-    samsungcloudplatformv2_vpc_subnet.subnets
+    samsungcloudplatformv2_vpc_subnet.web_subnet, samsungcloudplatformv2_vpc_subnet.app_subnet, samsungcloudplatformv2_vpc_subnet.db_subnet
   ]
 }
 
 resource "samsungcloudplatformv2_vpc_port" "web_port" {
   name             = "webport"
   description      = "web port"
-  subnet_id        = samsungcloudplatformv2_vpc_subnet.subnets["Subnet11"].id
+  subnet_id        = samsungcloudplatformv2_vpc_subnet.web_subnet.id
   fixed_ip_address = var.web_ip
   tags             = var.common_tags
 
@@ -400,14 +438,14 @@ resource "samsungcloudplatformv2_vpc_port" "web_port" {
 
   depends_on = [
     samsungcloudplatformv2_security_group_security_group.web_sg,
-    samsungcloudplatformv2_vpc_subnet.subnets
+    samsungcloudplatformv2_vpc_subnet.web_subnet, samsungcloudplatformv2_vpc_subnet.app_subnet, samsungcloudplatformv2_vpc_subnet.db_subnet
   ]
 }
 
 resource "samsungcloudplatformv2_vpc_port" "web_port2" {
   name             = "webport2"
   description      = "web port2"
-  subnet_id        = samsungcloudplatformv2_vpc_subnet.subnets["Subnet11"].id
+  subnet_id        = samsungcloudplatformv2_vpc_subnet.web_subnet.id
   fixed_ip_address = var.web_ip2
   tags             = var.common_tags
 
@@ -415,14 +453,14 @@ resource "samsungcloudplatformv2_vpc_port" "web_port2" {
 
   depends_on = [
     samsungcloudplatformv2_security_group_security_group.web_sg,
-    samsungcloudplatformv2_vpc_subnet.subnets
+    samsungcloudplatformv2_vpc_subnet.web_subnet, samsungcloudplatformv2_vpc_subnet.app_subnet, samsungcloudplatformv2_vpc_subnet.db_subnet
   ]
 }
 
 resource "samsungcloudplatformv2_vpc_port" "app_port" {
   name             = "appport"
   description      = "app port"
-  subnet_id        = samsungcloudplatformv2_vpc_subnet.subnets["Subnet12"].id
+  subnet_id        = samsungcloudplatformv2_vpc_subnet.app_subnet.id
   fixed_ip_address = var.app_ip
   tags             = var.common_tags
 
@@ -430,14 +468,14 @@ resource "samsungcloudplatformv2_vpc_port" "app_port" {
 
   depends_on = [
     samsungcloudplatformv2_security_group_security_group.app_sg,
-    samsungcloudplatformv2_vpc_subnet.subnets
+    samsungcloudplatformv2_vpc_subnet.web_subnet, samsungcloudplatformv2_vpc_subnet.app_subnet, samsungcloudplatformv2_vpc_subnet.db_subnet
   ]
 }
 
 resource "samsungcloudplatformv2_vpc_port" "app_port2" {
   name             = "appport2"
   description      = "app port2"
-  subnet_id        = samsungcloudplatformv2_vpc_subnet.subnets["Subnet12"].id
+  subnet_id        = samsungcloudplatformv2_vpc_subnet.app_subnet.id
   fixed_ip_address = var.app_ip2
   tags             = var.common_tags
 
@@ -445,14 +483,14 @@ resource "samsungcloudplatformv2_vpc_port" "app_port2" {
 
   depends_on = [
     samsungcloudplatformv2_security_group_security_group.app_sg,
-    samsungcloudplatformv2_vpc_subnet.subnets
+    samsungcloudplatformv2_vpc_subnet.web_subnet, samsungcloudplatformv2_vpc_subnet.app_subnet, samsungcloudplatformv2_vpc_subnet.db_subnet
   ]
 }
 
 resource "samsungcloudplatformv2_vpc_port" "db_port" {
   name             = "dbport"
   description      = "db port"
-  subnet_id        = samsungcloudplatformv2_vpc_subnet.subnets["Subnet13"].id
+  subnet_id        = samsungcloudplatformv2_vpc_subnet.db_subnet.id
   fixed_ip_address = var.db_ip
   tags             = var.common_tags
 
@@ -460,7 +498,7 @@ resource "samsungcloudplatformv2_vpc_port" "db_port" {
 
   depends_on = [
     samsungcloudplatformv2_security_group_security_group.db_sg,
-    samsungcloudplatformv2_vpc_subnet.subnets
+    samsungcloudplatformv2_vpc_subnet.web_subnet, samsungcloudplatformv2_vpc_subnet.app_subnet, samsungcloudplatformv2_vpc_subnet.db_subnet
   ]
 }
 
@@ -516,16 +554,16 @@ locals {
 
 # 1. DB VM (첫 번째 생성)
 resource "samsungcloudplatformv2_virtualserver_server" "vm4" {
-  name           = var.vm_db.name
+  name           = var.vm_db_name
   keypair_name   = data.samsungcloudplatformv2_virtualserver_keypair.kp.name
   server_type_id = var.server_type_id
   state          = "ACTIVE"
   tags           = var.common_tags
 
   boot_volume = {
-    size                  = var.boot_volume_rocky.size
-    type                  = var.boot_volume_rocky.type
-    delete_on_termination = var.boot_volume_rocky.delete_on_termination
+    size                  = var.rocky_boot_volume_size
+    type                  = var.rocky_boot_volume_type
+    delete_on_termination = var.rocky_boot_volume_delete_on_termination
   }
   image_id = local.rocky_image_id_first
   networks = {
@@ -536,7 +574,7 @@ resource "samsungcloudplatformv2_virtualserver_server" "vm4" {
   user_data = base64encode(file("${path.module}/userdata_db.sh"))
   depends_on = [
     samsungcloudplatformv2_dns_record.db_record,
-    samsungcloudplatformv2_vpc_subnet.subnets,
+    samsungcloudplatformv2_vpc_subnet.web_subnet, samsungcloudplatformv2_vpc_subnet.app_subnet, samsungcloudplatformv2_vpc_subnet.db_subnet,
     samsungcloudplatformv2_security_group_security_group.db_sg,
     samsungcloudplatformv2_vpc_port.db_port,
     samsungcloudplatformv2_vpc_nat_gateway.db_natgateway
@@ -545,16 +583,16 @@ resource "samsungcloudplatformv2_virtualserver_server" "vm4" {
 
 # 2. App VM1 
 resource "samsungcloudplatformv2_virtualserver_server" "vm3" {
-  name           = var.vm_app.name
+  name           = var.vm_app_name
   keypair_name   = data.samsungcloudplatformv2_virtualserver_keypair.kp.name
   server_type_id = var.server_type_id
   state          = "ACTIVE"
   tags           = var.common_tags
 
   boot_volume = {
-    size                  = var.boot_volume_rocky.size
-    type                  = var.boot_volume_rocky.type
-    delete_on_termination = var.boot_volume_rocky.delete_on_termination
+    size                  = var.rocky_boot_volume_size
+    type                  = var.rocky_boot_volume_type
+    delete_on_termination = var.rocky_boot_volume_delete_on_termination
   }
   image_id = local.rocky_image_id_first
   networks = {
@@ -566,7 +604,7 @@ resource "samsungcloudplatformv2_virtualserver_server" "vm3" {
   depends_on = [
     samsungcloudplatformv2_virtualserver_server.vm4,  # DB VM 완료 후
     samsungcloudplatformv2_dns_record.app_initial,
-    samsungcloudplatformv2_vpc_subnet.subnets,
+    samsungcloudplatformv2_vpc_subnet.web_subnet, samsungcloudplatformv2_vpc_subnet.app_subnet, samsungcloudplatformv2_vpc_subnet.db_subnet,
     samsungcloudplatformv2_vpc_port.app_port,
     samsungcloudplatformv2_vpc_nat_gateway.app_natgateway
   ]
@@ -574,16 +612,16 @@ resource "samsungcloudplatformv2_virtualserver_server" "vm3" {
 
 # App VM2
 resource "samsungcloudplatformv2_virtualserver_server" "vm3_2" {
-  name           = var.vm_app2.name
+  name           = var.vm_app2_name
   keypair_name   = data.samsungcloudplatformv2_virtualserver_keypair.kp.name
   server_type_id = var.server_type_id
   state          = "ACTIVE"
   tags           = var.common_tags
 
   boot_volume = {
-    size                  = var.boot_volume_rocky.size
-    type                  = var.boot_volume_rocky.type
-    delete_on_termination = var.boot_volume_rocky.delete_on_termination
+    size                  = var.rocky_boot_volume_size
+    type                  = var.rocky_boot_volume_type
+    delete_on_termination = var.rocky_boot_volume_delete_on_termination
   }
   image_id = local.rocky_image_id_first
   networks = {
@@ -594,7 +632,7 @@ resource "samsungcloudplatformv2_virtualserver_server" "vm3_2" {
   user_data = base64encode(file("${path.module}/userdata_app.sh"))
   depends_on = [
     samsungcloudplatformv2_virtualserver_server.vm4,  # DB VM 완료 후
-    samsungcloudplatformv2_vpc_subnet.subnets,
+    samsungcloudplatformv2_vpc_subnet.web_subnet, samsungcloudplatformv2_vpc_subnet.app_subnet, samsungcloudplatformv2_vpc_subnet.db_subnet,
     samsungcloudplatformv2_vpc_port.app_port2,
     samsungcloudplatformv2_vpc_nat_gateway.app_natgateway
   ]
@@ -602,15 +640,15 @@ resource "samsungcloudplatformv2_virtualserver_server" "vm3_2" {
 
 # Web VM1
 resource "samsungcloudplatformv2_virtualserver_server" "vm2" {
-  name           = var.vm_web.name
+  name           = var.vm_web_name
   keypair_name   = data.samsungcloudplatformv2_virtualserver_keypair.kp.name
   server_type_id = var.server_type_id
   state          = "ACTIVE"
   tags           = var.common_tags
   boot_volume = {
-    size                  = var.boot_volume_rocky.size
-    type                  = var.boot_volume_rocky.type
-    delete_on_termination = var.boot_volume_rocky.delete_on_termination
+    size                  = var.rocky_boot_volume_size
+    type                  = var.rocky_boot_volume_type
+    delete_on_termination = var.rocky_boot_volume_delete_on_termination
   }
   image_id = local.rocky_image_id_first
   networks = {
@@ -622,7 +660,7 @@ resource "samsungcloudplatformv2_virtualserver_server" "vm2" {
   depends_on = [
     samsungcloudplatformv2_virtualserver_server.vm3,  # App VM 1 완료 후
     samsungcloudplatformv2_dns_record.www_initial,
-    samsungcloudplatformv2_vpc_subnet.subnets,
+    samsungcloudplatformv2_vpc_subnet.web_subnet, samsungcloudplatformv2_vpc_subnet.app_subnet, samsungcloudplatformv2_vpc_subnet.db_subnet,
     samsungcloudplatformv2_vpc_port.web_port,
     samsungcloudplatformv2_vpc_nat_gateway.web_natgateway
   ]
@@ -630,15 +668,15 @@ resource "samsungcloudplatformv2_virtualserver_server" "vm2" {
 
 # Web VM 2 (App VM 1 생성 후)
 resource "samsungcloudplatformv2_virtualserver_server" "vm2_2" {
-  name           = var.vm_web2.name
+  name           = var.vm_web2_name
   keypair_name   = data.samsungcloudplatformv2_virtualserver_keypair.kp.name
   server_type_id = var.server_type_id
   state          = "ACTIVE"
   tags           = var.common_tags
   boot_volume = {
-    size                  = var.boot_volume_rocky.size
-    type                  = var.boot_volume_rocky.type
-    delete_on_termination = var.boot_volume_rocky.delete_on_termination
+    size                  = var.rocky_boot_volume_size
+    type                  = var.rocky_boot_volume_type
+    delete_on_termination = var.rocky_boot_volume_delete_on_termination
   }
   image_id = local.rocky_image_id_first
   networks = {
@@ -649,7 +687,7 @@ resource "samsungcloudplatformv2_virtualserver_server" "vm2_2" {
   user_data = base64encode(file("${path.module}/userdata_web.sh"))
   depends_on = [
     samsungcloudplatformv2_virtualserver_server.vm3,  # App VM 1 완료 후
-    samsungcloudplatformv2_vpc_subnet.subnets,
+    samsungcloudplatformv2_vpc_subnet.web_subnet, samsungcloudplatformv2_vpc_subnet.app_subnet, samsungcloudplatformv2_vpc_subnet.db_subnet,
     samsungcloudplatformv2_vpc_port.web_port2,
     samsungcloudplatformv2_vpc_nat_gateway.web_natgateway
   ]
@@ -657,29 +695,29 @@ resource "samsungcloudplatformv2_virtualserver_server" "vm2_2" {
 
 # 6. Bastion VM
 resource "samsungcloudplatformv2_virtualserver_server" "vm1" {
-  name           = var.vm_bastion.name
+  name           = var.vm_bastion_name
   keypair_name   = data.samsungcloudplatformv2_virtualserver_keypair.kp.name
   server_type_id = var.server_type_id
   state          = "ACTIVE"
   tags           = var.common_tags
   boot_volume = {
-    size                  = var.boot_volume_windows.size
-    type                  = var.boot_volume_windows.type
-    delete_on_termination = var.boot_volume_windows.delete_on_termination
+    size                  = var.windows_boot_volume_size
+    type                  = var.windows_boot_volume_type
+    delete_on_termination = var.windows_boot_volume_delete_on_termination
   }
   image_id = local.windows_image_id_first
   networks = {
     nic0 = {
-      public_ip_id = samsungcloudplatformv2_vpc_publicip.publicips["PIP1"].id,
+      public_ip_id = samsungcloudplatformv2_vpc_publicip.pip1.id,
       port_id      = samsungcloudplatformv2_vpc_port.bastion_port.id
     }
   }
   security_groups = [samsungcloudplatformv2_security_group_security_group.bastion_sg.id]
   user_data       = base64encode(file("${path.module}/userdata_bastion.bat"))
   depends_on = [
-    samsungcloudplatformv2_vpc_subnet.subnets,
+    samsungcloudplatformv2_vpc_subnet.web_subnet, samsungcloudplatformv2_vpc_subnet.app_subnet, samsungcloudplatformv2_vpc_subnet.db_subnet,
     samsungcloudplatformv2_security_group_security_group.bastion_sg,
-    samsungcloudplatformv2_vpc_publicip.publicips,
+    samsungcloudplatformv2_vpc_publicip.pip1, samsungcloudplatformv2_vpc_publicip.pip2, samsungcloudplatformv2_vpc_publicip.pip3, samsungcloudplatformv2_vpc_publicip.pip4,
     samsungcloudplatformv2_vpc_port.bastion_port
   ]
 }
@@ -694,18 +732,18 @@ resource "samsungcloudplatformv2_loadbalancer_loadbalancer" "web_lb" {
     name                     = "weblb"
     description              = "Web Load Balancer"
     layer_type               = "L4"
-    vpc_id                   = samsungcloudplatformv2_vpc_vpc.vpcs["VPC1"].id
-    subnet_id                = samsungcloudplatformv2_vpc_subnet.subnets["Subnet11"].id
+    vpc_id                   = samsungcloudplatformv2_vpc_vpc.vpc.id
+    subnet_id                = samsungcloudplatformv2_vpc_subnet.web_subnet.id
     service_ip               = var.web_lb_service_ip
-    publicip_id              = samsungcloudplatformv2_vpc_publicip.publicips["PIP2"].id
+    publicip_id              = samsungcloudplatformv2_vpc_publicip.pip2.id
     firewall_enabled         = true
     firewall_logging_enabled = true
   }
 
   depends_on = [
     samsungcloudplatformv2_virtualserver_server.vm2_2,  # 모든 Web VM 생성 완료 후
-    samsungcloudplatformv2_vpc_subnet.subnets,
-    samsungcloudplatformv2_vpc_publicip.publicips
+    samsungcloudplatformv2_vpc_subnet.web_subnet, samsungcloudplatformv2_vpc_subnet.app_subnet, samsungcloudplatformv2_vpc_subnet.db_subnet,
+    samsungcloudplatformv2_vpc_publicip.pip1, samsungcloudplatformv2_vpc_publicip.pip2, samsungcloudplatformv2_vpc_publicip.pip3, samsungcloudplatformv2_vpc_publicip.pip4
   ]
 }
 
@@ -713,8 +751,8 @@ resource "samsungcloudplatformv2_loadbalancer_loadbalancer" "web_lb" {
 resource "samsungcloudplatformv2_loadbalancer_lb_health_check" "web_health_check" {
   lb_health_check_create = {
     name                  = "web_healthcheck"
-    vpc_id                = samsungcloudplatformv2_vpc_vpc.vpcs["VPC1"].id
-    subnet_id             = samsungcloudplatformv2_vpc_subnet.subnets["Subnet11"].id
+    vpc_id                = samsungcloudplatformv2_vpc_vpc.vpc.id
+    subnet_id             = samsungcloudplatformv2_vpc_subnet.web_subnet.id
     protocol              = "HTTP"
     health_check_port     = 80
     health_check_interval = 5
@@ -727,7 +765,7 @@ resource "samsungcloudplatformv2_loadbalancer_lb_health_check" "web_health_check
   }
 
   depends_on = [
-    samsungcloudplatformv2_vpc_subnet.subnets,
+    samsungcloudplatformv2_vpc_subnet.web_subnet, samsungcloudplatformv2_vpc_subnet.app_subnet, samsungcloudplatformv2_vpc_subnet.db_subnet,
     samsungcloudplatformv2_loadbalancer_loadbalancer.web_lb
   ]
 }
@@ -736,8 +774,8 @@ resource "samsungcloudplatformv2_loadbalancer_lb_health_check" "web_health_check
 resource "samsungcloudplatformv2_loadbalancer_lb_server_group" "web_server_group" {
   lb_server_group_create = {
     name               = "weblbgrp"
-    vpc_id             = samsungcloudplatformv2_vpc_vpc.vpcs["VPC1"].id
-    subnet_id          = samsungcloudplatformv2_vpc_subnet.subnets["Subnet11"].id
+    vpc_id             = samsungcloudplatformv2_vpc_vpc.vpc.id
+    subnet_id          = samsungcloudplatformv2_vpc_subnet.web_subnet.id
     protocol           = "TCP"
     lb_method          = "ROUND_ROBIN"
     description        = "Web server group"
@@ -777,7 +815,7 @@ resource "samsungcloudplatformv2_loadbalancer_lb_member" "web_member2" {
   }
 
   depends_on = [
-    samsungcloudplatformv2_virtualserver_server.vm2_2.
+    samsungcloudplatformv2_virtualserver_server.vm2_2,
     samsungcloudplatformv2_loadbalancer_lb_server_group.web_server_group
   ]
 }
@@ -812,8 +850,8 @@ resource "samsungcloudplatformv2_loadbalancer_loadbalancer" "app_lb" {
     name                     = "applb"
     description              = "App Load Balancer"
     layer_type               = "L4"
-    vpc_id                   = samsungcloudplatformv2_vpc_vpc.vpcs["VPC1"].id
-    subnet_id                = samsungcloudplatformv2_vpc_subnet.subnets["Subnet12"].id
+    vpc_id                   = samsungcloudplatformv2_vpc_vpc.vpc.id
+    subnet_id                = samsungcloudplatformv2_vpc_subnet.app_subnet.id
     service_ip               = var.app_lb_service_ip
     publicip_id              = null
     firewall_enabled         = true
@@ -822,7 +860,7 @@ resource "samsungcloudplatformv2_loadbalancer_loadbalancer" "app_lb" {
 
   depends_on = [
     samsungcloudplatformv2_virtualserver_server.vm3_2,  # 모든 App VM 생성 완료 후
-    samsungcloudplatformv2_vpc_subnet.subnets
+    samsungcloudplatformv2_vpc_subnet.web_subnet, samsungcloudplatformv2_vpc_subnet.app_subnet, samsungcloudplatformv2_vpc_subnet.db_subnet
   ]
 }
 
@@ -830,8 +868,8 @@ resource "samsungcloudplatformv2_loadbalancer_loadbalancer" "app_lb" {
 resource "samsungcloudplatformv2_loadbalancer_lb_health_check" "app_health_check" {
   lb_health_check_create = {
     name                  = "app_healthcheck"
-    vpc_id                = samsungcloudplatformv2_vpc_vpc.vpcs["VPC1"].id
-    subnet_id             = samsungcloudplatformv2_vpc_subnet.subnets["Subnet12"].id
+    vpc_id                = samsungcloudplatformv2_vpc_vpc.vpc.id
+    subnet_id             = samsungcloudplatformv2_vpc_subnet.app_subnet.id
     protocol              = "TCP"
     health_check_port     = 3000
     health_check_interval = 5
@@ -841,7 +879,7 @@ resource "samsungcloudplatformv2_loadbalancer_lb_health_check" "app_health_check
   }
 
   depends_on = [
-    samsungcloudplatformv2_vpc_subnet.subnets,
+    samsungcloudplatformv2_vpc_subnet.web_subnet, samsungcloudplatformv2_vpc_subnet.app_subnet, samsungcloudplatformv2_vpc_subnet.db_subnet,
     samsungcloudplatformv2_loadbalancer_loadbalancer.app_lb
   ]
 }
@@ -850,8 +888,8 @@ resource "samsungcloudplatformv2_loadbalancer_lb_health_check" "app_health_check
 resource "samsungcloudplatformv2_loadbalancer_lb_server_group" "app_server_group" {
   lb_server_group_create = {
     name               = "applbgrp"
-    vpc_id             = samsungcloudplatformv2_vpc_vpc.vpcs["VPC1"].id
-    subnet_id          = samsungcloudplatformv2_vpc_subnet.subnets["Subnet12"].id
+    vpc_id             = samsungcloudplatformv2_vpc_vpc.vpc.id
+    subnet_id          = samsungcloudplatformv2_vpc_subnet.app_subnet.id
     protocol           = "TCP"
     lb_method          = "ROUND_ROBIN"
     description        = "App server group"
