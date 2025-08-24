@@ -65,8 +65,8 @@ if nc -z $LB_APP_IP $APP_PORT 2>/dev/null; then
 else
     echo "App Load Balancer not accessible, using direct connection"
     # Modify nginx config to use direct app server connection (bypass LB failure)
-    sudo sed -i "s|proxy_pass http://app.cesvc.net:3000;|proxy_pass http://$APP_HOST2:3000;|g" /etc/nginx/conf.d/creative-energy.conf
-    sudo sed -i "s|proxy_pass http://app.cesvc.net:3000/health;|proxy_pass http://$APP_HOST2:3000/health;|g" /etc/nginx/conf.d/creative-energy.conf
+    sudo sed -i "s|proxy_pass http://app.${private_domain_name}:3000;|proxy_pass http://$APP_HOST2:3000;|g" /etc/nginx/conf.d/creative-energy.conf
+    sudo sed -i "s|proxy_pass http://app.${private_domain_name}:3000/health;|proxy_pass http://$APP_HOST2:3000/health;|g" /etc/nginx/conf.d/creative-energy.conf
     sudo nginx -t && sudo systemctl restart nginx
     echo "Configured direct connection to app server"
 fi

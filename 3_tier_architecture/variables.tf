@@ -13,6 +13,45 @@ variable "common_tags" {
 ########################################################
 # 수강자 입력 항목
 ########################################################
+
+variable "private_domain_name" {
+  type        = string
+  description = "Private domain name (e.g., internal.local)"
+  default     = "cesvc.net"                                     # 사용자 Private 도메인으로 변경
+}
+
+variable "private_hosted_zone_id" {
+  type        = string
+  description = "Private Hosted Zone ID for domain"
+  default     = "9fa4151c-0dc8-4397-a22c-9797c3026cd2"                                    # Private Hosted Zone ID 입력 필요 : 콘솔에서 등록하고 입력 필요.
+}
+
+variable "public_domain_name" {
+  type        = string
+  description = "Public domain name (e.g., example.com)"
+  default     = "cosmetic-evolution.net"                                     # 사용자 Public 도메인으로 변경
+}
+
+
+variable "object_storage_bucket_string" {
+  type        = string
+  description = "Samsung Cloud Platform Object Storage bucket string"
+  default     = ""                                      # Object Storage bucket string 입력 필요
+}
+
+variable "object_storage_access_key_id" {
+  type        = string
+  description = "Samsung Cloud Platform Object Storage Access Key ID"
+  default     = ""                                      # Object Storage Access Key ID 입력 필요
+}
+
+variable "object_storage_secret_access_key" {
+  type        = string
+  description = "Samsung Cloud Platform Object Storage Secret Access Key"
+  default     = ""                                      # Object Storage Secret Key 입력 필요
+  sensitive   = true
+}
+
 variable "keypair_name" {
   type        = string
   description = "Key Pair to access VM"
@@ -22,7 +61,7 @@ variable "keypair_name" {
 variable "user_public_ip" {
   type        = string
   description = "Public IP address of user PC"
-  default     = "x.x.x.x"                               # 수강자 PC의 Public IP 주소 입력
+  default     = "x.x.x.x"                                # 수강자 PC의 Public IP 주소 입력
 }
 
 ########################################################
@@ -96,14 +135,14 @@ variable "subnets" {
       cidr        = "10.1.2.0/24"
       type        = "GENERAL"
       vpc_name    = "VPC1"
-      description = "bbweb Subnet"
+      description = "ceapp Subnet"
     },
     {
       name        = "Subnet13"
       cidr        = "10.1.3.0/24"
       type        = "GENERAL"
       vpc_name    = "VPC1"
-      description = "bbweb Subnet"
+      description = "cedb Subnet"
     }
   ]
 }
@@ -118,10 +157,10 @@ variable "public_ips" {
     description = string
   }))
   default = [
-    { name = "PIP1", description = "Public IP for VM" },
-    { name = "PIP2", description = "Public IP for VM" },
-    { name = "PIP3", description = "Public IP for VM" },
-    { name = "PIP4", description = "Public IP for VM" }
+    { name = "PIP1", description = "Public IP for Bastion" },
+    { name = "PIP2", description = "Public IP for Web NAT" },
+    { name = "PIP3", description = "Public IP for App NAT" },
+    { name = "PIP4", description = "Public IP for DB NAT" }
   ]
 }
 
@@ -248,4 +287,31 @@ variable "boot_volume_rocky" {
     type                  = "SSD"
     delete_on_termination = true
   }
+}
+
+########################################################
+# Derived variables for master_config.json template
+########################################################
+variable "vpc_cidr" {
+  type        = string
+  description = "VPC CIDR for template usage"
+  default     = "10.1.0.0/16"
+}
+
+variable "web_subnet_cidr" {
+  type        = string
+  description = "Web subnet CIDR for template usage"
+  default     = "10.1.1.0/24"
+}
+
+variable "app_subnet_cidr" {
+  type        = string
+  description = "App subnet CIDR for template usage"
+  default     = "10.1.2.0/24"
+}
+
+variable "db_subnet_cidr" {
+  type        = string
+  description = "DB subnet CIDR for template usage"
+  default     = "10.1.3.0/24"
 }

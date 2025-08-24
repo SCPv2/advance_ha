@@ -9,7 +9,6 @@
     "domain": {
       "public_domain_name": "${public_domain_name}",
       "private_domain_name": "${private_domain_name}",
-      "public_hosted_zone_id": "${public_hosted_zone_id}",
       "private_hosted_zone_id": "${private_hosted_zone_id}"
     },
     "network": {

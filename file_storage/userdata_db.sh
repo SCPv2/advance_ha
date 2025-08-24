@@ -64,7 +64,7 @@ chown rocky:rocky /home/rocky/DB_Server_Ready.log
 
 echo "===================="
 echo "DB Server Init Completed: $(date)"
-echo "DB Connection: db.cesvc.net:2866"
+echo "DB Connection: db.${private_domain_name}:2866"
 echo "Database: cedb"
 echo "Admin User: ceadmin"
 echo "===================="

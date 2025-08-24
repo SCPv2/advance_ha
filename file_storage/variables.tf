@@ -13,48 +13,31 @@ variable "common_tags" {
 ########################################################
 # 수강자 입력 항목
 ########################################################
+
+variable "private_domain_name" {
+  type        = string
+  description = "Private domain name (e.g., internal.local)"
+  default     = "cesvc.net"                                     # 사용자 Private 도메인으로 변경
+}
+
 variable "private_hosted_zone_id" {
   type        = string
   description = "Private Hosted Zone ID for domain"
-  default     = ""                                    # Private Hosted Zone ID 입력 필요 : 콘솔에서 등록하고 입력 필요.
+  default     = "9fa4151c-0dc8-4397-a22c-9797c3026cd2"                                    # Private Hosted Zone ID 입력 필요 : 콘솔에서 등록하고 입력 필요.
 }
 
 variable "public_domain_name" {
   type        = string
   description = "Public domain name (e.g., example.com)"
-  default     = ""                                     # 사용자 Public 도메인으로 변경
+  default     = "cosmetic-evolution.net"                                     # 사용자 Public 도메인으로 변경
 }
 
-variable "private_domain_name" {
-  type        = string
-  description = "Private domain name (e.g., internal.local)"
-  default     = ""                                     # 사용자 Private 도메인으로 변경
-}
 
-variable "object_storage_bucket_string" {
-  type        = string
-  description = "Samsung Cloud Platform Object Storage bucket string"
-  default     = ""                                      # Object Storage bucket string 입력 필요
-}
+# Object Storage 변수들은 기본 3-tier 아키텍처에서 불필요하여 제거
+# Three Tier Object 아키텍처(_obj 파일)를 사용할 경우에만 별도 구성 필요
 
-variable "object_storage_access_key_id" {
-  type        = string
-  description = "Samsung Cloud Platform Object Storage Access Key ID"
-  default     = ""                                      # Object Storage Access Key ID 입력 필요
-}
 
-variable "object_storage_secret_access_key" {
-  type        = string
-  description = "Samsung Cloud Platform Object Storage Secret Access Key"
-  default     = ""                                      # Object Storage Secret Key 입력 필요
-  sensitive   = true
-}
 
-variable "public_hosted_zone_id" {
-  type        = string
-  description = "Public Hosted Zone ID for domain"
-  default     = ""                                      # Public Hosted Zone ID 입력 필요
-}
 variable "keypair_name" {
   type        = string
   description = "Key Pair to access VM"
