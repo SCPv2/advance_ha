@@ -21,31 +21,31 @@ variable "common_tags" {
 variable "private_domain_name" {
   type        = string
   description = "[USER_INPUT] Private domain name (e.g., internal.local)"
-  default     = "ceservice.net"
+  default     = ""
 }
 
 variable "private_hosted_zone_id" {
   type        = string
   description = "[USER_INPUT] Private Hosted Zone ID for domain"
-  default     = "975bba7b0f0b4359af97519e8bcff842"
+  default     = ""
 }
 
 variable "public_domain_name" {
   type        = string
   description = "[USER_INPUT] Public domain name (e.g., example.com)"
-  default     = "creative-energy.net"
+  default     = ""
 }
 
 variable "keypair_name" {
   type        = string
   description = "[USER_INPUT] Key Pair to access VM"
-  default     = "stkey"
+  default     = "mykey"
 }
 
 variable "user_public_ip" {
   type        = string
   description = "[USER_INPUT] Public IP address of user PC"
-  default     = "14.39.93.74"
+  default     = ""
 }
 
 variable "object_storage_access_key_id" {
