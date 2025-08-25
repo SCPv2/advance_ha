@@ -1,0 +1,102 @@
+﻿{
+    "security":  {
+                     "ssl":  {
+                                 "certificate_path":  "/etc/ssl/certs/certificate.crt",
+                                 "private_key_path":  "/etc/ssl/private/private.key"
+                             },
+                     "firewall":  {
+                                      "allowed_public_ips":  [
+                                                                 "/32"
+                                                             ],
+                                      "ssh_key_name":  "mykey"
+                                  }
+                 },
+    "object_storage":  {
+                           "access_key_id":  "put_the_value_if_you_use_object_storage_in_this_lab",
+                           "bucket_name":  "ceweb",
+                           "bucket_string":  "put_the_value_if_you_use_object_storage_in_this_lab",
+                           "public_endpoint":  "https://object-store.kr-west1.e.samsungsdscloud.com",
+                           "region":  "kr-west1",
+                           "folders":  {
+                                           "media":  "media/img",
+                                           "audition":  "files/audition"
+                                       },
+                           "private_endpoint":  "https://object-store.private.kr-west1.e.samsungsdscloud.com",
+                           "secret_access_key":  "put_the_value_if_you_use_object_storage_in_this_lab",
+                           "_comment":  "Object Storage 설정은 기본 3-tier에서 선택사항입니다"
+                       },
+    "user_customization":  {
+                               "backup_retention_days":  30,
+                               "admin_email":  "ars4mundus@gmail.com",
+                               "timezone":  "Asia/Seoul",
+                               "company_name":  "Creative Energy",
+                               "_comment":  "사용자 직접 수정 영역"
+                           },
+    "infrastructure":  {
+                           "load_balancer":  {
+                                                 "web_lb_service_ip":  "10.1.1.100",
+                                                 "app_lb_service_ip":  "10.1.2.100"
+                                             },
+                           "domain":  {
+                                          "private_hosted_zone_id":  "",
+                                          "private_domain_name":  "",
+                                          "public_domain_name":  ""
+                                      },
+                           "servers":  {
+                                           "web_primary_ip":  "10.1.1.111",
+                                           "app_primary_ip":  "10.1.2.121",
+                                           "bastion_ip":  "10.1.1.110",
+                                           "app_secondary_ip":  "10.1.2.122",
+                                           "web_secondary_ip":  "10.1.1.112",
+                                           "db_primary_ip":  "10.1.3.131"
+                                       },
+                           "network":  {
+                                           "app_subnet_cidr":  "10.1.2.0/24",
+                                           "vpc_cidr":  "10.1.0.0/16",
+                                           "web_subnet_cidr":  "10.1.1.0/24",
+                                           "db_subnet_cidr":  "10.1.3.0/24"
+                                       }
+                       },
+    "deployment":  {
+                       "rollback_enabled":  true,
+                       "git_repository":  "https://github.com/SCPv2/ceweb.git",
+                       "git_branch":  "main",
+                       "auto_deployment":  true
+                   },
+    "config_metadata":  {
+                            "created":  "2025-08-25",
+                            "description":  "Samsung Cloud Platform 3-Tier Architecture Master Configuration",
+                            "version":  "1.0.0",
+                            "generated_from":  "variables.tf via terraform console"
+                        },
+    "monitoring":  {
+                       "health_check_interval":  30,
+                       "metrics_enabled":  true,
+                       "log_level":  "info"
+                   },
+    "application":  {
+                        "web_server":  {
+                                           "api_proxy_path":  "/api",
+                                           "upstream_target":  "app.:3000",
+                                           "health_check_path":  "/health",
+                                           "ssl_enabled":  false,
+                                           "nginx_port":  80,
+                                           "fallback_target":  "10.1.2.122:3000"
+                                       },
+                        "database":  {
+                                         "port":  2866,
+                                         "shared_buffers":  "256MB",
+                                         "max_connections":  100,
+                                         "type":  "postgresql",
+                                         "effective_cache_size":  "1GB"
+                                     },
+                        "app_server":  {
+                                           "port":  3000,
+                                           "database_port":  2866,
+                                           "node_env":  "production",
+                                           "session_secret":  "your-secret-key-change-in-production",
+                                           "database_host":  "db.",
+                                           "database_name":  "creative_energy_db"
+                                       }
+                    }
+}

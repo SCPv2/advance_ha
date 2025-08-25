@@ -571,7 +571,7 @@ resource "samsungcloudplatformv2_virtualserver_server" "vm4" {
       port_id = samsungcloudplatformv2_vpc_port.db_port.id
     }
   }
-  user_data = base64encode(file("${path.module}/userdata_db.sh"))
+  user_data = base64encode(file("${path.module}/scripts/userdata_db.sh"))
   depends_on = [
     samsungcloudplatformv2_dns_record.db_record,
     samsungcloudplatformv2_vpc_subnet.web_subnet, samsungcloudplatformv2_vpc_subnet.app_subnet, samsungcloudplatformv2_vpc_subnet.db_subnet,
@@ -600,7 +600,7 @@ resource "samsungcloudplatformv2_virtualserver_server" "vm3" {
       port_id = samsungcloudplatformv2_vpc_port.app_port.id
     }
   }
-  user_data = base64encode(file("${path.module}/userdata_app.sh"))
+  user_data = base64encode(file("${path.module}/scripts/userdata_app.sh"))
   depends_on = [
     samsungcloudplatformv2_virtualserver_server.vm4,  # DB VM 완료 후
     samsungcloudplatformv2_dns_record.app_initial,
@@ -629,7 +629,7 @@ resource "samsungcloudplatformv2_virtualserver_server" "vm3_2" {
       port_id = samsungcloudplatformv2_vpc_port.app_port2.id
     }
   }
-  user_data = base64encode(file("${path.module}/userdata_app.sh"))
+  user_data = base64encode(file("${path.module}/scripts/userdata_app.sh"))
   depends_on = [
     samsungcloudplatformv2_virtualserver_server.vm4,  # DB VM 완료 후
     samsungcloudplatformv2_vpc_subnet.web_subnet, samsungcloudplatformv2_vpc_subnet.app_subnet, samsungcloudplatformv2_vpc_subnet.db_subnet,
@@ -656,7 +656,7 @@ resource "samsungcloudplatformv2_virtualserver_server" "vm2" {
       port_id = samsungcloudplatformv2_vpc_port.web_port.id
     }
   }
-  user_data = base64encode(file("${path.module}/userdata_web.sh"))
+  user_data = base64encode(file("${path.module}/scripts/userdata_web.sh"))
   depends_on = [
     samsungcloudplatformv2_virtualserver_server.vm3,  # App VM 1 완료 후
     samsungcloudplatformv2_dns_record.www_initial,
@@ -684,7 +684,7 @@ resource "samsungcloudplatformv2_virtualserver_server" "vm2_2" {
       port_id = samsungcloudplatformv2_vpc_port.web_port2.id
     }
   }
-  user_data = base64encode(file("${path.module}/userdata_web.sh"))
+  user_data = base64encode(file("${path.module}/scripts/userdata_web.sh"))
   depends_on = [
     samsungcloudplatformv2_virtualserver_server.vm3,  # App VM 1 완료 후
     samsungcloudplatformv2_vpc_subnet.web_subnet, samsungcloudplatformv2_vpc_subnet.app_subnet, samsungcloudplatformv2_vpc_subnet.db_subnet,
@@ -713,7 +713,6 @@ resource "samsungcloudplatformv2_virtualserver_server" "vm1" {
     }
   }
   security_groups = [samsungcloudplatformv2_security_group_security_group.bastion_sg.id]
-  user_data       = base64encode(file("${path.module}/userdata_bastion.bat"))
   depends_on = [
     samsungcloudplatformv2_vpc_subnet.web_subnet, samsungcloudplatformv2_vpc_subnet.app_subnet, samsungcloudplatformv2_vpc_subnet.db_subnet,
     samsungcloudplatformv2_security_group_security_group.bastion_sg,

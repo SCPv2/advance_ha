@@ -90,11 +90,11 @@ sudo -u rocky git clone https://github.com/SCPv2/ceweb.git
 echo "[2.5/6] Creating master configuration from terraform variables..."
 
 # Variables injected by PowerShell deploy script
-PUBLIC_DOMAIN_NAME="creative-energy.net"
-PRIVATE_DOMAIN_NAME="ceservice.net"
-USER_PUBLIC_IP="14.39.93.74"
-KEYPAIR_NAME="stkey"
-PRIVATE_HOSTED_ZONE_ID="975bba7b0f0b4359af97519e8bcff842"
+PUBLIC_DOMAIN_NAME=""
+PRIVATE_DOMAIN_NAME=""
+USER_PUBLIC_IP=""
+KEYPAIR_NAME="mykey"
+PRIVATE_HOSTED_ZONE_ID=""
 
 VPC_CIDR="10.1.0.0/16"
 WEB_SUBNET_CIDR="10.1.1.0/24"
@@ -127,8 +127,8 @@ cat > /home/rocky/master_config.json << EOF
   },
   "infrastructure": {
     "domain": {
-      "public_domain_name": "creative-energy.net",
-      "private_domain_name": "ceservice.net",
+      "public_domain_name": "",
+      "private_domain_name": "",
       "private_hosted_zone_id": "$PRIVATE_HOSTED_ZONE_ID"
     },
     "network": {
