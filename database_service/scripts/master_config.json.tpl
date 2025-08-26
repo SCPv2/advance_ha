@@ -1,147 +1,77 @@
 {
+  "_variable_classification": {
+    "description": "ceweb application variable classification system",
+    "categories": {
+      "user_input": "Variables that users input interactively during deployment",
+      "ceweb_required": "Variables required by ceweb application for business logic and database connections"
+    }
+  },
   "config_metadata": {
-    "version": "1.0.0",
+    "version": "2.0.0",
     "created": "${timestamp()}",
     "description": "Samsung Cloud Platform 3-Tier Architecture Master Configuration",
-    "usage": "This file contains all environment-specific settings for the application deployment"
+    "usage": "This file contains all environment-specific settings for the application deployment",
+    "generator": "deploy_scp_lab_environment.ps1",
+    "template_source": "master_config.json.tpl"
   },
   "user_input_variables": {
-    "_comment": "사용자가 대화형으로 수정 가능한 필수 입력 항목 - variables.tf USER_INPUT 순서",
-    "private_domain_name": null,
-    "private_hosted_zone_id": null,
-    "public_domain_name": null,
-    "keypair_name": null,
-    "user_public_ip": null,
-    "object_storage_access_key_id": null,
-    "object_storage_secret_access_key": null,
-    "object_storage_bucket_string": null
+    "_comment": "Variables that users input interactively during deployment",
+    "_source": "variables.tf USER_INPUT category",
+    "private_domain_name": "${private_domain_name}",
+    "private_hosted_zone_id": "${private_hosted_zone_id}",
+    "public_domain_name": "${public_domain_name}",
+    "keypair_name": "${keypair_name}",
+    "user_public_ip": "${user_public_ip}",
+    "object_storage_access_key_id": "${object_storage_access_key_id}",
+    "object_storage_secret_access_key": "${object_storage_secret_access_key}",
+    "object_storage_bucket_string": "${object_storage_bucket_string}"
   },
   "ceweb_required_variables": {
-    "_comment": "ceweb 애플리케이션이 master_config.json에서 요구하는 변수들 - variables.tf CEWEB_REQUIRED 순서",
-    "app_server_port": null,
-    "database_port": null,
-    "database_name": null,
-    "database_user": null,
-    "nginx_port": null,
-    "ssl_enabled": null,
-    "object_storage_bucket_name": null,
-    "object_storage_region": null,
-    "certificate_path": null,
-    "private_key_path": null,
-    "git_repository": null,
-    "git_branch": null,
-    "timezone": null,
-    "web_lb_service_ip": null,
-    "app_lb_service_ip": null,
-    "node_env": null,
-    "session_secret": null,
-    "db_type": null,
-    "db_max_connections": null,
-    "object_storage_private_endpoint": null,
-    "object_storage_public_endpoint": null,
-    "object_storage_media_folder": null,
-    "object_storage_audition_folder": null,
-    "auto_deployment": null,
-    "rollback_enabled": null,
-    "backup_retention_days": null,
-    "company_name": null,
-    "admin_email": null
-  },
-  "infrastructure": {
-    "_comment": "인프라 구조 정보 (Terraform에서 자동 생성)",
-    "domain": {
-      "public_domain_name": "${public_domain_name}",
-      "private_domain_name": "${private_domain_name}",
-      "private_hosted_zone_id": "${private_hosted_zone_id}"
-    },
-    "network": {
-      "vpc_cidr": "${vpc_cidr}",
-      "web_subnet_cidr": "${web_subnet_cidr}",
-      "app_subnet_cidr": "${app_subnet_cidr}",
-      "db_subnet_cidr": "${db_subnet_cidr}"
-    },
-    "load_balancer": {
-      "web_lb_service_ip": "${web_lb_service_ip}",
-      "app_lb_service_ip": "${app_lb_service_ip}"
-    },
-    "servers": {
-      "web_primary_ip": "${web_ip}",
-      "web_secondary_ip": "${web_ip2}",
-      "app_primary_ip": "${app_ip}",
-      "app_secondary_ip": "${app_ip2}",
-      "db_primary_ip": "${db_ip}",
-      "bastion_ip": "${bastion_ip}"
+    "_comment": "Variables required by ceweb application for business logic and functionality",
+    "_source": "variables.tf CEWEB_REQUIRED category + load_master_config.sh exports",
+    "app_server_port": "3000",
+    "database_port": "2866",
+    "database_name": "cedb",
+    "database_user": "ceadmin",
+    "nginx_port": "80",
+    "ssl_enabled": false,
+    "object_storage_bucket_name": "ceweb",
+    "object_storage_region": "kr-west1",
+    "git_repository": "https://github.com/SCPv2/ceweb.git",
+    "git_branch": "main",
+    "timezone": "Asia/Seoul",
+    "web_lb_service_ip": "10.1.1.100",
+    "app_lb_service_ip": "10.1.2.100",
+    "node_env": "production",
+    "session_secret": "your-secret-key-change-in-production",
+    "db_type": "postgresql",
+    "db_max_connections": 100,
+    "object_storage_private_endpoint": "https://object-store.private.kr-west1.e.samsungsdscloud.com",
+    "object_storage_public_endpoint": "https://object-store.kr-west1.e.samsungsdscloud.com",
+    "object_storage_media_folder": "media/img",
+    "object_storage_audition_folder": "files/audition",
+    "auto_deployment": true,
+    "rollback_enabled": true,
+    "backup_retention_days": 30,
+    "company_name": "Creative Energy",
+    "admin_email": "ars4mundus@gmail.com",
+    "web_primary_ip": "${web_ip}",
+    "web_secondary_ip": "${web_ip2}",
+    "app_primary_ip": "${app_ip}",
+    "app_secondary_ip": "${app_ip2}",
+    "db_primary_ip": "${db_ip}",
+    "bastion_ip": "${bastion_ip}",
+    "vpc_cidr": "${vpc_cidr}",
+    "web_subnet_cidr": "${web_subnet_cidr}",
+    "app_subnet_cidr": "${app_subnet_cidr}",
+    "db_subnet_cidr": "${db_subnet_cidr}",
+    "_database_connection": {
+      "database_password": "ceadmin123",
+      "db_ssl_enabled": false,
+      "db_pool_min": 20,
+      "db_pool_max": 100,
+      "db_pool_idle_timeout": 30000,
+      "db_pool_connection_timeout": 60000
     }
-  },
-  "application": {
-    "_comment": "애플리케이션 설정 (ceweb_required_variables 참조)",
-    "web_server": {
-      "nginx_port": "${nginx_port}",
-      "ssl_enabled": "${ssl_enabled}",
-      "upstream_target": "app.${private_domain_name}:${app_server_port}",
-      "fallback_target": "${app_ip2}:${app_server_port}",
-      "health_check_path": "/health",
-      "api_proxy_path": "/api"
-    },
-    "app_server": {
-      "port": "${app_server_port}",
-      "node_env": "${node_env}",
-      "database_host": "db.${private_domain_name}",
-      "database_port": "${database_port}",
-      "database_name": "${database_name}",
-      "session_secret": "${session_secret}"
-    },
-    "database": {
-      "type": "${db_type}",
-      "port": "${database_port}",
-      "max_connections": "${db_max_connections}",
-      "shared_buffers": "256MB",
-      "effective_cache_size": "1GB"
-    }
-  },
-  "security": {
-    "_comment": "보안 설정",
-    "firewall": {
-      "allowed_public_ips": ["${user_public_ip}/32"],
-      "ssh_key_name": "${keypair_name}"
-    },
-    "ssl": {
-      "certificate_path": "${certificate_path}",
-      "private_key_path": "${private_key_path}"
-    }
-  },
-  "object_storage": {
-    "_comment": "Object Storage 설정 (선택사항)",
-    "access_key_id": "${object_storage_access_key_id}",
-    "secret_access_key": "${object_storage_secret_access_key}",
-    "region": "${object_storage_region}",
-    "bucket_name": "${object_storage_bucket_name}",
-    "bucket_string": "${object_storage_bucket_string}",
-    "private_endpoint": "${object_storage_private_endpoint}",
-    "public_endpoint": "${object_storage_public_endpoint}",
-    "folders": {
-      "media": "${object_storage_media_folder}",
-      "audition": "${object_storage_audition_folder}"
-    }
-  },
-  "deployment": {
-    "_comment": "배포 설정",
-    "git_repository": "${git_repository}",
-    "git_branch": "${git_branch}",
-    "auto_deployment": "${auto_deployment}",
-    "rollback_enabled": "${rollback_enabled}"
-  },
-  "monitoring": {
-    "_comment": "모니터링 설정",
-    "log_level": "info",
-    "health_check_interval": 30,
-    "metrics_enabled": true
-  },
-  "user_customization": {
-    "_comment": "사용자 커스터마이제이션",
-    "company_name": "${company_name}",
-    "admin_email": "${admin_email}",
-    "timezone": "${timezone}",
-    "backup_retention_days": "${backup_retention_days}"
   }
 }

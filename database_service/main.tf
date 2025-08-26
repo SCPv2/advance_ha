@@ -81,6 +81,21 @@ data "samsungcloudplatformv2_virtualserver_keypair" "kp" {
 }
 
 ########################################################
+# Private DNS (cesvc.net) - VPC Connection 
+########################################################
+resource "samsungcloudplatformv2_dns_private_dns" "cesvc_private_dns" {
+  private_dns_create = {
+    connected_vpc_ids = [samsungcloudplatformv2_vpc_vpc.vpc.id]
+    description       = "Private DNS for cesvc.net domain - 3-tier architecture"
+    name             = var.private_domain_name
+  }
+  
+  tags = var.common_tags
+
+  depends_on = [samsungcloudplatformv2_vpc_vpc.vpc]
+}
+
+########################################################
 # DNS Private Hosted Zone Records (Initial VM IPs)
 ########################################################
 resource "samsungcloudplatformv2_dns_record" "www_initial" {
@@ -571,7 +586,7 @@ resource "samsungcloudplatformv2_virtualserver_server" "vm4" {
       port_id = samsungcloudplatformv2_vpc_port.db_port.id
     }
   }
-  user_data = base64encode(file("${path.module}/scripts/userdata_db.sh"))
+  user_data = base64encode(file("${path.module}/scripts/generated_userdata/userdata_db.sh"))
   depends_on = [
     samsungcloudplatformv2_dns_record.db_record,
     samsungcloudplatformv2_vpc_subnet.web_subnet, samsungcloudplatformv2_vpc_subnet.app_subnet, samsungcloudplatformv2_vpc_subnet.db_subnet,
@@ -600,9 +615,9 @@ resource "samsungcloudplatformv2_virtualserver_server" "vm3" {
       port_id = samsungcloudplatformv2_vpc_port.app_port.id
     }
   }
-  user_data = base64encode(file("${path.module}/scripts/userdata_app.sh"))
+  user_data = base64encode(file("${path.module}/scripts/generated_userdata/userdata_app.sh"))
   depends_on = [
-    samsungcloudplatformv2_virtualserver_server.vm4,  # DB VM 완료 후
+#    samsungcloudplatformv2_virtualserver_server.vm4,  # DB VM 완료 후
     samsungcloudplatformv2_dns_record.app_initial,
     samsungcloudplatformv2_vpc_subnet.web_subnet, samsungcloudplatformv2_vpc_subnet.app_subnet, samsungcloudplatformv2_vpc_subnet.db_subnet,
     samsungcloudplatformv2_vpc_port.app_port,
@@ -629,9 +644,9 @@ resource "samsungcloudplatformv2_virtualserver_server" "vm3_2" {
       port_id = samsungcloudplatformv2_vpc_port.app_port2.id
     }
   }
-  user_data = base64encode(file("${path.module}/scripts/userdata_app.sh"))
+  user_data = base64encode(file("${path.module}/scripts/generated_userdata/userdata_app.sh"))
   depends_on = [
-    samsungcloudplatformv2_virtualserver_server.vm4,  # DB VM 완료 후
+#    samsungcloudplatformv2_virtualserver_server.vm4,  # DB VM 완료 후
     samsungcloudplatformv2_vpc_subnet.web_subnet, samsungcloudplatformv2_vpc_subnet.app_subnet, samsungcloudplatformv2_vpc_subnet.db_subnet,
     samsungcloudplatformv2_vpc_port.app_port2,
     samsungcloudplatformv2_vpc_nat_gateway.app_natgateway
@@ -656,9 +671,9 @@ resource "samsungcloudplatformv2_virtualserver_server" "vm2" {
       port_id = samsungcloudplatformv2_vpc_port.web_port.id
     }
   }
-  user_data = base64encode(file("${path.module}/scripts/userdata_web.sh"))
+  user_data = base64encode(file("${path.module}/scripts/generated_userdata/userdata_web.sh"))
   depends_on = [
-    samsungcloudplatformv2_virtualserver_server.vm3,  # App VM 1 완료 후
+#    samsungcloudplatformv2_virtualserver_server.vm3,  # App VM 1 완료 후
     samsungcloudplatformv2_dns_record.www_initial,
     samsungcloudplatformv2_vpc_subnet.web_subnet, samsungcloudplatformv2_vpc_subnet.app_subnet, samsungcloudplatformv2_vpc_subnet.db_subnet,
     samsungcloudplatformv2_vpc_port.web_port,
@@ -684,9 +699,9 @@ resource "samsungcloudplatformv2_virtualserver_server" "vm2_2" {
       port_id = samsungcloudplatformv2_vpc_port.web_port2.id
     }
   }
-  user_data = base64encode(file("${path.module}/scripts/userdata_web.sh"))
+  user_data = base64encode(file("${path.module}/scripts/generated_userdata/userdata_web.sh"))
   depends_on = [
-    samsungcloudplatformv2_virtualserver_server.vm3,  # App VM 1 완료 후
+#    samsungcloudplatformv2_virtualserver_server.vm3,  # App VM 1 완료 후
     samsungcloudplatformv2_vpc_subnet.web_subnet, samsungcloudplatformv2_vpc_subnet.app_subnet, samsungcloudplatformv2_vpc_subnet.db_subnet,
     samsungcloudplatformv2_vpc_port.web_port2,
     samsungcloudplatformv2_vpc_nat_gateway.web_natgateway
@@ -740,7 +755,7 @@ resource "samsungcloudplatformv2_loadbalancer_loadbalancer" "web_lb" {
   }
 
   depends_on = [
-    samsungcloudplatformv2_virtualserver_server.vm2_2,  # 모든 Web VM 생성 완료 후
+#    samsungcloudplatformv2_virtualserver_server.vm2_2,  # 모든 Web VM 생성 완료 후
     samsungcloudplatformv2_vpc_subnet.web_subnet, samsungcloudplatformv2_vpc_subnet.app_subnet, samsungcloudplatformv2_vpc_subnet.db_subnet,
     samsungcloudplatformv2_vpc_publicip.pip1, samsungcloudplatformv2_vpc_publicip.pip2, samsungcloudplatformv2_vpc_publicip.pip3, samsungcloudplatformv2_vpc_publicip.pip4
   ]
@@ -753,7 +768,7 @@ resource "samsungcloudplatformv2_loadbalancer_lb_health_check" "web_health_check
     vpc_id                = samsungcloudplatformv2_vpc_vpc.vpc.id
     subnet_id             = samsungcloudplatformv2_vpc_subnet.web_subnet.id
     protocol              = "HTTP"
-    health_check_port     = 80
+    health_check_port     = var.nginx_port
     health_check_interval = 5
     health_check_timeout  = 5
     health_check_count    = 3
@@ -798,7 +813,7 @@ resource "samsungcloudplatformv2_loadbalancer_lb_member" "web_member1" {
   }
 
   depends_on = [
-    samsungcloudplatformv2_virtualserver_server.vm2,
+  #  samsungcloudplatformv2_virtualserver_server.vm2,
     samsungcloudplatformv2_loadbalancer_lb_server_group.web_server_group
   ]
 }
@@ -814,7 +829,7 @@ resource "samsungcloudplatformv2_loadbalancer_lb_member" "web_member2" {
   }
 
   depends_on = [
-    samsungcloudplatformv2_virtualserver_server.vm2_2,
+#    samsungcloudplatformv2_virtualserver_server.vm2_2,
     samsungcloudplatformv2_loadbalancer_lb_server_group.web_server_group
   ]
 }
@@ -826,7 +841,7 @@ resource "samsungcloudplatformv2_loadbalancer_lb_listener" "web_listener" {
     description           = "Web listener"
     loadbalancer_id       = samsungcloudplatformv2_loadbalancer_loadbalancer.web_lb.id
     protocol              = "TCP"
-    service_port          = 80
+    service_port          = var.nginx_port
     server_group_id       = samsungcloudplatformv2_loadbalancer_lb_server_group.web_server_group.id
     session_duration_time = 120
     persistence           = "source-ip"
@@ -858,7 +873,7 @@ resource "samsungcloudplatformv2_loadbalancer_loadbalancer" "app_lb" {
   }
 
   depends_on = [
-    samsungcloudplatformv2_virtualserver_server.vm3_2,  # 모든 App VM 생성 완료 후
+#    samsungcloudplatformv2_virtualserver_server.vm3_2,  # 모든 App VM 생성 완료 후
     samsungcloudplatformv2_vpc_subnet.web_subnet, samsungcloudplatformv2_vpc_subnet.app_subnet, samsungcloudplatformv2_vpc_subnet.db_subnet
   ]
 }
@@ -870,7 +885,7 @@ resource "samsungcloudplatformv2_loadbalancer_lb_health_check" "app_health_check
     vpc_id                = samsungcloudplatformv2_vpc_vpc.vpc.id
     subnet_id             = samsungcloudplatformv2_vpc_subnet.app_subnet.id
     protocol              = "TCP"
-    health_check_port     = 3000
+    health_check_port     = var.app_server_port
     health_check_interval = 5
     health_check_timeout  = 5
     health_check_count    = 3
@@ -912,7 +927,7 @@ resource "samsungcloudplatformv2_loadbalancer_lb_member" "app_member1" {
   }
 
   depends_on = [
-    samsungcloudplatformv2_virtualserver_server.vm3,
+#    samsungcloudplatformv2_virtualserver_server.vm3,
     samsungcloudplatformv2_loadbalancer_lb_server_group.app_server_group
   ]
 }
@@ -928,7 +943,7 @@ resource "samsungcloudplatformv2_loadbalancer_lb_member" "app_member2" {
   }
 
   depends_on = [
-    samsungcloudplatformv2_virtualserver_server.vm3_2,
+#    samsungcloudplatformv2_virtualserver_server.vm3_2,
     samsungcloudplatformv2_loadbalancer_lb_server_group.app_server_group
 
   ]
@@ -941,7 +956,7 @@ resource "samsungcloudplatformv2_loadbalancer_lb_listener" "app_listener" {
     description           = "App listener"
     loadbalancer_id       = samsungcloudplatformv2_loadbalancer_loadbalancer.app_lb.id
     protocol              = "TCP"
-    service_port          = 3000
+    service_port          = var.app_server_port
     server_group_id       = samsungcloudplatformv2_loadbalancer_lb_server_group.app_server_group.id
     session_duration_time = 120
     persistence           = "source-ip"
@@ -1049,8 +1064,8 @@ resource "samsungcloudplatformv2_security_group_security_group_rule" "web_api_to
   ethertype         = "IPv4"
   security_group_id = samsungcloudplatformv2_security_group_security_group.web_sg.id
   protocol          = "tcp"
-  port_range_min    = 3000
-  port_range_max    = 3000
+  port_range_min    = var.app_server_port
+  port_range_max    = var.app_server_port
   description       = "API connection outbound to app LB"
   remote_ip_prefix  = "${var.app_lb_service_ip}/32"
 
@@ -1077,8 +1092,8 @@ resource "samsungcloudplatformv2_security_group_security_group_rule" "app_db_to_
   ethertype         = "IPv4"
   security_group_id = samsungcloudplatformv2_security_group_security_group.app_sg.id
   protocol          = "tcp"
-  port_range_min    = 2866
-  port_range_max    = 2866
+  port_range_min    = var.database_port
+  port_range_max    = var.database_port
   description       = "db connection outbound to db vm"
   remote_group_id   = samsungcloudplatformv2_security_group_security_group.db_sg.id
 
@@ -1091,8 +1106,8 @@ resource "samsungcloudplatformv2_security_group_security_group_rule" "db_from_ap
   ethertype         = "IPv4"
   security_group_id = samsungcloudplatformv2_security_group_security_group.db_sg.id
   protocol          = "tcp"
-  port_range_min    = 2866
-  port_range_max    = 2866
+  port_range_min    = var.database_port
+  port_range_max    = var.database_port
   description       = "db connection inbound from app vm"
   remote_group_id   = samsungcloudplatformv2_security_group_security_group.app_sg.id
 
@@ -1123,8 +1138,8 @@ resource "samsungcloudplatformv2_security_group_security_group_rule" "web_direct
   ethertype         = "IPv4"
   security_group_id = samsungcloudplatformv2_security_group_security_group.web_sg.id
   protocol          = "tcp"
-  port_range_min    = 3000
-  port_range_max    = 3000
+  port_range_min    = var.app_server_port
+  port_range_max    = var.app_server_port
   description       = "Direct API connection outbound to app servers"
   remote_group_id   = samsungcloudplatformv2_security_group_security_group.app_sg.id
 
@@ -1137,8 +1152,8 @@ resource "samsungcloudplatformv2_security_group_security_group_rule" "app_direct
   ethertype         = "IPv4"
   security_group_id = samsungcloudplatformv2_security_group_security_group.app_sg.id
   protocol          = "tcp"
-  port_range_min    = 3000
-  port_range_max    = 3000
+  port_range_min    = var.app_server_port
+  port_range_max    = var.app_server_port
   description       = "Direct API connection inbound from web servers"
   remote_group_id   = samsungcloudplatformv2_security_group_security_group.web_sg.id
 
@@ -1178,9 +1193,9 @@ resource "samsungcloudplatformv2_filestorage_volume" "shared_volume" {
   ]
 
   depends_on = [
-    samsungcloudplatformv2_virtualserver_server.vm2,
-    samsungcloudplatformv2_virtualserver_server.vm2_2,
-    samsungcloudplatformv2_virtualserver_server.vm3,
-    samsungcloudplatformv2_virtualserver_server.vm3_2
+#    samsungcloudplatformv2_virtualserver_server.vm2,
+#    samsungcloudplatformv2_virtualserver_server.vm2_2,
+#    samsungcloudplatformv2_virtualserver_server.vm3,
+#    samsungcloudplatformv2_virtualserver_server.vm3_2
   ]
 }

@@ -21,19 +21,19 @@ variable "common_tags" {
 variable "private_domain_name" {
   type        = string
   description = "[USER_INPUT] Private domain name (e.g., internal.local)"
-  default     = ""
+  default     = "your-private-domain.local"
 }
 
 variable "private_hosted_zone_id" {
   type        = string
   description = "[USER_INPUT] Private Hosted Zone ID for domain"
-  default     = ""
+  default     = "your-private-hosted-zone-id"
 }
 
 variable "public_domain_name" {
   type        = string
   description = "[USER_INPUT] Public domain name (e.g., example.com)"
-  default     = ""
+  default     = "your-public-domain.local"
 }
 
 variable "keypair_name" {
@@ -45,7 +45,7 @@ variable "keypair_name" {
 variable "user_public_ip" {
   type        = string
   description = "[USER_INPUT] Public IP address of user PC"
-  default     = ""
+  default     = "your public-ip-address"
 }
 
 variable "object_storage_access_key_id" {
@@ -88,13 +88,25 @@ variable "database_port" {
 variable "database_name" {
   type        = string
   description = "[CEWEB_REQUIRED] Database name"
-  default     = "creative_energy_db"
+  default     = "cedb"
 }
 
 variable "database_user" {
   type        = string
   description = "[CEWEB_REQUIRED] Database admin user"
   default     = "ceadmin"
+}
+
+variable "database_password" {
+  type        = string
+  description = "[CEWEB_REQUIRED] Database admin password"
+  default     = "ceadmin123!"
+}
+
+variable "database_host" {
+  type        = string
+  description = "[CEWEB_REQUIRED] Database server hostname"
+  default     = "db.cesvc.net"
 }
 
 variable "nginx_port" {
@@ -121,17 +133,18 @@ variable "object_storage_region" {
   default     = "kr-west1"
 }
 
-variable "certificate_path" {
-  type        = string
-  description = "[CEWEB_REQUIRED] SSL certificate path"
-  default     = "/etc/ssl/certs/certificate.crt"
-}
+# SSL 비활성화됨 - 이 애플리케이션은 SSL을 사용하지 않음
+# variable "certificate_path" {
+#   type        = string
+#   description = "[CEWEB_REQUIRED] SSL certificate path"
+#   default     = "/etc/ssl/certs/certificate.crt"
+# }
 
-variable "private_key_path" {
-  type        = string
-  description = "[CEWEB_REQUIRED] SSL private key path"
-  default     = "/etc/ssl/private/private.key"
-}
+# variable "private_key_path" {
+#   type        = string
+#   description = "[CEWEB_REQUIRED] SSL private key path"
+#   default     = "/etc/ssl/private/private.key"
+# }
 
 variable "git_repository" {
   type        = string
@@ -242,6 +255,8 @@ variable "admin_email" {
   default     = "ars4mundus@gmail.com"
 }
 
+# Duplicate variables removed - these are already defined above in the CEWEB_REQUIRED section
+
 ########################################################
 # 3. Terraform 인프라 변수 (TERRAFORM_INFRASTRUCTURE_VARIABLES)
 #    Terraform 리소스 생성에만 필요한 변수들
@@ -282,7 +297,7 @@ variable "app_ip2" {
 variable "db_ip" {
   type        = string
   description = "Private IP address of db VM [TERRAFORM_INFRA]"
-  default     = "10.1.3.131"
+  default     = "10.1.3.31"
 }
 
 # VPC Configuration Variables
@@ -496,7 +511,7 @@ variable "vm_app2_description" {
 variable "vm_db_name" {
   type        = string
   description = "DB VM name [TERRAFORM_INFRA]"
-  default     = "dbvm131r"
+  default     = "dbvm311r"
 }
 
 variable "vm_db_description" {
@@ -541,6 +556,49 @@ variable "rocky_boot_volume_delete_on_termination" {
   description = "Delete Rocky boot volume on termination [TERRAFORM_INFRA]"
   default     = true
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
