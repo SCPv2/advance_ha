@@ -96,8 +96,8 @@ cd C:\scpv2advance\advance_ha\database_service\
 ## PostgreSQL(DBaaS) 생성
 
 - PostgreSQL Community 16.8 선택
-- 서버명 prefix : 
-- 클러스터명 :
+- 서버명 prefix : cedbserver
+- 클러스터명 : cedbcluster
 - 서버 타입 : db1v2m4
 - Block Storage : 기본 OS : SSD , DATA : SSD 16GB
 - 이중화 구성 : 사용
