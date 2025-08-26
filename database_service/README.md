@@ -25,7 +25,7 @@ cd C:\scpv2advance\advance_ha\database_service\
 
 ```
 
- [1] object_storage_access_key_id  
+[1] object_storage_access_key_id  
     Current Value: put_the_value_if_you_use_object_storage_in_this_lab # 입력 없이 엔터
 
 [2] public_domain_name  :          # 수강자가 만든 도메인 이름 입력 필요
@@ -109,7 +109,7 @@ cd C:\scpv2advance\advance_ha\database_service\
 - VPC : VPC1
 - Subnet : Subnet13
 - IP : 10.1.3.32
-- IP 접근 제어 : 10.1.2.0/24, 10.1.1.110   # appVM의 서브넷 대역과 Bastion Host IP 
+- IP 접근 제어 : 10.1.2.0/24, 10.1.1.110   # appVM의 서브넷 대역과 Bastion Host IP
 - 유지 관리 기간 : 사용안함
 - Database명 : cedb       # 이름 변경 불가
 - Database 사용자명 : cedbadmin    # 이름 변경 불가
@@ -124,7 +124,7 @@ cd C:\scpv2advance\advance_ha\database_service\
 
 ## 데이터 마이그레이션
 
-- pgAdmin 다운로드( https://www.pgadmin.org/download/ )
+- pgAdmin [다운로드](https://www.pgadmin.org/download/)
 
 - 기존 데이터베이스(db.your_private_ip.net 또는 10.1.3.31) 연결 및 백업
 
