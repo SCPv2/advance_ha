@@ -1,0 +1,5 @@
+# Samsung Cloud Platform v2 - Changes Tracking Log (logs.log)
+# Format: timestamp|action|target|details
+# Actions: CREATE, MODIFY, DELETE, TERRAFORM_APPLY, TERRAFORM_DESTROY
+# This file tracks all changes for proper cleanup/reset
+

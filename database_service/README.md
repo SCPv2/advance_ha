@@ -19,30 +19,25 @@
 **&#128906; Terraform 배포 스크립트 실행**
 
 ```powershell
+
 cd C:\scpv2advance\advance_ha\database_service\
+
+Set_ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
 
 .\deploy_scp_lab_environment.ps1
 
 ```
 
-[1] object_storage_access_key_id  
-    Current Value: put_the_value_if_you_use_object_storage_in_this_lab # 입력 없이 엔터
+- keypair_name: mykey ........................................# 기본 키페어 값, 다른 키페어 사용시 입력
 
-[2] public_domain_name  :          # 수강자가 만든 도메인 이름 입력 필요
+- object_storage_access_key_id: .......................# 입력 없이 엔터(이번 차시 사용 안함)
 
-[3] object_storage_secret_access_key
-    Current Value: put_the_value_if_you_use_object_storage_in_this_lab # 입력 없이 엔터
-
-[4] private_hosted_zone_id :   # 콘솔에서 조회해서 입력 필요
-
-[5] private_domain_name :  # 수강자가 만든 프라이빗 도메인 입력 필요
-
-[6] object_storage_bucket_string  
-    Current Value: put_the_value_if_you_use_object_storage_in_this_lab # 입력 없이 엔터
-
-[7] user_public_ip   :     # 수강자가 사용하고 있는 PC의 퍼블릭 IP 주소 자동으로 조회됨. 맞으면 엔터.
-
-[8] keypair_name :   mykey # 기본 키페어 값, 다른 키페어 사용시 입력
+- object_storage_bucket_string: ........................# 입력 없이 엔터(이번 차시 사용 안함)
+- object_storage_secret_access_key: ................# 입력 없이 엔터(이번 차시 사용 안함)
+- private_domain_name: ......................................# 과정 소개에서 만든 프라이빗 도메인 이름
+- private_hosted_zone_id: ....................................# 과정 소개에서 만든 프라이빗 도메인의 Hosted Zone ID
+- public_domain_name: .........................................# 과정 소개에서 만든 퍼블릭 도메인 이름
+- user_public_ip: ........................................................# 현재 실습을 수행하고 있는 PC의 퍼블릭 IP 주소
 
 ## 환경 검토
 
