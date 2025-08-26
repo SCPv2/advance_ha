@@ -3,11 +3,13 @@
 ## 선행 실습
 
 ### 필수 '[과정 소개](https://github.com/SCPv2/ce_advance_introduction/blob/main/README.md)'
+
 - Key Pair, 인증키, DNS 등 사전 준비
 
 ### 필수 '[고가용성 3계층 아키텍처 구성](../3_tier_architecture/README.md)
 
 ### 선택 '[Terraform을 이용한 클라우드 자원 배포](https://github.com/SCPv2/advance_iac/blob/main/terraform/README.md)'
+
 - Samsung Cloud Platform v2 기반 Terraform 학습
 
 ### 선택 '[고가용성 구현을 위한 File Storage 구성](../file_storage/README.md)'
@@ -22,15 +24,16 @@ cd C:\scpv2advance\advance_ha\database_service\
 .\deploy_scp_lab_environment.ps1
 
 ```
+
  [1] object_storage_access_key_id  
     Current Value: put_the_value_if_you_use_object_storage_in_this_lab # 입력 없이 엔터
 
 [2] public_domain_name  :          # 수강자가 만든 도메인 이름 입력 필요
 
-[3] object_storage_secret_access_key   
+[3] object_storage_secret_access_key
     Current Value: put_the_value_if_you_use_object_storage_in_this_lab # 입력 없이 엔터
 
-[4] private_hosted_zone_id :   # 콘솔에서 조회해서 입력 필요 
+[4] private_hosted_zone_id :   # 콘솔에서 조회해서 입력 필요
 
 [5] private_domain_name :  # 수강자가 만든 프라이빗 도메인 입력 필요
 
@@ -58,7 +61,8 @@ cd C:\scpv2advance\advance_ha\database_service\
 |Terraform|web Load Balancer|Your Public IP|10.1.1.100 (Service IP)|TCP 80|Allow|Outbound|클라이언트 → LB 연결|
 |Terraform|web Load Balancer|webLB Source NAT IP|10.1.1.111, 10.1.1.112 (webvm IP)|TCP 80|Allow|Inbound|LB → 멤버 연결|
 |Terraform|web Load Balancer|webLB 헬스 체크 IP|10.1.1.111, 10.1.1.112 (webvm IP)|TCP 80|Allow|Inbound|LB → 멤버 헬스 체크|
-|Terraform||app Load Balancer|10.1.1.111, 10.1.1.112 (webvm IP)|10.1.2.100 (Service IP)|3000|Allow|Outbound|클라이언트 → LB 연결|
+|Terraform||app Load Balancer|10.1.1.111, 10.1.1.112 (webvm IP)|10.1.2.100 (Service IP)|3000|Allow|Outbound 클라이언트 → LB 연결|
+
 |Terraform|app Load Balancer|appLB Source NAT IP|10.1.2.121, 10.1.2.122 (appvm IP)|3000|Allow|Inbound|LB → 멤버 연결|
 |Terraform|app Load Balancer|appLB 헬스 체크 IP|10.1.2.121, 10.1.2.122 (appvm IP)|3000|Allow|Inbound|LB → 멤버 헬스 체크|
 
@@ -121,7 +125,9 @@ cd C:\scpv2advance\advance_ha\database_service\
 ## 데이터 마이그레이션
 
 - pgAdmin 다운로드( https://www.pgadmin.org/download/ )
-- 기존 데이터베이스(db.your_privatte_ip.net 또는 10.1.3.31) 연결 및 백업
+
+- 기존 데이터베이스(db.your_private_ip.net 또는 10.1.3.31) 연결 및 백업
+
 - 새 데이터베이스(10.1.3.32) 연결 및 백업 데이터로 복구
 
 ## 데이터베이스 장애 테스트
@@ -181,7 +187,9 @@ cd C:\scpv2advance\advance_ha\database_service\
 ## 아키텍처 구성
 
 ### 인프라 구성
+
 - **Web Tier**: 2대의 웹 서버 (Load Balancer 구성)
+
 - **App Tier**: 2대의 앱 서버 (Load Balancer 구성)  
 - **Database Tier**: 1대의 PostgreSQL 데이터베이스 서버
 - **File Storage**: NFS 공유 볼륨 (웹/앱 서버 간 파일 공유)
@@ -189,7 +197,9 @@ cd C:\scpv2advance\advance_ha\database_service\
 - **Management**: Bastion Host (Windows)
 
 ### File Storage 구성
+
 - **Protocol**: NFS
+
 - **Type**: HighPerformanceSSD
 - **Access Rules**: Web/App 서버 4대에 대한 접근 권한
 - **Mount Point**: `/shared` (공유 디렉토리)
@@ -197,6 +207,7 @@ cd C:\scpv2advance\advance_ha\database_service\
 ## 배포 순서
 
 ### 1. 환경 준비
+
 ```bash
 # 변수 파일 설정
 cp terraform.tfvars.example terraform.tfvars
@@ -204,6 +215,7 @@ vi terraform.tfvars
 ```
 
 ### 2. 인프라 배포
+
 ```bash
 terraform init
 terraform plan
@@ -211,6 +223,7 @@ terraform apply
 ```
 
 ### 3. File Storage 마운트 설정
+
 배포 후 각 서버에서 NFS 볼륨을 수동으로 마운트해야 합니다:
 
 ```bash
@@ -227,7 +240,9 @@ echo "<file_storage_ip>:/ /shared nfs defaults 0 0" >> /etc/fstab
 **목표**: 자체 관리형 PostgreSQL을 관리형 DB로 마이그레이션
 
 **실습 단계**:
+
 1. **현재 데이터베이스 상태 확인**
+
    ```bash
    # 데이터베이스 연결 테스트
    psql -h db.${private_domain_name} -U postgres -d creativity
@@ -239,6 +254,7 @@ echo "<file_storage_ip>:/ /shared nfs defaults 0 0" >> /etc/fstab
    ```
 
 2. **데이터 백업 생성**
+
    ```bash
    # 전체 데이터베이스 덤프
    pg_dump -h db.${private_domain_name} -U postgres -d creativity > /shared/backup_before_migration.sql
@@ -258,6 +274,7 @@ echo "<file_storage_ip>:/ /shared nfs defaults 0 0" >> /etc/fstab
    - Backup: 자동 백업 활성화
 
 4. **데이터 복원 테스트**
+
    ```bash
    # 관리형 DB에 데이터 복원
    psql -h <managed_db_endpoint> -U <admin_user> -d creativity < /shared/backup_before_migration.sql
@@ -267,6 +284,7 @@ echo "<file_storage_ip>:/ /shared nfs defaults 0 0" >> /etc/fstab
    ```
 
 **학습 포인트**:
+
 - PostgreSQL 덤프/복원 명령어 숙련
 - 관리형 DB 인스턴스 생성 및 설정
 - 데이터 무결성 검증 방법
@@ -278,7 +296,9 @@ echo "<file_storage_ip>:/ /shared nfs defaults 0 0" >> /etc/fstab
 **목표**: 서비스 중단 없이 점진적으로 데이터베이스 마이그레이션
 
 **실습 단계**:
+
 1. **읽기 전용 복제본 구성**
+
    ```bash
    # 현재 DB에서 읽기 전용 계정 생성
    psql -h db.${private_domain_name} -U postgres -d creativity
@@ -289,6 +309,7 @@ echo "<file_storage_ip>:/ /shared nfs defaults 0 0" >> /etc/fstab
    ```
 
 2. **애플리케이션 설정 변경 준비**
+
    ```javascript
    // /shared/db_config_migration.js
    const dbConfig = {
@@ -313,6 +334,7 @@ echo "<file_storage_ip>:/ /shared nfs defaults 0 0" >> /etc/fstab
    - **Phase 4**: 기존 DB 비활성화
 
 4. **트래픽 모니터링**
+
    ```bash
    # 연결 수 모니터링 스크립트
    cat > /shared/monitor_connections.sh << 'EOF'
@@ -330,6 +352,7 @@ echo "<file_storage_ip>:/ /shared nfs defaults 0 0" >> /etc/fstab
    ```
 
 **학습 포인트**:
+
 - 단계적 마이그레이션 전략 수립
 - 이중 쓰기(Dual Write) 패턴 구현
 - 실시간 모니터링 및 롤백 계획
@@ -341,7 +364,9 @@ echo "<file_storage_ip>:/ /shared nfs defaults 0 0" >> /etc/fstab
 **목표**: 마이그레이션 전후 성능 비교 및 최적화
 
 **실습 단계**:
+
 1. **성능 테스트 도구 설치**
+
    ```bash
    # pgbench 설치 및 설정
    sudo yum install -y postgresql-contrib
@@ -351,6 +376,7 @@ echo "<file_storage_ip>:/ /shared nfs defaults 0 0" >> /etc/fstab
    ```
 
 2. **기준 성능 측정**
+
    ```bash
    # 현재 DB 성능 테스트
    pgbench -h db.${private_domain_name} -U postgres -d creativity -c 10 -T 60 > /shared/performance_old_db.txt
@@ -360,6 +386,7 @@ echo "<file_storage_ip>:/ /shared nfs defaults 0 0" >> /etc/fstab
    ```
 
 3. **상세 성능 분석**
+
    ```bash
    # 쿼리 성능 분석 스크립트
    cat > /shared/query_performance_test.sql << 'EOF'
@@ -386,6 +413,7 @@ echo "<file_storage_ip>:/ /shared nfs defaults 0 0" >> /etc/fstab
    ```
 
 4. **성능 최적화 실습**
+
    ```sql
    -- 인덱스 최적화
    CREATE INDEX CONCURRENTLY idx_projects_status_created 
@@ -402,6 +430,7 @@ echo "<file_storage_ip>:/ /shared nfs defaults 0 0" >> /etc/fstab
    ```
 
 **학습 포인트**:
+
 - 성능 벤치마크 도구 사용법
 - 쿼리 최적화 기법
 - 관리형 DB의 성능 특성 이해
@@ -413,7 +442,9 @@ echo "<file_storage_ip>:/ /shared nfs defaults 0 0" >> /etc/fstab
 **목표**: 관리형 DB의 HA/DR 기능 활용
 
 **실습 단계**:
+
 1. **백업 및 복원 정책 설정**
+
    ```bash
    # 자동 백업 설정 확인
    # (포털에서 백업 정책 확인 및 수정)
@@ -428,6 +459,7 @@ echo "<file_storage_ip>:/ /shared nfs defaults 0 0" >> /etc/fstab
    ```
 
 2. **장애 시뮬레이션**
+
    ```bash
    # 잘못된 데이터 입력 시뮬레이션
    psql -h <managed_db_endpoint> -U <admin_user> -d creativity << 'EOF'
@@ -440,6 +472,7 @@ echo "<file_storage_ip>:/ /shared nfs defaults 0 0" >> /etc/fstab
    ```
 
 3. **Point-in-Time Recovery 실행**
+
    ```bash
    # 복구 시점 결정 (포털에서 실행)
    # 1. 백업 목록에서 복구 시점 선택
@@ -448,6 +481,7 @@ echo "<file_storage_ip>:/ /shared nfs defaults 0 0" >> /etc/fstab
    ```
 
 4. **Multi-AZ 설정 및 테스트**
+
    ```bash
    # Multi-AZ 설정 후 장애 조치 테스트
    # (포털에서 장애 조치 강제 실행)
@@ -467,6 +501,7 @@ echo "<file_storage_ip>:/ /shared nfs defaults 0 0" >> /etc/fstab
    ```
 
 **학습 포인트**:
+
 - 자동화된 백업 및 복원 절차
 - Point-in-Time Recovery 실행
 - Multi-AZ 고가용성 아키텍처 이해
@@ -478,7 +513,9 @@ echo "<file_storage_ip>:/ /shared nfs defaults 0 0" >> /etc/fstab
 **목표**: 관리형 DB의 보안 설정 및 모니터링 구성
 
 **실습 단계**:
+
 1. **네트워크 보안 설정**
+
    ```bash
    # VPC Security Group 규칙 검토
    # (포털에서 DB 전용 Security Group 생성)
@@ -491,6 +528,7 @@ echo "<file_storage_ip>:/ /shared nfs defaults 0 0" >> /etc/fstab
    ```
 
 2. **사용자 권한 관리**
+
    ```sql
    -- 역할 기반 접근 제어 설정
    CREATE ROLE app_read;
@@ -508,6 +546,7 @@ echo "<file_storage_ip>:/ /shared nfs defaults 0 0" >> /etc/fstab
    ```
 
 3. **감사 로그 설정**
+
    ```sql
    -- 감사 대상 설정
    ALTER SYSTEM SET log_statement = 'all';
@@ -517,6 +556,7 @@ echo "<file_storage_ip>:/ /shared nfs defaults 0 0" >> /etc/fstab
    ```
 
 4. **모니터링 대시보드 구성**
+
    ```bash
    # 모니터링 스크립트 작성
    cat > /shared/db_monitoring.sh << 'EOF'
@@ -563,6 +603,7 @@ echo "<file_storage_ip>:/ /shared nfs defaults 0 0" >> /etc/fstab
    ```
 
 **학습 포인트**:
+
 - 데이터베이스 보안 모범 사례
 - SSL/TLS 연결 설정
 - 포괄적인 모니터링 체계 구축
@@ -574,7 +615,9 @@ echo "<file_storage_ip>:/ /shared nfs defaults 0 0" >> /etc/fstab
 **목표**: 애플리케이션 코드 수정 없이 DNS 기반으로 데이터베이스 전환
 
 **실습 단계**:
+
 1. **DNS 레코드 준비**
+
    ```bash
    # 현재 DNS 레코드 확인
    nslookup db.${private_domain_name}
@@ -584,6 +627,7 @@ echo "<file_storage_ip>:/ /shared nfs defaults 0 0" >> /etc/fstab
    ```
 
 2. **연결 문자열 표준화**
+
    ```javascript
    // /shared/database_config.js
    const config = {
@@ -608,6 +652,7 @@ echo "<file_storage_ip>:/ /shared nfs defaults 0 0" >> /etc/fstab
    ```
 
 3. **점진적 DNS 전환**
+
    ```bash
    # DNS TTL 단축 (사전 작업)
    # 현재: db.${private_domain_name} TTL 300 -> TTL 60으로 변경
@@ -626,6 +671,7 @@ echo "<file_storage_ip>:/ /shared nfs defaults 0 0" >> /etc/fstab
    ```
 
 4. **연결 테스트 자동화**
+
    ```bash
    # 전환 중 연결 상태 모니터링
    cat > /shared/dns_switchover_test.sh << 'EOF'
@@ -660,6 +706,7 @@ echo "<file_storage_ip>:/ /shared nfs defaults 0 0" >> /etc/fstab
    ```
 
 **학습 포인트**:
+
 - DNS 기반 서비스 전환 전략
 - 무중단 서비스 전환 기법
 - 롤백 계획 및 실행 방법
@@ -671,7 +718,9 @@ echo "<file_storage_ip>:/ /shared nfs defaults 0 0" >> /etc/fstab
 **목표**: 마이그레이션 후 데이터 일관성 보장 및 검증
 
 **실습 단계**:
+
 1. **데이터 검증 도구 개발**
+
    ```bash
    cat > /shared/data_consistency_check.py << 'EOF'
    #!/usr/bin/env python3
@@ -776,6 +825,7 @@ echo "<file_storage_ip>:/ /shared nfs defaults 0 0" >> /etc/fstab
    ```
 
 2. **실시간 동기화 모니터링**
+
    ```bash
    # 동기화 지연 모니터링 스크립트
    cat > /shared/sync_lag_monitor.sh << 'EOF'
@@ -815,6 +865,7 @@ echo "<file_storage_ip>:/ /shared nfs defaults 0 0" >> /etc/fstab
    ```
 
 3. **데이터 복구 시뮬레이션**
+
    ```sql
    -- 복구 테스트 시나리오 생성
    CREATE TABLE migration_test (
@@ -836,6 +887,7 @@ echo "<file_storage_ip>:/ /shared nfs defaults 0 0" >> /etc/fstab
    ```
 
 **학습 포인트**:
+
 - 자동화된 데이터 검증 도구 개발
 - 실시간 동기화 상태 모니터링
 - 데이터 불일치 감지 및 복구 절차
@@ -845,22 +897,27 @@ echo "<file_storage_ip>:/ /shared nfs defaults 0 0" >> /etc/fstab
 ## 추가 실습 시나리오 아이디어
 
 ### 시나리오 8: 성능 튜닝 및 최적화 심화 (난이도: 고급)
+
 - **내용**: Connection Pooling, Query 최적화, 인덱스 전략
 - **도구**: pgbouncer, pg_stat_statements, EXPLAIN ANALYZE
 
-### 시나리오 9: 멀티 리전 복제 실습 (난이도: 고급) 
+### 시나리오 9: 멀티 리전 복제 실습 (난이도: 고급)
+
 - **내용**: 지리적 분산 환경에서의 데이터 복제
 - **구성**: Primary-Replica 아키텍처, 읽기 분산
 
 ### 시나리오 10: 데이터 웨어하우스 통합 (난이도: 중급)
+
 - **내용**: 운영 DB에서 분석 DB로 ETL 파이프라인 구성
 - **도구**: Data Pipeline, Scheduled Jobs
 
 ### 시나리오 11: 컴플라이언스 및 감사 (난이도: 중급)
+
 - **내용**: 데이터 보호 규정 준수, 접근 로그 분석
 - **구성**: 감사 로그 수집, 보고서 자동 생성
 
 ### 시나리오 12: 비용 최적화 분석 (난이도: 초급)
+
 - **내용**: 자체 관리 vs 관리형 서비스 비용 분석
 - **도구**: 비용 계산 도구, 리소스 사용량 모니터링
 
