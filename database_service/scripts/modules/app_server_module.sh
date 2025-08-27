@@ -9,7 +9,8 @@ app_install() {
     
     # Load master config
     MASTER_CONFIG="/home/rocky/ceweb/web-server/master_config.json"
-    DB_HOST=$(jq -r '.ceweb_required_variables.database_host // "db.cesvc.net"' $MASTER_CONFIG)
+    PRIVATE_DOMAIN=$(jq -r '.user_input_variables.private_domain_name // "cesvc.net"' $MASTER_CONFIG)
+    DB_HOST=$(jq -r '.ceweb_required_variables.database_host // "db.'$PRIVATE_DOMAIN'"' $MASTER_CONFIG)
     DB_PORT=$(jq -r '.ceweb_required_variables.database_port // "2866"' $MASTER_CONFIG)
     DB_NAME=$(jq -r '.ceweb_required_variables.database_name // "cedb"' $MASTER_CONFIG)
     DB_USER=$(jq -r '.ceweb_required_variables.database_user // "ceadmin"' $MASTER_CONFIG)

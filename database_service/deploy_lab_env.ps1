@@ -79,25 +79,126 @@ function Write-LogMessage {
     $logEntry = "$timestamp [$Level] $Message"
     
     Write-Host $logEntry
-    Add-Content -Path $DeploymentLog -Value $logEntry
+    if (Test-Path (Split-Path $DeploymentLog -Parent)) {
+        Add-Content -Path $DeploymentLog -Value $logEntry -ErrorAction SilentlyContinue
+    }
 }
 
 function Write-Info($message) { Write-LogMessage "INFO" $message }
 function Write-Success($message) { 
     Write-Host "[SUCCESS] $message" -ForegroundColor Green
-    Add-Content -Path $DeploymentLog -Value "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') [SUCCESS] $message"
+    if (Test-Path (Split-Path $DeploymentLog -Parent)) {
+        Add-Content -Path $DeploymentLog -Value "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') [SUCCESS] $message" -ErrorAction SilentlyContinue
+    }
 }
 function Write-Error($message) { 
     Write-Host "[ERROR] $message" -ForegroundColor Red
-    Add-Content -Path $DeploymentLog -Value "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') [ERROR] $message"
+    if (Test-Path (Split-Path $DeploymentLog -Parent)) {
+        Add-Content -Path $DeploymentLog -Value "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') [ERROR] $message" -ErrorAction SilentlyContinue
+    }
 }
 function Write-Warning($message) { 
     Write-Host "[WARNING] $message" -ForegroundColor Yellow
-    Add-Content -Path $DeploymentLog -Value "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') [WARNING] $message"
+    if (Test-Path (Split-Path $DeploymentLog -Parent)) {
+        Add-Content -Path $DeploymentLog -Value "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') [WARNING] $message" -ErrorAction SilentlyContinue
+    }
 }
 #endregion
 
 #region Setup Functions
+# Scan for previous deployment status markers
+function Test-PreviousDeploymentStatus {
+    Write-Info "🔍 Scanning for previous deployment attempts..."
+    
+    # Create archive directory if it doesn't exist
+    $archiveDir = Join-Path $LogsDir "archive"
+    if (!(Test-Path $archiveDir)) {
+        New-Item -ItemType Directory -Path $archiveDir -Force | Out-Null
+    }
+    
+    # Find status markers
+    $statusMarkers = @(Get-ChildItem -Path $LogsDir -Name "deployment_*_*.marker" -ErrorAction SilentlyContinue)
+    
+    if ($statusMarkers.Count -gt 0) {
+        $latestMarker = $statusMarkers | Sort-Object Name -Descending | Select-Object -First 1
+        $markerPath = Join-Path $LogsDir $latestMarker
+        
+        try {
+            $markerData = Get-Content $markerPath | ConvertFrom-Json
+            $status = $markerData.Status
+            $timestamp = $markerData.Timestamp
+            
+            Write-Host ""
+            if ($status -eq "SUCCESS") {
+                Write-Host "✅ " -NoNewline -ForegroundColor Green
+                Write-Host "Previous deployment attempt SUCCEEDED" -ForegroundColor Green
+            } else {
+                Write-Host "❌ " -NoNewline -ForegroundColor Red  
+                Write-Host "Previous deployment attempt FAILED" -ForegroundColor Red
+            }
+            Write-Host "   Timestamp: $timestamp" -ForegroundColor Gray
+            Write-Host "   Log files:" -ForegroundColor Gray
+            Write-Host "     - Terraform: $(Split-Path -Leaf $markerData.TerraformLog)" -ForegroundColor Gray
+            Write-Host "     - Provider: $(Split-Path -Leaf $markerData.ProviderLog)" -ForegroundColor Gray
+            Write-Host "     - Execution: $(Split-Path -Leaf $markerData.ExecutionLog)" -ForegroundColor Gray
+            Write-Host ""
+            
+            # Prompt user for action
+            Write-Host "Would you like to clean up previous logs?" -ForegroundColor Yellow
+            Write-Host "  Y - Delete status marker and associated log files" -ForegroundColor White
+            Write-Host "  N - Keep marker but move log files to archive" -ForegroundColor White
+            Write-Host ""
+            
+            do {
+                $response = Read-Host "Delete existing logs? (Y/N)"
+                $response = $response.Trim().ToUpper()
+                
+                if ($response -eq "Y" -or $response -eq "YES") {
+                    # Delete marker and associated logs
+                    Write-Info "Deleting status marker and associated log files..."
+                    
+                    Remove-Item $markerPath -Force -ErrorAction SilentlyContinue
+                    Remove-Item $markerData.TerraformLog -Force -ErrorAction SilentlyContinue
+                    Remove-Item $markerData.ProviderLog -Force -ErrorAction SilentlyContinue  
+                    Remove-Item $markerData.ExecutionLog -Force -ErrorAction SilentlyContinue
+                    
+                    Write-Success "Previous deployment logs deleted successfully"
+                    break
+                }
+                elseif ($response -eq "N" -or $response -eq "NO") {
+                    # Archive logs and delete marker
+                    Write-Info "Moving log files to archive and removing status marker..."
+                    
+                    # Move logs to archive
+                    $archiveTimestamp = Get-Date -Format "yyyyMMdd_HHmmss"
+                    Move-Item $markerData.TerraformLog "$archiveDir\terraform_debug_archived_$archiveTimestamp.log" -Force -ErrorAction SilentlyContinue
+                    Move-Item $markerData.ProviderLog "$archiveDir\provider_api_archived_$archiveTimestamp.log" -Force -ErrorAction SilentlyContinue
+                    Move-Item $markerData.ExecutionLog "$archiveDir\terraform_execution_archived_$archiveTimestamp.log" -Force -ErrorAction SilentlyContinue
+                    
+                    # Remove marker
+                    Remove-Item $markerPath -Force -ErrorAction SilentlyContinue
+                    
+                    Write-Success "Logs archived to: $archiveDir"
+                    Write-Success "Status marker removed"
+                    break
+                }
+                else {
+                    Write-Host "Please enter Y or N" -ForegroundColor Red
+                }
+            } while ($true)
+            
+            Write-Host ""
+        }
+        catch {
+            Write-Warning "Could not read status marker: $markerPath"
+            Write-Warning "Error: $($_.Exception.Message)"
+        }
+    }
+    else {
+        Write-Info "No previous deployment status markers found"
+    }
+}
+
 function Initialize-DeploymentEnvironment {
     Write-Info "🔧 Setting up deployment environment..."
     
@@ -152,13 +253,16 @@ function Show-MainBanner {
     Write-Host ""
     Blue "3. STATUS   - Check deployment status and logs"
     Write-Host ""
-    Red "4. EXIT     - Exit without changes"
+    Cyan "4. RESET    - Reset variables to default values"
+    Write-Host "   • Reset user input variables → Create backup"
+    Write-Host ""
+    Red "5. EXIT     - Exit without changes"
     Write-Host ""
 }
 
 function Get-OperationMode {
     while ($true) {
-        Write-Host -NoNewline -ForegroundColor Cyan "Select option (1-4): "
+        Write-Host -NoNewline -ForegroundColor Cyan "Select option (1-5): "
         $input = Read-Host
         
         switch ($input) {
@@ -177,15 +281,20 @@ function Get-OperationMode {
                 Write-Info "STATUS mode selected - Deployment status check"
                 return
             }
-            { $_ -in @("4", "exit", "EXIT") } {
+            { $_ -in @("4", "reset", "RESET") } {
+                $global:OperationMode = "reset"
+                Write-Info "RESET mode selected - Reset variables to default values"
+                return
+            }
+            { $_ -in @("5", "exit", "EXIT") } {
                 Write-Info "Operation cancelled by user"
                 exit 0
             }
             "" {
-                Red "Please select an option (1-4)"
+                Red "Please select an option (1-5)"
             }
             default {
-                Red "Invalid option: '$input'. Please select 1-4."
+                Red "Invalid option: '$input'. Please select 1-5."
             }
         }
     }
@@ -218,7 +327,9 @@ function Add-ChangeTracking {
     
     $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
     $entry = "$timestamp|$Action|$Target|$Details"
-    Add-Content -Path $ChangesLog -Value $entry
+    if (Test-Path (Split-Path $ChangesLog -Parent)) {
+        Add-Content -Path $ChangesLog -Value $entry -ErrorAction SilentlyContinue
+    }
     Write-Info "Tracked: $Action $Target"
 }
 #endregion
@@ -250,8 +361,8 @@ function Invoke-Module {
             # Interactive mode - run directly with Tee for logging
             & $ModuleScript | Tee-Object -FilePath $moduleLog
         } else {
-            # For variables_manager, we need interactive input even in non-debug mode
-            if ($ModuleName -eq "variables_manager") {
+            # For variables_manager and terraform_manager, we need real-time output
+            if ($ModuleName -eq "variables_manager" -or $ModuleName -eq "terraform_manager") {
                 & $ModuleScript | Tee-Object -FilePath $moduleLog
             } else {
                 & $ModuleScript > $moduleLog 2>&1
@@ -263,14 +374,16 @@ function Invoke-Module {
             Write-Success "$ModuleName completed successfully in $($duration.TotalSeconds)s"
             
             # Append module log to master log
-            Add-Content -Path $DeploymentLog -Value ""
-            Add-Content -Path $DeploymentLog -Value "=== $ModuleName Output ==="
-            if (Test-Path $moduleLog) {
-                Get-Content $moduleLog | Add-Content -Path $DeploymentLog
-            } else {
-                Add-Content -Path $DeploymentLog -Value "Module log file not found: $moduleLog"
+            if (Test-Path (Split-Path $DeploymentLog -Parent)) {
+                Add-Content -Path $DeploymentLog -Value "" -ErrorAction SilentlyContinue
+                Add-Content -Path $DeploymentLog -Value "=== $ModuleName Output ===" -ErrorAction SilentlyContinue
+                if (Test-Path $moduleLog) {
+                    Get-Content $moduleLog | Add-Content -Path $DeploymentLog -ErrorAction SilentlyContinue
+                } else {
+                    Add-Content -Path $DeploymentLog -Value "Module log file not found: $moduleLog" -ErrorAction SilentlyContinue
+                }
+                Add-Content -Path $DeploymentLog -Value "" -ErrorAction SilentlyContinue
             }
-            Add-Content -Path $DeploymentLog -Value ""
             
             return $true
         } else {
@@ -463,9 +576,432 @@ function Invoke-DeploymentPipeline {
     Write-Info "  - Master Log: $DeploymentLog"
 }
 
+function Move-LegacyTerraformFiles {
+    Write-Info "🔄 Checking for legacy Terraform files in main directory..."
+    
+    # Ensure lab_logs directory exists
+    if (!(Test-Path $LogsDir)) {
+        New-Item -ItemType Directory -Path $LogsDir -Force | Out-Null
+    }
+    
+    $movedFiles = 0
+    
+    # Move plan files
+    $legacyPlanFiles = @(Get-ChildItem -Path $ScriptDir -Name "*.tfplan" -ErrorAction SilentlyContinue)
+    foreach ($file in $legacyPlanFiles) {
+        $sourcePath = Join-Path $ScriptDir $file
+        $destPath = Join-Path $LogsDir $file
+        Move-Item $sourcePath $destPath -Force
+        Write-Info "Moved plan file: $file → lab_logs/"
+        $movedFiles++
+    }
+    
+    # Move terraform state backup files
+    $legacyStateBackups = @(Get-ChildItem -Path $ScriptDir -Name "terraform.tfstate.backup*" -ErrorAction SilentlyContinue)
+    foreach ($file in $legacyStateBackups) {
+        $sourcePath = Join-Path $ScriptDir $file
+        $destPath = Join-Path $LogsDir $file
+        Move-Item $sourcePath $destPath -Force
+        Write-Info "Moved state backup: $file → lab_logs/"
+        $movedFiles++
+    }
+    
+    # Move variables.tf backup files
+    $legacyVarBackups = @(Get-ChildItem -Path $ScriptDir -Name "variables.tf.backup*" -ErrorAction SilentlyContinue)
+    foreach ($file in $legacyVarBackups) {
+        $sourcePath = Join-Path $ScriptDir $file
+        $destPath = Join-Path $LogsDir $file
+        Move-Item $sourcePath $destPath -Force
+        Write-Info "Moved variables backup: $file → lab_logs/"
+        $movedFiles++
+    }
+    
+    if ($movedFiles -gt 0) {
+        Write-Success "✅ Moved $movedFiles legacy Terraform files to lab_logs directory"
+        Add-ChangeTracking "MOVE" "legacy_terraform_files" "Moved $movedFiles files to lab_logs"
+    } else {
+        Write-Info "No legacy Terraform files found in main directory"
+    }
+}
+
 function Invoke-Cleanup {
-    # Cleanup implementation would go here
-    Write-Info "🧹 CLEANUP functionality not yet implemented"
+    Write-Info "🧹 SAMSUNG CLOUD PLATFORM v2 CLEANUP STARTED"
+    Write-Host ""
+    
+    # Track cleanup start
+    Add-ChangeTracking "CLEANUP_START" "infrastructure" "Started cleanup process"
+    
+    # Step 0: Move legacy Terraform files to lab_logs directory
+    Move-LegacyTerraformFiles
+    
+    # Step 1: Terraform Destroy
+    Write-Host ""
+    Cyan "================================================================"
+    Cyan "STEP 1: TERRAFORM INFRASTRUCTURE DESTRUCTION"
+    Cyan "================================================================"
+    
+    # Check if terraform state exists
+    $terraformStateExists = Test-Path "terraform.tfstate"
+    $terraformStateBackupExists = Test-Path "terraform.tfstate.backup"
+    
+    if ($terraformStateExists -or $terraformStateBackupExists) {
+        Write-Warning "⚠️  Terraform state files detected. This will DESTROY all infrastructure!"
+        Write-Host ""
+        Write-Host "The following will be destroyed:" -ForegroundColor Red
+        Write-Host "  • All virtual machines (Web, App, Database servers)" -ForegroundColor Red
+        Write-Host "  • Load balancers and networking components" -ForegroundColor Red
+        Write-Host "  • Security groups and firewall rules" -ForegroundColor Red
+        Write-Host "  • Public IPs and floating IPs" -ForegroundColor Red
+        Write-Host "  • All storage volumes and snapshots" -ForegroundColor Red
+        Write-Host ""
+        
+        Write-Host "⚠️  THIS ACTION CANNOT BE UNDONE!" -ForegroundColor Red -BackgroundColor Yellow
+        Write-Host ""
+        
+        do {
+            Write-Host -NoNewline -ForegroundColor Yellow "Are you sure you want to destroy the infrastructure? (yes/no): "
+            $destroyConfirm = Read-Host
+            $destroyConfirm = $destroyConfirm.Trim().ToLower()
+            
+            if ($destroyConfirm -eq "yes") {
+                Write-Info "🗂️  Starting Terraform destroy process..."
+                
+                # Create destroy log
+                $destroyLog = Join-Path $LogsDir "terraform_destroy_$(Get-Date -Format 'yyyyMMdd_HHmmss').log"
+                $destroyStartTime = Get-Date
+                
+                try {
+                    Write-Info "Running: terraform destroy -auto-approve"
+                    Write-Info "Destroy log: $destroyLog"
+                    
+                    # Run terraform destroy
+                    terraform destroy -auto-approve *> $destroyLog
+                    $destroyExitCode = $LASTEXITCODE
+                    
+                    if ($destroyExitCode -eq 0) {
+                        $destroyDuration = (Get-Date) - $destroyStartTime
+                        Write-Success "✅ Terraform destroy completed successfully in $($destroyDuration.TotalMinutes.ToString('F1')) minutes"
+                        Add-ChangeTracking "TERRAFORM_DESTROY" "infrastructure" "Infrastructure destroyed successfully"
+                        
+                        # Clean up terraform state files
+                        if (Test-Path "terraform.tfstate") {
+                            Remove-Item "terraform.tfstate" -Force
+                            Write-Info "Removed terraform.tfstate"
+                        }
+                        if (Test-Path "terraform.tfstate.backup") {
+                            Remove-Item "terraform.tfstate.backup" -Force  
+                            Write-Info "Removed terraform.tfstate.backup"
+                        }
+                        if (Test-Path ".terraform.lock.hcl") {
+                            Remove-Item ".terraform.lock.hcl" -Force
+                            Write-Info "Removed .terraform.lock.hcl"
+                        }
+                    } else {
+                        Write-Error "❌ Terraform destroy failed with exit code $destroyExitCode"
+                        Write-Error "Check destroy log: $destroyLog"
+                        Write-Host ""
+                        Write-Host "Common solutions:" -ForegroundColor Yellow
+                        Write-Host "  • Check cloud provider credentials" -ForegroundColor Yellow
+                        Write-Host "  • Verify network connectivity" -ForegroundColor Yellow
+                        Write-Host "  • Some resources may need manual cleanup" -ForegroundColor Yellow
+                        return
+                    }
+                } catch {
+                    Write-Error "❌ Error running terraform destroy: $($_.Exception.Message)"
+                    Write-Error "Check destroy log: $destroyLog"
+                    return
+                }
+                break
+            }
+            elseif ($destroyConfirm -eq "no") {
+                Write-Info "Terraform destroy cancelled by user"
+                Write-Info "Proceeding to file cleanup options..."
+                break
+            }
+            else {
+                Write-Host "Please enter 'yes' or 'no'" -ForegroundColor Red
+            }
+        } while ($true)
+    } else {
+        Write-Info "No terraform state files found - skipping infrastructure destruction"
+    }
+    
+    # Step 2: File and Log Cleanup Options
+    Write-Host ""
+    Cyan "================================================================"
+    Cyan "STEP 2: FILE AND LOG CLEANUP OPTIONS"
+    Cyan "================================================================"
+    
+    # Inventory cleanup targets
+    $cleanupTargets = @()
+    
+    # Log files (preserve lab_logs directory structure)
+    if (Test-Path $LogsDir) {
+        $logFiles = @(Get-ChildItem -Path $LogsDir -File -Recurse)
+        if ($logFiles.Count -gt 0) {
+            $cleanupTargets += @{
+                Name = "Log Files (Preserve Directory)"
+                Path = $LogsDir
+                Files = $logFiles
+                Description = "Deployment logs, terraform logs, module execution logs (keeps lab_logs folder)"
+                PreserveDirectory = $true
+            }
+        }
+    }
+    
+    # Generated UserData files - PROTECTED - DO NOT CLEAN
+    # $userdataDir = Join-Path $ScriptsDir "generated_userdata"
+    # These files are preserved to avoid regeneration requirements
+    
+    # Variables JSON file - PROTECTED - DO NOT CLEAN
+    # if (Test-Path $VariablesJson) {
+    # This file is preserved to avoid regeneration requirements
+    
+    # Changes tracking log
+    if (Test-Path $ChangesLog) {
+        $cleanupTargets += @{
+            Name = "Changes Tracking Log"
+            Path = $ChangesLog
+            Files = @(Get-Item $ChangesLog)
+            Description = "Record of all deployment changes"
+        }
+    }
+    
+    # Terraform plan files (now stored in lab_logs)
+    $planFiles = @(Get-ChildItem -Path $LogsDir -Name "*.tfplan" -ErrorAction SilentlyContinue)
+    if ($planFiles.Count -gt 0) {
+        $cleanupTargets += @{
+            Name = "Terraform Plan Files"
+            Path = $LogsDir
+            Files = $planFiles | ForEach-Object { Get-Item (Join-Path $LogsDir $_) }
+            Description = "Terraform execution plans"
+        }
+    }
+    
+    # Terraform state backup files (now stored in lab_logs)
+    $stateBackupFiles = @(Get-ChildItem -Path $LogsDir -Name "terraform.tfstate.backup*" -ErrorAction SilentlyContinue)
+    if ($stateBackupFiles.Count -gt 0) {
+        $cleanupTargets += @{
+            Name = "Terraform State Backup Files"
+            Path = $LogsDir
+            Files = $stateBackupFiles | ForEach-Object { Get-Item (Join-Path $LogsDir $_) }
+            Description = "Terraform state backup files"
+        }
+    }
+    
+    # Variables.tf backup files (now stored in lab_logs)
+    $variablesBackupFiles = @(Get-ChildItem -Path $LogsDir -Name "variables.tf.backup*" -ErrorAction SilentlyContinue)
+    if ($variablesBackupFiles.Count -gt 0) {
+        $cleanupTargets += @{
+            Name = "Variables.tf Backup Files"
+            Path = $LogsDir
+            Files = $variablesBackupFiles | ForEach-Object { Get-Item (Join-Path $LogsDir $_) }
+            Description = "Variables.tf backup files"
+        }
+    }
+    
+    # .terraform directory
+    $terraformDir = Join-Path $ScriptDir ".terraform"
+    if (Test-Path $terraformDir) {
+        $terraformFiles = @(Get-ChildItem -Path $terraformDir -Recurse)
+        if ($terraformFiles.Count -gt 0) {
+            $cleanupTargets += @{
+                Name = "Terraform Cache Directory"
+                Path = $terraformDir
+                Files = $terraformFiles
+                Description = "Provider plugins and modules cache"
+            }
+        }
+    }
+    
+    if ($cleanupTargets.Count -eq 0) {
+        Write-Info "No cleanup targets found - all files are already clean"
+    } else {
+        Write-Info "Found $($cleanupTargets.Count) cleanup target(s):"
+        Write-Host ""
+        
+        for ($i = 0; $i -lt $cleanupTargets.Count; $i++) {
+            $target = $cleanupTargets[$i]
+            Write-Host "  $($i + 1). $($target.Name)" -ForegroundColor Cyan
+            Write-Host "     Path: $($target.Path)" -ForegroundColor Gray
+            Write-Host "     Files: $(@($target.Files).Count)" -ForegroundColor Gray
+            Write-Host "     Description: $($target.Description)" -ForegroundColor Gray
+            Write-Host ""
+        }
+        
+        # Cleanup options menu
+        Write-Host ""
+        Write-Host "Choose cleanup option:" -ForegroundColor White -BackgroundColor Black
+        Write-Host ""
+        Green "A. CLEAN ALL     - Remove all temporary files and logs"
+        Yellow "S. SELECTIVE     - Choose specific items to clean"
+        Blue "K. KEEP LOGS     - Clean generated files but keep logs for review"
+        Red "N. NO CLEANUP    - Keep all files (exit cleanup)"
+        Write-Host ""
+        
+        do {
+            Write-Host -NoNewline -ForegroundColor Cyan "Select cleanup option (A/S/K/N): "
+            $cleanupChoice = Read-Host
+            $cleanupChoice = $cleanupChoice.Trim().ToUpper()
+            
+            switch ($cleanupChoice) {
+                "A" {
+                    # Clean all
+                    Write-Info "🗑️  Cleaning all temporary files and logs..."
+                    foreach ($target in $cleanupTargets) {
+                        Remove-CleanupTarget $target
+                    }
+                    Write-Success "✅ All cleanup targets removed"
+                    break
+                }
+                "S" {
+                    # Selective cleanup
+                    Write-Info "🎯 Selective cleanup mode"
+                    Write-Host ""
+                    
+                    foreach ($target in $cleanupTargets) {
+                        Write-Host ""
+                        Write-Host "Clean $($target.Name)?" -ForegroundColor Yellow
+                        Write-Host "  Path: $($target.Path)" -ForegroundColor Gray
+                        Write-Host "  Files: $(@($target.Files).Count)" -ForegroundColor Gray
+                        
+                        do {
+                            Write-Host -NoNewline -ForegroundColor Cyan "Remove this item? (y/n): "
+                            $itemChoice = Read-Host
+                            $itemChoice = $itemChoice.Trim().ToLower()
+                            
+                            if ($itemChoice -eq "y" -or $itemChoice -eq "yes") {
+                                Remove-CleanupTarget $target
+                                break
+                            }
+                            elseif ($itemChoice -eq "n" -or $itemChoice -eq "no") {
+                                Write-Info "Skipped $($target.Name)"
+                                break
+                            }
+                            else {
+                                Write-Host "Please enter 'y' or 'n'" -ForegroundColor Red
+                            }
+                        } while ($true)
+                    }
+                    Write-Success "✅ Selective cleanup completed"
+                    break
+                }
+                "K" {
+                    # Keep logs, clean generated files
+                    Write-Info "📋 Keeping logs, cleaning generated files..."
+                    foreach ($target in $cleanupTargets) {
+                        if ($target.Name -notlike "*Log*") {
+                            Remove-CleanupTarget $target
+                        } else {
+                            Write-Info "Preserved $($target.Name)"
+                        }
+                    }
+                    Write-Success "✅ Generated files cleaned, logs preserved"
+                    break
+                }
+                "N" {
+                    Write-Info "No cleanup performed - all files preserved"
+                    break
+                }
+                default {
+                    Write-Host "Invalid option. Please select A, S, K, or N" -ForegroundColor Red
+                }
+            }
+        } while ($cleanupChoice -notin @("A", "S", "K", "N"))
+    }
+    
+    # Step 3: Reset Configuration
+    Write-Host ""
+    Cyan "================================================================"
+    Cyan "STEP 3: CONFIGURATION RESET"
+    Cyan "================================================================"
+    
+    Write-Host ""
+    Write-Host "Reset configuration to initial state?" -ForegroundColor Yellow
+    Write-Host "This will:" -ForegroundColor Gray
+    Write-Host "  • Keep original variables.tf file intact" -ForegroundColor Gray
+    Write-Host "  • Remove any deployment status markers" -ForegroundColor Gray
+    Write-Host "  • Reset environment for fresh deployment" -ForegroundColor Gray
+    Write-Host ""
+    
+    do {
+        Write-Host -NoNewline -ForegroundColor Cyan "Reset configuration? (y/n): "
+        $resetChoice = Read-Host
+        $resetChoice = $resetChoice.Trim().ToLower()
+        
+        if ($resetChoice -eq "y" -or $resetChoice -eq "yes") {
+            # Remove deployment status markers
+            $statusMarkers = Get-ChildItem -Path $LogsDir -Name "deployment_*_*.marker" -ErrorAction SilentlyContinue
+            foreach ($marker in $statusMarkers) {
+                $markerPath = Join-Path $LogsDir $marker
+                Remove-Item $markerPath -Force -ErrorAction SilentlyContinue
+                Write-Info "Removed status marker: $marker"
+            }
+            
+            # Reset any other configuration as needed
+            Write-Success "✅ Configuration reset to initial state"
+            Add-ChangeTracking "CONFIGURATION_RESET" "environment" "Reset to initial deployment state"
+            break
+        }
+        elseif ($resetChoice -eq "n" -or $resetChoice -eq "no") {
+            Write-Info "Configuration reset skipped"
+            break
+        }
+        else {
+            Write-Host "Please enter 'y' or 'n'" -ForegroundColor Red
+        }
+    } while ($true)
+    
+    # Cleanup completion
+    Write-Host ""
+    Add-ChangeTracking "CLEANUP_COMPLETE" "environment" "Cleanup process completed"
+    
+    Cyan "================================================================"
+    Write-Success "🎉 CLEANUP PROCESS COMPLETED!"
+    Cyan "================================================================"
+    Write-Host ""
+    Write-Info "📊 Cleanup Summary:"
+    Write-Info "  ✅ Infrastructure destruction: $(if ($terraformStateExists -or $terraformStateBackupExists) { 'Processed' } else { 'Not needed' })"
+    Write-Info "  ✅ File cleanup: Completed based on user selection"
+    Write-Info "  ✅ Configuration reset: Completed"
+    Write-Host ""
+    Write-Info "Environment is ready for fresh deployment"
+}
+
+function Remove-CleanupTarget {
+    param($Target)
+    
+    try {
+        if (Test-Path $Target.Path) {
+            # Check if this target should preserve directory structure
+            if ($Target.PSObject.Properties.Name -contains "PreserveDirectory" -and $Target.PreserveDirectory -eq $true) {
+                # Preserve directory structure - remove only individual files
+                $filesRemoved = 0
+                foreach ($file in $Target.Files) {
+                    if (Test-Path $file.FullName) {
+                        Remove-Item -Path $file.FullName -Force
+                        $filesRemoved++
+                    }
+                }
+                Write-Info "Cleaned $filesRemoved files from directory, preserved: $($Target.Name)"
+                Add-ChangeTracking "CLEAN_FILES" $Target.Path "Cleaned $filesRemoved files, preserved directory structure"
+            } elseif ((Get-Item $Target.Path).PSIsContainer) {
+                # Directory - remove entirely
+                Remove-Item -Path $Target.Path -Recurse -Force
+                Write-Info "Removed directory: $($Target.Name)"
+                Add-ChangeTracking "DELETE" $Target.Path "Cleaned up during reset"
+            } else {
+                # File
+                Remove-Item -Path $Target.Path -Force
+                Write-Info "Removed file: $($Target.Name)"
+                Add-ChangeTracking "DELETE" $Target.Path "Cleaned up during reset"
+            }
+        } else {
+            Write-Warning "Path not found (already removed): $($Target.Path)"
+        }
+    } catch {
+        Write-Error "Failed to remove $($Target.Name): $($_.Exception.Message)"
+    }
 }
 
 function Show-Status {
@@ -473,10 +1009,93 @@ function Show-Status {
     Write-Info "📊 STATUS functionality not yet implemented"
 }
 
+function Invoke-Reset {
+    Write-Info "🔄 SAMSUNG CLOUD PLATFORM v2 RESET STARTED"
+    Write-Host ""
+    
+    # Track reset start
+    Add-ChangeTracking "RESET_START" "variables" "Started variables reset process"
+    
+    Write-Host ""
+    Cyan "================================================================"
+    Cyan "RESET USER INPUT VARIABLES TO DEFAULT VALUES"
+    Cyan "================================================================"
+    
+    Write-Host ""
+    Write-Warning "⚠️  This will reset all user input variables in variables.tf to their default values!"
+    Write-Host ""
+    Write-Host "This will reset the following variables:" -ForegroundColor Yellow
+    Write-Host "  • private_domain_name → 'your_internal.local'" -ForegroundColor Gray
+    Write-Host "  • private_hosted_zone_id → 'your_private_hosted_zone_id'" -ForegroundColor Gray
+    Write-Host "  • public_domain_name → 'yourdomain.com'" -ForegroundColor Gray
+    Write-Host "  • keypair_name → 'mykey'" -ForegroundColor Gray
+    Write-Host "  • user_public_ip → 'your_public_ip/32'" -ForegroundColor Gray
+    Write-Host "  • Object storage credentials → default placeholder values" -ForegroundColor Gray
+    Write-Host ""
+    Write-Host "A backup will be created in lab_logs/ before making changes." -ForegroundColor Green
+    Write-Host ""
+    
+    do {
+        Write-Host -NoNewline -ForegroundColor Cyan "Continue with reset? (y/n): "
+        $resetConfirm = Read-Host
+        $resetConfirm = $resetConfirm.Trim().ToLower()
+        
+        if ($resetConfirm -eq "y" -or $resetConfirm -eq "yes") {
+            Write-Info "🔄 Starting variables reset process..."
+            
+            # Load and execute reset function from variables_manager
+            $resetScript = Join-Path $ScriptsDir "variables_manager.ps1"
+            if (Test-Path $resetScript) {
+                # Source the variables_manager script to load the Reset function
+                . $resetScript
+                
+                # Call the reset function
+                if (Reset-UserInputVariables) {
+                    Write-Success "✅ Variables reset completed successfully!"
+                    Add-ChangeTracking "RESET_COMPLETE" "variables" "User input variables reset to defaults"
+                } else {
+                    Write-Error "❌ Variables reset failed!"
+                    Add-ChangeTracking "RESET_FAILED" "variables" "Reset process failed"
+                    return
+                }
+            } else {
+                Write-Error "Variables manager script not found: $resetScript"
+                return
+            }
+            break
+        }
+        elseif ($resetConfirm -eq "n" -or $resetConfirm -eq "no") {
+            Write-Info "Reset cancelled by user"
+            return
+        }
+        else {
+            Write-Host "Please enter 'y' or 'n'" -ForegroundColor Red
+        }
+    } while ($true)
+    
+    Write-Host ""
+    Cyan "================================================================"
+    Write-Success "🎉 RESET PROCESS COMPLETED!"
+    Cyan "================================================================"
+    Write-Host ""
+    Write-Info "📊 Reset Summary:"
+    Write-Info "  ✅ variables.tf reset to default values"
+    Write-Info "  ✅ Backup created in lab_logs/"
+    Write-Info "  ✅ Ready for fresh variable configuration"
+    Write-Host ""
+    Write-Info "Next steps:"
+    Write-Info "  1. Run DEPLOY mode to configure variables interactively"
+    Write-Info "  2. Or manually edit variables.tf with your values"
+}
+
 function Main {
     # Initialize environment
     Initialize-DeploymentEnvironment
     Initialize-ChangesTracking
+    
+    # Check for previous deployment status before showing main banner
+    Test-PreviousDeploymentStatus
+    
     Show-MainBanner
     Get-OperationMode
     Get-DebugMode
@@ -486,6 +1105,7 @@ function Main {
         "deploy" { Invoke-DeploymentPipeline }
         "cleanup" { Invoke-Cleanup }
         "status" { Show-Status }
+        "reset" { Invoke-Reset }
     }
     
     Green "🚀 Samsung Cloud Platform v2 operation completed at $(Get-Date)"

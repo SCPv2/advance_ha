@@ -42,30 +42,42 @@ function Write-Warning($message) {
     Write-Host "$timestamp $(Yellow '[WARNING]') $message" 
 }
 
-# Setup Terraform logging (Enhanced version)
+# Setup Terraform logging (Enhanced version with detailed API logging)
 function Set-TerraformLogging {
     # Create log directory
     if (!(Test-Path $LogsDir)) {
         New-Item -ItemType Directory -Path $LogsDir -Force | Out-Null
     }
     
-    # Find next trial number
-    $trialNum = 1
-    while (Test-Path "$TerraformLogsDir\tf_deployment_$('{0:D2}' -f $trialNum).log") {
-        $trialNum++
-    }
+    # Create timestamp for all log files
+    $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
     
-    $logFile = "$LogsDir\tf_deployment_$('{0:D2}' -f $trialNum).log"
+    # Create comprehensive log file names
+    $terraformLogFile = "$LogsDir\terraform_debug_$timestamp.log"
+    $providerLogFile = "$LogsDir\provider_api_$timestamp.log"
+    $executionLogFile = "$LogsDir\terraform_execution_$timestamp.log"
     
-    # Set Terraform environment variables (log all API communication)
-    $env:TF_LOG = "TRACE"
-    $env:TF_LOG_PATH = $logFile
+    # Set comprehensive Terraform environment variables (log ALL API communication)
+    $env:TF_LOG = "TRACE"                    # Terraform core logging
+    $env:TF_LOG_PATH = $terraformLogFile     # Main Terraform log
+    $env:TF_LOG_PROVIDER = "TRACE"           # Provider-specific logging
+    $env:TF_LOG_PROVIDER_PATH = $providerLogFile  # Provider API log
+    $env:TF_CPP_MIN_LOG_LEVEL = "0"          # Enable all C++ logs
     
-    Write-Host "✓ Terraform API logging enabled: $logFile" -ForegroundColor Cyan
-    Write-Host "  - All provider API requests and responses will be logged" -ForegroundColor Gray
+    Write-Host "✓ Enhanced Terraform API logging enabled:" -ForegroundColor Cyan
+    Write-Host "  📋 Terraform Core: $terraformLogFile" -ForegroundColor Gray
+    Write-Host "  🔌 Provider API: $providerLogFile" -ForegroundColor Gray
+    Write-Host "  📊 Execution Log: $executionLogFile" -ForegroundColor Gray
+    Write-Host "  - All provider API requests/responses will be logged" -ForegroundColor Gray
+    Write-Host "  - HTTP calls, timeouts, and errors will be captured" -ForegroundColor Gray
     Write-Host ""
     
-    return $logFile
+    return @{
+        Terraform = $terraformLogFile
+        Provider = $providerLogFile
+        Execution = $executionLogFile
+        Timestamp = $timestamp
+    }
 }
 
 # Update Terraform UserData variables
@@ -165,13 +177,14 @@ function Invoke-TerraformPlan {
     Push-Location $ProjectDir
     try {
         $planFile = Join-Path $LogsDir "terraform.tfplan"
-        $planArgs = @("plan", "-out=$planFile")
+        $backupFile = Join-Path $LogsDir "terraform.tfstate.backup"
+        $planArgs = @("plan", "-out=$planFile", "-backup=$backupFile")
         
-        if ($ShowOutput -or $global:DebugMode) {
-            & terraform @planArgs
-        } else {
-            & terraform @planArgs > $null 2>&1
-        }
+        # Always show terraform plan output for better visibility of issues
+        Write-Host "Executing: terraform plan -out=$planFile -backup=$backupFile" -ForegroundColor Cyan
+        Write-Host "=" * 60 -ForegroundColor Gray
+        & terraform @planArgs
+        Write-Host "=" * 60 -ForegroundColor Gray
         
         if ($LASTEXITCODE -ne 0) {
             Write-Error "Terraform Plan Failed!"
@@ -186,8 +199,10 @@ function Invoke-TerraformPlan {
     }
 }
 
-# Apply Terraform plan (Enhanced version)
+# Apply Terraform plan (Enhanced version with execution logging)
 function Invoke-TerraformApply {
+    param($LogFiles)
+    
     Write-Info "[4/4] Ready to deploy infrastructure..."
     Write-Host "Warning: This will create real resources on Samsung Cloud Platform!" -ForegroundColor Yellow
     
@@ -227,11 +242,51 @@ function Invoke-TerraformApply {
         }
         
         Write-Host "Starting Terraform Apply..." -ForegroundColor Green
-        & terraform apply $planFile
         
-        if ($LASTEXITCODE -ne 0) {
+        # Create execution log with timestamps and detailed output
+        $startTime = Get-Date
+        $executionContent = @(
+            "=== Terraform Apply Started: $startTime ==="
+            "Command: terraform apply $planFile"
+            "Terraform Log: $($LogFiles.Terraform)"
+            "Provider Log: $($LogFiles.Provider)"
+            "="*50
+        )
+        
+        # Execute terraform apply with real-time output
+        $backupFile = Join-Path $LogsDir "terraform.tfstate.backup.apply"
+        Write-Host "Executing: terraform apply -backup=$backupFile $planFile" -ForegroundColor Cyan
+        Write-Host "=" * 60 -ForegroundColor Gray
+        
+        # Run terraform apply and show output in real-time while capturing to log
+        $terraformLogFile = Join-Path $LogsDir "terraform_apply_$(Get-Date -Format 'yyyyMMdd_HHmmss').log"
+        & terraform apply "-backup=$backupFile" $planFile | Tee-Object -FilePath $terraformLogFile
+        $exitCode = $LASTEXITCODE
+        $endTime = Get-Date
+        $duration = $endTime - $startTime
+        
+        Write-Host "=" * 60 -ForegroundColor Gray
+        
+        # Read captured output for execution log
+        $terraformOutput = if (Test-Path $terraformLogFile) { Get-Content $terraformLogFile } else { @("Output log not found") }
+        
+        # Append execution results
+        $executionContent += $terraformOutput
+        $executionContent += ""
+        $executionContent += "="*50
+        $executionContent += "=== Terraform Apply Ended: $endTime ==="
+        $executionContent += "Duration: $($duration.TotalSeconds) seconds"
+        $executionContent += "Exit Code: $exitCode"
+        
+        # Save execution log
+        $executionContent | Out-File -FilePath $LogFiles.Execution -Encoding UTF8
+        
+        if ($exitCode -ne 0) {
             Write-Error "Terraform Apply Failed!"
-            Write-Host "Check the error message above and the API log file." -ForegroundColor Yellow
+            Write-Host "📄 Detailed logs available:" -ForegroundColor Yellow
+            Write-Host "  🔍 Execution: $($LogFiles.Execution)" -ForegroundColor Red
+            Write-Host "  🔍 API Debug: $($LogFiles.Provider)" -ForegroundColor Red
+            Write-Host "  🔍 Core Debug: $($LogFiles.Terraform)" -ForegroundColor Red
             return $false
         }
         
@@ -241,6 +296,39 @@ function Invoke-TerraformApply {
     } finally {
         Pop-Location
     }
+}
+
+# Create status markers for deployment success/failure
+function Create-StatusMarker {
+    param(
+        [bool]$IsSuccess,
+        [hashtable]$LogFiles
+    )
+    
+    $timestamp = $LogFiles.Timestamp
+    $status = if ($IsSuccess) { "SUCCESS" } else { "FAILURE" }
+    $statusFile = "$LogsDir\deployment_${status}_$timestamp.marker"
+    
+    # Create status marker content
+    $markerContent = @{
+        Status = $status
+        Timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+        TerraformLog = $LogFiles.Terraform
+        ProviderLog = $LogFiles.Provider
+        ExecutionLog = $LogFiles.Execution
+        Duration = if ($IsSuccess) { "Completed" } else { "Failed" }
+    }
+    
+    # Save marker as JSON
+    $markerContent | ConvertTo-Json -Depth 3 | Out-File -FilePath $statusFile -Encoding UTF8
+    
+    if ($IsSuccess) {
+        Write-Success "✅ Deployment SUCCESS marker created: $statusFile"
+    } else {
+        Write-Error "❌ Deployment FAILURE marker created: $statusFile"
+    }
+    
+    return $statusFile
 }
 
 # Display deployment results
@@ -336,8 +424,8 @@ function Main {
         exit 1
     }
     
-    # Setup logging
-    $logFile = Set-TerraformLogging
+    # Setup comprehensive logging
+    $logFiles = Set-TerraformLogging
     
     # Update UserData variables
     if (-not (Update-TerraformUserdataVariables)) {
@@ -361,9 +449,14 @@ function Main {
         exit 1
     }
     
-    if (-not (Invoke-TerraformApply)) {
+    if (-not (Invoke-TerraformApply -LogFiles $logFiles)) {
+        # Create failure marker
+        Create-StatusMarker -IsSuccess $false -LogFiles $logFiles
         exit 1
     }
+    
+    # Create success marker
+    Create-StatusMarker -IsSuccess $true -LogFiles $logFiles
     
     # Show results
     Show-DeploymentResults

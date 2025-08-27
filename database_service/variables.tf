@@ -21,19 +21,19 @@ variable "common_tags" {
 variable "private_domain_name" {
   type        = string
   description = "[USER_INPUT] Private domain name (e.g., internal.local)"
-  default     = "your-private-domain.local"
+  default     = "your_internal.local"
 }
 
 variable "private_hosted_zone_id" {
   type        = string
   description = "[USER_INPUT] Private Hosted Zone ID for domain"
-  default     = "your-private-hosted-zone-id"
+  default     = "your_private_hosted_zone_id"
 }
 
 variable "public_domain_name" {
   type        = string
   description = "[USER_INPUT] Public domain name (e.g., example.com)"
-  default     = "your-public-domain.local"
+  default     = "yourdomain.com"
 }
 
 variable "keypair_name" {
@@ -45,19 +45,19 @@ variable "keypair_name" {
 variable "user_public_ip" {
   type        = string
   description = "[USER_INPUT] Public IP address of user PC"
-  default     = "your public-ip-address"
+  default     = "your_public_ip/32"
 }
 
 variable "object_storage_access_key_id" {
   type        = string
   description = "[USER_INPUT] Object Storage access key ID"
-  default     = "put_the_value_if_you_use_object_storage_in_this_lab"
+  default     = "put_the_value_if_you_use_object_storage_in_this_labs"
 }
 
 variable "object_storage_secret_access_key" {
   type        = string
   description = "[USER_INPUT] Object Storage secret access key"
-  default     = "put_the_value_if_you_use_object_storage_in_this_lab"
+  default     = "put_the_value_if_you_use_object_storage_in_this_labs"
 }
 
 variable "object_storage_bucket_string" {
@@ -162,6 +162,24 @@ variable "timezone" {
   type        = string
   description = "[CEWEB_REQUIRED] System timezone"
   default     = "Asia/Seoul"
+}
+
+variable "web_ip" {
+  type        = string
+  description = "[CEWEB_REQUIRED] Private IP address of web VM"
+  default     = "10.1.1.111"
+}
+
+variable "app_ip" {
+  type        = string
+  description = "[CEWEB_REQUIRED] Private IP address of app VM"
+  default     = "10.1.2.121"
+}
+
+variable "db_ip" {
+  type        = string
+  description = "[CEWEB_REQUIRED]Private IP address of db VM"
+  default     = "10.1.3.31"
 }
 
 variable "web_lb_service_ip" {
@@ -270,18 +288,6 @@ variable "bastion_ip" {
   default     = "10.1.1.110"
 }
 
-variable "web_ip" {
-  type        = string
-  description = "Private IP address of web VM [TERRAFORM_INFRA]"
-  default     = "10.1.1.111"
-}
-
-variable "app_ip" {
-  type        = string
-  description = "Private IP address of app VM [TERRAFORM_INFRA]"
-  default     = "10.1.2.121"
-}
-
 variable "web_ip2" {
   type        = string
   description = "Private IP address of web VM2 [TERRAFORM_INFRA]"
@@ -292,12 +298,6 @@ variable "app_ip2" {
   type        = string
   description = "Private IP address of app VM2 [TERRAFORM_INFRA]"
   default     = "10.1.2.122"
-}
-
-variable "db_ip" {
-  type        = string
-  description = "Private IP address of db VM [TERRAFORM_INFRA]"
-  default     = "10.1.3.31"
 }
 
 # VPC Configuration Variables
@@ -556,6 +556,18 @@ variable "rocky_boot_volume_delete_on_termination" {
   description = "Delete Rocky boot volume on termination [TERRAFORM_INFRA]"
   default     = true
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

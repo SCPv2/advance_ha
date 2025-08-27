@@ -7,6 +7,10 @@ terraform {
       version = "1.0.3"
       source  = "SamsungSDSCloud/samsungcloudplatformv2"
     }
+    time = {
+      source  = "hashicorp/time"
+      version = "~> 0.9"
+    }
   }
   required_version = ">= 1.11"
 }
@@ -80,62 +84,6 @@ data "samsungcloudplatformv2_virtualserver_keypair" "kp" {
   name = var.keypair_name
 }
 
-########################################################
-# Private DNS (cesvc.net) - VPC Connection 
-########################################################
-resource "samsungcloudplatformv2_dns_private_dns" "cesvc_private_dns" {
-  private_dns_create = {
-    connected_vpc_ids = [samsungcloudplatformv2_vpc_vpc.vpc.id]
-    description       = "Private DNS for cesvc.net domain - 3-tier architecture"
-    name             = var.private_domain_name
-  }
-  
-  tags = var.common_tags
-
-  depends_on = [samsungcloudplatformv2_vpc_vpc.vpc]
-}
-
-########################################################
-# DNS Private Hosted Zone Records (Initial VM IPs)
-########################################################
-resource "samsungcloudplatformv2_dns_record" "www_initial" {
-  hosted_zone_id = var.private_hosted_zone_id
-  record_create = {
-    name        = "www.${var.private_domain_name}"
-    type        = "A"
-    records     = [var.web_ip]
-    ttl         = 300
-    description = "Initial DNS record for web server (will be updated to LB IP manually)"
-  }
-
-  depends_on = [samsungcloudplatformv2_vpc_subnet.web_subnet, samsungcloudplatformv2_vpc_subnet.app_subnet, samsungcloudplatformv2_vpc_subnet.db_subnet]
-}
-
-resource "samsungcloudplatformv2_dns_record" "app_initial" {
-  hosted_zone_id = var.private_hosted_zone_id
-  record_create = {
-    name        = "app.${var.private_domain_name}"
-    type        = "A"
-    records     = [var.app_ip]
-    ttl         = 300
-    description = "Initial DNS record for app server (will be updated to LB IP manually)"
-  }
-
-  depends_on = [samsungcloudplatformv2_vpc_subnet.web_subnet, samsungcloudplatformv2_vpc_subnet.app_subnet, samsungcloudplatformv2_vpc_subnet.db_subnet]
-}
-
-resource "samsungcloudplatformv2_dns_record" "db_record" {
-  hosted_zone_id = var.private_hosted_zone_id
-  record_create = {
-    name        = "db.${var.private_domain_name}"
-    type        = "A"
-    records     = [var.db_ip]
-    ttl         = 300
-    description = "DNS record for database server (permanent)"
-  }
-
-  depends_on = [samsungcloudplatformv2_vpc_subnet.web_subnet, samsungcloudplatformv2_vpc_subnet.app_subnet, samsungcloudplatformv2_vpc_subnet.db_subnet]
-}
 
 ########################################################
 # Public IP
@@ -518,6 +466,22 @@ resource "samsungcloudplatformv2_vpc_port" "db_port" {
 }
 
 ########################################################
+# Time Sleep - Port 생성 후 20초 대기
+########################################################
+resource "time_sleep" "wait_for_ports" {
+  depends_on = [
+    samsungcloudplatformv2_vpc_port.bastion_port,
+    samsungcloudplatformv2_vpc_port.web_port,
+    samsungcloudplatformv2_vpc_port.web_port2,
+    samsungcloudplatformv2_vpc_port.app_port,
+    samsungcloudplatformv2_vpc_port.app_port2,
+    samsungcloudplatformv2_vpc_port.db_port
+  ]
+
+  create_duration = "20s"
+}
+
+########################################################
 # Virtual Server Standard Image ID 조회
 ########################################################
 # Windows 이미지 조회
@@ -588,7 +552,7 @@ resource "samsungcloudplatformv2_virtualserver_server" "vm4" {
   }
   user_data = base64encode(file("${path.module}/scripts/generated_userdata/userdata_db.sh"))
   depends_on = [
-    samsungcloudplatformv2_dns_record.db_record,
+    time_sleep.wait_for_ports,
     samsungcloudplatformv2_vpc_subnet.web_subnet, samsungcloudplatformv2_vpc_subnet.app_subnet, samsungcloudplatformv2_vpc_subnet.db_subnet,
     samsungcloudplatformv2_security_group_security_group.db_sg,
     samsungcloudplatformv2_vpc_port.db_port,
@@ -617,8 +581,8 @@ resource "samsungcloudplatformv2_virtualserver_server" "vm3" {
   }
   user_data = base64encode(file("${path.module}/scripts/generated_userdata/userdata_app.sh"))
   depends_on = [
-#    samsungcloudplatformv2_virtualserver_server.vm4,  # DB VM 완료 후
-    samsungcloudplatformv2_dns_record.app_initial,
+    time_sleep.wait_for_ports,
+    samsungcloudplatformv2_virtualserver_server.vm4,  # DB VM 완료 후
     samsungcloudplatformv2_vpc_subnet.web_subnet, samsungcloudplatformv2_vpc_subnet.app_subnet, samsungcloudplatformv2_vpc_subnet.db_subnet,
     samsungcloudplatformv2_vpc_port.app_port,
     samsungcloudplatformv2_vpc_nat_gateway.app_natgateway
@@ -646,7 +610,8 @@ resource "samsungcloudplatformv2_virtualserver_server" "vm3_2" {
   }
   user_data = base64encode(file("${path.module}/scripts/generated_userdata/userdata_app.sh"))
   depends_on = [
-#    samsungcloudplatformv2_virtualserver_server.vm4,  # DB VM 완료 후
+    time_sleep.wait_for_ports,
+    samsungcloudplatformv2_virtualserver_server.vm4,  # DB VM 완료 후
     samsungcloudplatformv2_vpc_subnet.web_subnet, samsungcloudplatformv2_vpc_subnet.app_subnet, samsungcloudplatformv2_vpc_subnet.db_subnet,
     samsungcloudplatformv2_vpc_port.app_port2,
     samsungcloudplatformv2_vpc_nat_gateway.app_natgateway
@@ -673,8 +638,8 @@ resource "samsungcloudplatformv2_virtualserver_server" "vm2" {
   }
   user_data = base64encode(file("${path.module}/scripts/generated_userdata/userdata_web.sh"))
   depends_on = [
-#    samsungcloudplatformv2_virtualserver_server.vm3,  # App VM 1 완료 후
-    samsungcloudplatformv2_dns_record.www_initial,
+    time_sleep.wait_for_ports,
+    samsungcloudplatformv2_virtualserver_server.vm3,  # App VM 1 완료 후
     samsungcloudplatformv2_vpc_subnet.web_subnet, samsungcloudplatformv2_vpc_subnet.app_subnet, samsungcloudplatformv2_vpc_subnet.db_subnet,
     samsungcloudplatformv2_vpc_port.web_port,
     samsungcloudplatformv2_vpc_nat_gateway.web_natgateway
@@ -701,7 +666,8 @@ resource "samsungcloudplatformv2_virtualserver_server" "vm2_2" {
   }
   user_data = base64encode(file("${path.module}/scripts/generated_userdata/userdata_web.sh"))
   depends_on = [
-#    samsungcloudplatformv2_virtualserver_server.vm3,  # App VM 1 완료 후
+    time_sleep.wait_for_ports,
+    samsungcloudplatformv2_virtualserver_server.vm3,  # App VM 1 완료 후
     samsungcloudplatformv2_vpc_subnet.web_subnet, samsungcloudplatformv2_vpc_subnet.app_subnet, samsungcloudplatformv2_vpc_subnet.db_subnet,
     samsungcloudplatformv2_vpc_port.web_port2,
     samsungcloudplatformv2_vpc_nat_gateway.web_natgateway
@@ -729,6 +695,7 @@ resource "samsungcloudplatformv2_virtualserver_server" "vm1" {
   }
   security_groups = [samsungcloudplatformv2_security_group_security_group.bastion_sg.id]
   depends_on = [
+    time_sleep.wait_for_ports,
     samsungcloudplatformv2_vpc_subnet.web_subnet, samsungcloudplatformv2_vpc_subnet.app_subnet, samsungcloudplatformv2_vpc_subnet.db_subnet,
     samsungcloudplatformv2_security_group_security_group.bastion_sg,
     samsungcloudplatformv2_vpc_publicip.pip1, samsungcloudplatformv2_vpc_publicip.pip2, samsungcloudplatformv2_vpc_publicip.pip3, samsungcloudplatformv2_vpc_publicip.pip4,
@@ -755,7 +722,7 @@ resource "samsungcloudplatformv2_loadbalancer_loadbalancer" "web_lb" {
   }
 
   depends_on = [
-#    samsungcloudplatformv2_virtualserver_server.vm2_2,  # 모든 Web VM 생성 완료 후
+    samsungcloudplatformv2_virtualserver_server.vm2_2,  # 모든 Web VM 생성 완료 후
     samsungcloudplatformv2_vpc_subnet.web_subnet, samsungcloudplatformv2_vpc_subnet.app_subnet, samsungcloudplatformv2_vpc_subnet.db_subnet,
     samsungcloudplatformv2_vpc_publicip.pip1, samsungcloudplatformv2_vpc_publicip.pip2, samsungcloudplatformv2_vpc_publicip.pip3, samsungcloudplatformv2_vpc_publicip.pip4
   ]
@@ -829,7 +796,7 @@ resource "samsungcloudplatformv2_loadbalancer_lb_member" "web_member2" {
   }
 
   depends_on = [
-#    samsungcloudplatformv2_virtualserver_server.vm2_2,
+    samsungcloudplatformv2_virtualserver_server.vm2_2,
     samsungcloudplatformv2_loadbalancer_lb_server_group.web_server_group
   ]
 }
@@ -873,7 +840,7 @@ resource "samsungcloudplatformv2_loadbalancer_loadbalancer" "app_lb" {
   }
 
   depends_on = [
-#    samsungcloudplatformv2_virtualserver_server.vm3_2,  # 모든 App VM 생성 완료 후
+    samsungcloudplatformv2_virtualserver_server.vm3_2,  # 모든 App VM 생성 완료 후
     samsungcloudplatformv2_vpc_subnet.web_subnet, samsungcloudplatformv2_vpc_subnet.app_subnet, samsungcloudplatformv2_vpc_subnet.db_subnet
   ]
 }
@@ -927,7 +894,7 @@ resource "samsungcloudplatformv2_loadbalancer_lb_member" "app_member1" {
   }
 
   depends_on = [
-#    samsungcloudplatformv2_virtualserver_server.vm3,
+    samsungcloudplatformv2_virtualserver_server.vm3,
     samsungcloudplatformv2_loadbalancer_lb_server_group.app_server_group
   ]
 }
@@ -943,7 +910,7 @@ resource "samsungcloudplatformv2_loadbalancer_lb_member" "app_member2" {
   }
 
   depends_on = [
-#    samsungcloudplatformv2_virtualserver_server.vm3_2,
+    samsungcloudplatformv2_virtualserver_server.vm3_2,
     samsungcloudplatformv2_loadbalancer_lb_server_group.app_server_group
 
   ]
@@ -967,6 +934,48 @@ resource "samsungcloudplatformv2_loadbalancer_lb_listener" "app_listener" {
     samsungcloudplatformv2_loadbalancer_loadbalancer.app_lb,
     samsungcloudplatformv2_loadbalancer_lb_server_group.app_server_group
   ]
+}
+
+########################################################
+# Private DNS Records (After Load Balancers)
+########################################################
+resource "samsungcloudplatformv2_dns_record" "www_record" {
+  hosted_zone_id = var.private_hosted_zone_id
+  record_create = {
+    name        = "www.${var.private_domain_name}"
+    type        = "A"
+    records     = [var.web_lb_service_ip]
+    ttl         = 300
+    description = "DNS record for web load balancer"
+  }
+
+  depends_on = [samsungcloudplatformv2_loadbalancer_lb_listener.app_listener]
+}
+
+resource "samsungcloudplatformv2_dns_record" "app_record" {
+  hosted_zone_id = var.private_hosted_zone_id
+  record_create = {
+    name        = "app.${var.private_domain_name}"
+    type        = "A"
+    records     = [var.app_lb_service_ip]
+    ttl         = 300
+    description = "DNS record for app load balancer"
+  }
+
+  depends_on = [samsungcloudplatformv2_loadbalancer_lb_listener.app_listener]
+}
+
+resource "samsungcloudplatformv2_dns_record" "db_record" {
+  hosted_zone_id = var.private_hosted_zone_id
+  record_create = {
+    name        = "db.${var.private_domain_name}"
+    type        = "A"
+    records     = [var.db_ip]
+    ttl         = 300
+    description = "DNS record for database server"
+  }
+
+  depends_on = [samsungcloudplatformv2_loadbalancer_lb_listener.app_listener]
 }
 
 
@@ -1193,9 +1202,9 @@ resource "samsungcloudplatformv2_filestorage_volume" "shared_volume" {
   ]
 
   depends_on = [
-#    samsungcloudplatformv2_virtualserver_server.vm2,
-#    samsungcloudplatformv2_virtualserver_server.vm2_2,
-#    samsungcloudplatformv2_virtualserver_server.vm3,
-#    samsungcloudplatformv2_virtualserver_server.vm3_2
+    samsungcloudplatformv2_virtualserver_server.vm2,
+    samsungcloudplatformv2_virtualserver_server.vm2_2,
+    samsungcloudplatformv2_virtualserver_server.vm3,
+    samsungcloudplatformv2_virtualserver_server.vm3_2
   ]
 }

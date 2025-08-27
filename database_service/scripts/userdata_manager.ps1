@@ -370,11 +370,24 @@ function New-ServerUserData {
     $variablesContent = Get-Content $VariablesJson -Raw | ConvertFrom-Json | ConvertTo-Json -Compress
     Write-Success "Variables loaded: $($variablesContent.Length) chars"
     
+    # Load variables for DNS mapping
+    $variables = Get-Content $VariablesJson -Raw | ConvertFrom-Json
+    $privateDomain = $variables.user_input_variables.private_domain_name
+    $webIp = $variables.ceweb_required_variables.web_ip
+    $appIp = $variables.ceweb_required_variables.app_ip
+    $dbIp = $variables.ceweb_required_variables.db_ip
+    
     # Substitute template variables
     $userdataContent = $baseTemplate
     
     # Replace SERVER_TYPE
     $userdataContent = $userdataContent -replace '\${SERVER_TYPE}', $ServerType
+    
+    # Replace DNS mapping variables
+    $userdataContent = $userdataContent -replace '\${private_domain_name}', $privateDomain
+    $userdataContent = $userdataContent -replace '\${web_ip}', $webIp
+    $userdataContent = $userdataContent -replace '\${app_ip}', $appIp
+    $userdataContent = $userdataContent -replace '\${db_ip}', $dbIp
     
     # Replace APPLICATION_INSTALL_MODULE
     $userdataContent = $userdataContent -replace '\${APPLICATION_INSTALL_MODULE}', $moduleContent

@@ -90,71 +90,96 @@ function Get-UserInput {
     
     Write-Info "🔍 Collecting user input variables..."
     
-    # Show preview and ask if user wants to change
-    $wantsToChange = Show-VariablesPreview $UserVars
-    
-    if (-not $wantsToChange) {
-        Write-Info "Using all default values"
-        return $UserVars
-    }
-    
-    $updatedVars = @{}
-    
-    Write-Host ""
-    Cyan "=== Variable Input Session ==="
-    Write-Host "Press Enter to keep default value, or type new value:" -ForegroundColor White
-    
-    foreach ($varName in $UserVars.Keys | Sort-Object) {
-        $defaultValue = $UserVars[$varName]
+    do {
+        # Show preview and ask if user wants to change
+        $wantsToChange = Show-VariablesPreview $UserVars
         
-        Write-Host ""
-        Write-Host $varName -ForegroundColor Yellow -NoNewline
-        Write-Host " ?" -ForegroundColor Yellow
-        Write-Host "Default(Enter): " -ForegroundColor Cyan -NoNewline
-        Write-Host $defaultValue -ForegroundColor Blue
-        Write-Host -NoNewline "New Value: " -ForegroundColor White
-        $userInput = Read-Host
+        if (-not $wantsToChange) {
+            Write-Info "Using all default values"
+            $updatedVars = $UserVars
+        } else {
+            $updatedVars = @{}
+            
+            Write-Host ""
+            Cyan "=== Variable Input Session ==="
+            Write-Host "Press Enter to keep default value, or type new value:" -ForegroundColor White
+            
+            foreach ($varName in $UserVars.Keys | Sort-Object) {
+                $defaultValue = $UserVars[$varName]
+                
+                Write-Host ""
+                Write-Host $varName -ForegroundColor Yellow -NoNewline
+                Write-Host " ?" -ForegroundColor Yellow
+                Write-Host "Default(Enter): " -ForegroundColor Cyan -NoNewline
+                Write-Host $defaultValue -ForegroundColor Blue
+                Write-Host -NoNewline "New Value: " -ForegroundColor White
+                $userInput = Read-Host
+                
+                $finalValue = if ([string]::IsNullOrWhiteSpace($userInput)) { $defaultValue } else { $userInput }
+                $updatedVars[$varName] = $finalValue
+            }
+        }
         
-        $finalValue = if ([string]::IsNullOrWhiteSpace($userInput)) { $defaultValue } else { $userInput }
-        $updatedVars[$varName] = $finalValue
-    }
-    
-    # Show final confirmation
-    Show-FinalConfirmation $updatedVars
-    
-    return $updatedVars
+        # Show final confirmation and handle retry
+        $confirmResult = Show-FinalConfirmation $updatedVars
+        
+        if ($confirmResult -eq "confirmed") {
+            return $updatedVars
+        }
+        # If "retry", loop continues
+        
+    } while ($true)
 }
 
 # Show final confirmation of all values
 function Show-FinalConfirmation {
     param([hashtable]$UpdatedVars)
     
-    Write-Host ""
-    Cyan "=== Final Configuration Review ==="
-    Write-Host "Please review your configuration:" -ForegroundColor White
-    Write-Host ""
-    
-    $sortedKeys = $UpdatedVars.Keys | Sort-Object
-    foreach ($varName in $sortedKeys) {
-        $value = $UpdatedVars[$varName]
-        Write-Host "  " -NoNewline
-        Write-Host $varName -ForegroundColor Yellow -NoNewline
-        Write-Host ": " -NoNewline
-        Write-Host $value -ForegroundColor Green
-    }
-    
-    Write-Host ""
-    Write-Host -NoNewline "Would you like to confirm and proceed? " -ForegroundColor White
-    Write-Host -NoNewline "[Y/n]: " -ForegroundColor Yellow
-    $confirmation = Read-Host
-    
-    if ($confirmation -match "^[Nn]$") {
+    do {
         Write-Host ""
-        Write-Host "Configuration cancelled. Please restart the script to try again." -ForegroundColor Red
-        exit 1
-    }
-    
-    Write-Success "Configuration confirmed! Proceeding with deployment..."
+        Cyan "=== Final Configuration Review ==="
+        Write-Host "Please review your configuration:" -ForegroundColor White
+        Write-Host ""
+        
+        $sortedKeys = $UpdatedVars.Keys | Sort-Object
+        foreach ($varName in $sortedKeys) {
+            $value = $UpdatedVars[$varName]
+            Write-Host "  " -NoNewline
+            Write-Host $varName -ForegroundColor Yellow -NoNewline
+            Write-Host ": " -NoNewline
+            Write-Host $value -ForegroundColor Green
+        }
+        
+        Write-Host ""
+        Write-Host -NoNewline "Would you like to confirm and proceed? " -ForegroundColor White
+        Write-Host -NoNewline "[Y/n/r(retry)]: " -ForegroundColor Yellow
+        $confirmation = Read-Host
+        
+        if ($confirmation -match "^[Nn]$") {
+            Write-Host ""
+            Yellow "Options:"
+            Write-Host "- Press Enter or 'Y' to proceed with current configuration"
+            Write-Host "- Type 'r' to modify variables again"
+            Write-Host "- Type 'q' to quit"
+            Write-Host -NoNewline "Choice: " -ForegroundColor White
+            $choice = Read-Host
+            
+            if ($choice -match "^[Qq]$") {
+                Write-Host "Configuration cancelled by user." -ForegroundColor Red
+                exit 1
+            } elseif ($choice -match "^[Rr]$") {
+                return "retry"
+            } else {
+                Write-Success "Configuration confirmed! Proceeding with deployment..."
+                return "confirmed"
+            }
+        } elseif ($confirmation -match "^[Rr]$") {
+            return "retry"
+        } else {
+            Write-Success "Configuration confirmed! Proceeding with deployment..."
+            return "confirmed"
+        }
+    } while ($true)
 }
 
 # Extract CEWEB_REQUIRED variables from variables.tf
@@ -189,8 +214,15 @@ function Update-VariablesTf {
     
     Write-Info "📝 Updating variables.tf with user input values..."
     
-    # Create backup
-    $backupFile = "$VariablesTf.backup.$(Get-Date -Format 'yyyyMMdd_HHmmss')"
+    # Create backup in lab_logs directory
+    $timestamp = Get-Date -Format 'yyyyMMdd_HHmmss'
+    $backupFile = Join-Path $LogsDir "variables.tf.backup.$timestamp"
+    
+    # Ensure lab_logs directory exists
+    if (!(Test-Path $LogsDir)) {
+        New-Item -ItemType Directory -Path $LogsDir -Force | Out-Null
+    }
+    
     Copy-Item $VariablesTf $backupFile
     Write-Info "Backup created: $backupFile"
     
@@ -286,6 +318,67 @@ function New-VariablesJson {
     Write-Host "$(Green 'Output File:') $VariablesJson"
     Write-Host "$(Green 'Updated File:') $VariablesTf"
     Write-Host ""
+}
+
+# Reset user input variables to defaults
+function Reset-UserInputVariables {
+    Write-Info "🔄 Resetting user input variables to default values..."
+    
+    $defaultValuesFile = Join-Path $ScriptDir "default_user_input_values.json"
+    
+    # Check if default values file exists
+    if (!(Test-Path $defaultValuesFile)) {
+        Write-Error "Default values file not found: $defaultValuesFile"
+        return $false
+    }
+    
+    # Load default values
+    try {
+        $defaultValues = Get-Content $defaultValuesFile | ConvertFrom-Json
+        Write-Info "Loaded default values from: $defaultValuesFile"
+    } catch {
+        Write-Error "Failed to parse default values file: $($_.Exception.Message)"
+        return $false
+    }
+    
+    # Create backup in lab_logs directory
+    $timestamp = Get-Date -Format 'yyyyMMdd_HHmmss'
+    $backupFile = Join-Path $LogsDir "variables.tf.backup.reset.$timestamp"
+    
+    # Ensure lab_logs directory exists
+    if (!(Test-Path $LogsDir)) {
+        New-Item -ItemType Directory -Path $LogsDir -Force | Out-Null
+    }
+    
+    Copy-Item $VariablesTf $backupFile
+    Write-Info "Backup created: $backupFile"
+    
+    # Read current variables.tf content
+    $content = Get-Content $VariablesTf -Raw
+    
+    # Reset each user input variable to its default value
+    foreach ($varName in $defaultValues.user_input_variables.PSObject.Properties.Name) {
+        $defaultValue = $defaultValues.user_input_variables.$varName
+        
+        # Pattern to match the variable block and replace the default value
+        $pattern = '(?s)(variable\s+"' + [regex]::Escape($varName) + '"\s*\{[^}]*?default\s*=\s*)"[^"]*"([^}]*?\})'
+        $replacement = '${1}"' + $defaultValue + '"${2}'
+        
+        if ($content -match $pattern) {
+            $content = $content -replace $pattern, $replacement
+            Write-Info "Reset $varName to: $defaultValue"
+        } else {
+            Write-Warning "Could not find variable pattern for: $varName"
+        }
+    }
+    
+    # Write updated content back to variables.tf
+    Set-Content -Path $VariablesTf -Value $content -Encoding UTF8
+    
+    Write-Success "✅ User input variables reset to default values"
+    Write-Info "Original file backed up as: $(Split-Path -Leaf $backupFile)"
+    
+    return $true
 }
 
 # Main execution
