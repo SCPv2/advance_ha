@@ -107,7 +107,7 @@ Set_ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
 - 유지 관리 기간 : 사용안함
 - Database명 : cedb       # 이름 변경 불가
 - Database 사용자명 : cedbadmin    # 이름 변경 불가
-- Database 비밀번호 : ceadmin123!   # 가급적 준수 필요
+- Database 비밀번호 : cedbadmin123!   # 가급적 준수 필요
 - Database Port번호 : 2866
 - 백업 : 사용 안함
 - Audit Log 설정 : 사용 안함
