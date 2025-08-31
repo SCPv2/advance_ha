@@ -168,6 +168,7 @@ sudo bash install_web_server.sh
 - LB 헬스 체크 : HTTP_Default_Port80
 
 - 연결된 자원 : webvm111r, webvm112r
+- 포트 : 80
 - 가중치 : 1
 
 ### web Listener 생성
@@ -215,6 +216,7 @@ sudo bash install_web_server.sh
 - LB 헬스 체크 : Happ_healthcheck
 
 - 연결된 자원 : appvm121r, appvm122r
+- 포트 : 3000
 - 가중치 : 1
 
 ### app Listener 생성
