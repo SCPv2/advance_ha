@@ -42,15 +42,8 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 
 ### 네트워크 요구사항
 
-- **아웃바운드 HTTPS(443)**: Samsung Cloud Platform API 접근
-- **DNS 해석**: SCP 서비스 엔드포인트 접근
-- **PowerShell 권한**: JSON 처리 및 외부 명령 실행
-
-### 호환성 정보
-
-- **지원 PowerShell 버전**: 5.1, 7.0, 7.1, 7.2, 7.3, 7.4
-- **JSON 처리**: PowerShell 5.1에서는 수동 해시테이블 변환 적용
-- **CLI 통합**: SCP CLI v2.x 호환
+- **방화벽**: 방화벽 등으로 포트 차단이 없는 인터넷 환경
+- **Public IP**: 실습 중 인터넷 접근 Public IP 주소의 변경이 없는 환경
 
 ### 실행 전 점검
 
