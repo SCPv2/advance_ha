@@ -82,13 +82,29 @@ try {
 
 ### 선택 '[고가용성 구현을 위한 File Storage 구성](../file_storage/README.md)'
 
+## DNS 설정
+
+- Hosted Zone (Private)
+
+| 유형 | 이름 | 값 | TTL|
+|----|----|----|----|
+|A|www|10.1.1.100|300|
+|A|app|10.1.2.100|300|
+|A|db|10.1.3.100|300|
+
+- Hosted Zone (Public)
+
+| 유형 | 이름 | 값 | TTL|
+|----|----|----|----|
+|A|www|Your Public IP|300|
+
 ## Object Storage 생성
 
 - 버킷명 : ceweb
 
 생성 후 점검할 항목
 
-- 버킷 스트링
+- Account ID : 버킷 스트링
 - Public URL
 - Private URL
 
@@ -109,7 +125,6 @@ Set_ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
 - object_storage_secret_access_key: ...............# Object Storage 시크릿 액세스 키
 - object_storage_bucket_string: ........................# Object Storage 버킷 스트링
 - private_domain_name: ......................................# 과정 소개에서 만든 프라이빗 도메인 이름
-- private_hosted_zone_id: ...................................# 과정 소개에서 만든 프라이빗 도메인의 Hosted Zone ID
 - public_domain_name: .......................................# 과정 소개에서 만든 퍼블릭 도메인 이름
 - user_public_ip: .....................................................# 현재 실습을 수행하고 있는 PC의 Public IP 주소
 
