@@ -15,51 +15,44 @@ output "server_information" {
   description = "Server IP addresses and access information"
   value = {
     bastion = {
-      name = samsungcloudplatformv2_virtualserver_server.vm_bastion.name
+      name = var.vm_bastion.name
       private_ip = var.bastion_ip
-      public_ip = samsungcloudplatformv2_vpc_publicip.publicips["PIP1"].address
+      public_ip = "Available after deployment"
       os = "Windows Server 2022"
       access = "RDP"
+      status = "Ready to deploy"
     }
     web_server = {
-      name = samsungcloudplatformv2_virtualserver_server.vm_web.name
+      name = var.vm_web.name
       private_ip = var.web_ip
+      public_ip = "Available after deployment (PIP2)"
       os = "Rocky Linux 9.4"
-      service_port = 80
-      access = "SSH via bastion"
-      ready_file = "z_ready2install_go2web-server"
+      service_port = var.nginx_port
+      access = "SSH via bastion or direct via public IP"
+      userdata = "userdata_web.sh"
+      status = "Ready to deploy"
     }
     app_server = {
-      name = samsungcloudplatformv2_virtualserver_server.vm_app.name
+      name = var.vm_app.name
       private_ip = var.app_ip
       os = "Rocky Linux 9.4"
-      service_port = 3000
+      service_port = var.app_server_port
       access = "SSH via bastion"
-      ready_file = "z_ready2install_go2app-server"
+      userdata = "userdata_app.sh"
+      status = "Ready to deploy"
     }
     db_server = {
-      name = samsungcloudplatformv2_virtualserver_server.vm_db.name
+      name = var.vm_db.name
       private_ip = var.db_ip
       os = "Rocky Linux 9.4"
-      service_port = 2866
+      service_port = var.database_port
       access = "SSH via bastion"
-      ready_file = "z_ready2install_go2db-server"
+      userdata = "userdata_db.sh"
+      status = "Ready to deploy"
     }
   }
 }
 
-output "dns_information" {
-  description = "DNS configuration"
-  value = {
-    private_domain = var.private_domain_name
-    public_domain = var.public_domain_name
-    dns_records = {
-      www = "www.${var.private_domain_name} -> ${var.web_ip}"
-      app = "app.${var.private_domain_name} -> ${var.app_ip}"
-      db = "db.${var.private_domain_name} -> ${var.db_ip}"
-    }
-  }
-}
 
 output "network_information" {
   description = "Network configuration details"
@@ -82,9 +75,9 @@ output "network_information" {
       }
     }
     nat_gateways = {
-      web_nat = samsungcloudplatformv2_vpc_publicip.publicips["PIP2"].address
-      app_nat = samsungcloudplatformv2_vpc_publicip.publicips["PIP3"].address
-      db_nat = samsungcloudplatformv2_vpc_publicip.publicips["PIP4"].address
+      web_nat = "Available after deployment"
+      app_nat = "Available after deployment"
+      db_nat = "Available after deployment"
     }
   }
 }
@@ -106,24 +99,25 @@ output "security_information" {
   }
 }
 
-output "installation_commands" {
-  description = "Manual installation commands to run on each server"
+output "application_status" {
+  description = "Application deployment status"
   value = {
-    installation_order = ["DB Server", "App Server", "Web Server"]
+    note = "All servers are configured with userdata scripts for automatic installation"
     db_server = {
-      ssh_command = "ssh -i your-key.pem rocky@${var.db_ip} # via bastion"
-      install_command = "cd /home/rocky/ceweb/db-server/vm_db && sudo bash install_postgresql_vm.sh"
-      ready_check = "cat /home/rocky/z_ready2install_go2db-server"
+      service = "PostgreSQL"
+      port = var.database_port
+      database = var.database_name
+      status = "Will be installed automatically via userdata_db.sh"
     }
     app_server = {
-      ssh_command = "ssh -i your-key.pem rocky@${var.app_ip} # via bastion"
-      install_command = "cd /home/rocky/ceweb/app-server && sudo bash install_app_server.sh"
-      ready_check = "cat /home/rocky/z_ready2install_go2app-server"
+      service = "Node.js Application"
+      port = var.app_server_port
+      status = "Will be installed automatically via userdata_app.sh"
     }
     web_server = {
-      ssh_command = "ssh -i your-key.pem rocky@${var.web_ip} # via bastion"
-      install_command = "cd /home/rocky/ceweb/web-server && sudo bash install_web_server.sh"
-      ready_check = "cat /home/rocky/z_ready2install_go2web-server"
+      service = "Nginx Web Server"
+      port = var.nginx_port
+      status = "Will be installed automatically via userdata_web.sh"
     }
   }
 }
@@ -131,11 +125,13 @@ output "installation_commands" {
 output "next_steps" {
   description = "Next steps after deployment"
   value = [
-    "1. Wait 5-10 minutes for system preparation to complete",
-    "2. RDP to bastion server using: ${samsungcloudplatformv2_vpc_publicip.publicips["PIP1"].address}",
-    "3. SSH to each server and check ready files in /home/rocky/",
-    "4. Install services in order: DB -> App -> Web",
-    "5. Access web application via: http://${var.web_ip}/ (after installation)",
-    "6. Monitor logs in /var/log/userdata_*.log on each server"
+    "1. Run 'terraform init' to initialize the configuration",
+    "2. Run 'terraform plan' to review the deployment plan",
+    "3. Run 'terraform apply' to deploy the infrastructure",
+    "4. Wait 10-15 minutes for all services to be automatically installed via userdata scripts",
+    "5. RDP to bastion server using the public IP (will be shown after deployment)",
+    "6. Access web application via: http://[WEB_SERVER_PUBLIC_IP]/ (PIP2 will be shown after deployment)",
+    "7. Alternative access via private IP: http://${var.web_ip}/ (from within VPC)",
+    "8. Monitor installation logs in /var/log/userdata_*.log on each server"
   ]
 }

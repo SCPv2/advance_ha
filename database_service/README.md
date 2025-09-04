@@ -103,12 +103,12 @@ Set_ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
 - 네트워크 : 공통 설정
 - VPC : VPC1
 - Subnet : Subnet13
-- IP : 10.1.3.32
-- IP 접근 제어 : 10.1.2.0/24, 10.1.1.110   # appVM의 서브넷 대역과 Bastion Host IP
+- IP : 10.1.3.132
+- IP 접근 제어 : 10.1.2.0/24, 10.1.1.110   # appVM의 Subnet 대역과 Bastion Host IP
 - 유지 관리 기간 : 사용안함
 - Database명 : cedb       # 이름 변경 불가
 - Database 사용자명 : cedbadmin    # 이름 변경 불가
-- Database 비밀번호 : ceadmin123!   # 가급적 준수 필요
+- Database 비밀번호 : cedbadmin123!   # 가급적 준수 필요
 - Database Port번호 : 2866
 - 백업 : 사용 안함
 - Audit Log 설정 : 사용 안함
@@ -121,60 +121,50 @@ Set_ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
 
 - pgAdmin [다운로드](https://www.pgadmin.org/download/)
 
-- 기존 데이터베이스(db.your_private_ip.net 또는 10.1.3.31) 연결 및 백업
+- 기존 데이터베이스(db.your_private_ip.net 또는 10.1.3.131) 연결 및 백업
 
-- 새 데이터베이스(10.1.3.32) 연결 및 백업 데이터로 복구
+- 새 데이터베이스(10.1.3.132) 연결 및 백업 데이터로 복구
 
 ## 데이터베이스 장애 테스트
 
+.
 
-. 
+.
 
-. 
+.
 
-. 
+.
 
-. 
+.
 
-. 
+.
 
-. 
+.
 
-. 
+.
 
-. 
+.
 
-. 
+.
 
-. 
-
-. 
+.
 
 .  
 
-. 
+.
 
-. 
+.
 
-. 
+.
 
-. 
+.
 
-. 
+.
 
-. 
+.
 
-
-. 
+.
   
-   
-
-
-
-
-
-
-
 ## 개요
 
 이 템플릿은 기존 file_storage 인프라를 기반으로 File Storage 볼륨을 추가하고, 자체 관리형 PostgreSQL 데이터베이스를 Samsung Cloud Platform v2의 관리형 데이터베이스 서비스로 마이그레이션하는 실습 환경을 제공합니다.
@@ -955,7 +945,7 @@ echo "<file_storage_ip>:/ /shared nfs defaults 0 0" >> /etc/fstab
 [//]: # (│       ├── emergency_web.sh           # 웹서버 응급 복구)
 [//]: # (│       ├── emergency_app.sh           # 앱서버 응급 복구)
 [//]: # (│       └── emergency_db.sh            # DB서버 응급 복구)
-[//]: # (├── deploy_lab_env.ps1                 # 메인 배포 오케스트레이터)
+[//]: # (├── env_setup.ps1                      # 메인 배포 오케스트레이터)
 [//]: # (├── main.tf                            # Terraform 메인 구성)
 [//]: # (├── variables.tf                       # Terraform 변수 정의)
 [//]: # (└── terraform.tfstate                  # Terraform 상태 파일)

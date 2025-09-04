@@ -87,7 +87,7 @@ terraform apply --auto-approve
 
 - Private DNS Name : cesvc
 - VPC              : VPC1
-- Hosted Zone      : cesvc.net
+- Hosted Zone      : your_private_domain_name.net
 - www              : A 레코드, 10.1.1.111, 300
 - app              : A 레코드, 10.1.2.121, 300
 - db               : A 레코드, 10.1.3.131, 300

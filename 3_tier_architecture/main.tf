@@ -1,4 +1,4 @@
-########################################################
+﻿########################################################
 # Provider : Samsung Cloud Platform v2
 ########################################################
 terraform {
@@ -68,9 +68,8 @@ resource "samsungcloudplatformv2_vpc_publicip" "publicips" {
   for_each    = { for pip in var.public_ips : pip.name => pip }
   type        = "IGW"
   description = each.value.description
-  tags        = var.common_tags
 
- depends_on = [samsungcloudplatformv2_vpc_subnet.subnets] 
+  depends_on = [samsungcloudplatformv2_vpc_subnet.subnets] 
 }
 
 ########################################################
@@ -436,7 +435,7 @@ resource "samsungcloudplatformv2_security_group_security_group_rule" "db_https_o
 ########################################################
 resource "samsungcloudplatformv2_vpc_nat_gateway" "web_natgateway" {
     subnet_id = samsungcloudplatformv2_vpc_subnet.subnets["Subnet11"].id
-    publicip_id = samsungcloudplatformv2_vpc_publicip.publicips["PIP2"].id
+    publicip_id = samsungcloudplatformv2_vpc_publicip.publicips["PIP3"].id
     description = "NAT for web"
     tags        = var.common_tags
 
@@ -449,7 +448,7 @@ resource "samsungcloudplatformv2_vpc_nat_gateway" "web_natgateway" {
 
 resource "samsungcloudplatformv2_vpc_nat_gateway" "app_natgateway" {
     subnet_id = samsungcloudplatformv2_vpc_subnet.subnets["Subnet12"].id
-    publicip_id = samsungcloudplatformv2_vpc_publicip.publicips["PIP3"].id
+    publicip_id = samsungcloudplatformv2_vpc_publicip.publicips["PIP4"].id
     description = "NAT for app"
     tags        = var.common_tags
 
@@ -462,7 +461,7 @@ resource "samsungcloudplatformv2_vpc_nat_gateway" "app_natgateway" {
 
 resource "samsungcloudplatformv2_vpc_nat_gateway" "db_natgateway" {
     subnet_id = samsungcloudplatformv2_vpc_subnet.subnets["Subnet13"].id
-    publicip_id = samsungcloudplatformv2_vpc_publicip.publicips["PIP4"].id
+    publicip_id = samsungcloudplatformv2_vpc_publicip.publicips["PIP5"].id
     description = "NAT for db"
     tags        = var.common_tags
 
@@ -473,128 +472,15 @@ resource "samsungcloudplatformv2_vpc_nat_gateway" "db_natgateway" {
   ]
 }
 
-########################################################
-# Ports
-########################################################
-resource "samsungcloudplatformv2_vpc_port" "bastion_port" {
-  name              = "bastionport"
-  description       = "bastion port"
-  subnet_id         = samsungcloudplatformv2_vpc_subnet.subnets["Subnet11"].id
-  fixed_ip_address  = var.bastion_ip
-  tags              = var.common_tags
 
-  security_groups = [samsungcloudplatformv2_security_group_security_group.bastion_sg.id]
 
-  depends_on = [
-    samsungcloudplatformv2_security_group_security_group.bastion_sg,
-    samsungcloudplatformv2_vpc_subnet.subnets
-  ]
-}
 
-resource "samsungcloudplatformv2_vpc_port" "web_port" {
-  name              = "webport"
-  description       = "web port"
-  subnet_id         = samsungcloudplatformv2_vpc_subnet.subnets["Subnet11"].id
-  fixed_ip_address  = var.web_ip
-  tags              = var.common_tags
-
-  security_groups = [samsungcloudplatformv2_security_group_security_group.web_sg.id]
-
-  depends_on = [
-    samsungcloudplatformv2_security_group_security_group.web_sg,
-    samsungcloudplatformv2_vpc_subnet.subnets
-  ]
-}
-
-resource "samsungcloudplatformv2_vpc_port" "app_port" {
-  name              = "appport"
-  description       = "app port"
-  subnet_id         = samsungcloudplatformv2_vpc_subnet.subnets["Subnet12"].id
-  fixed_ip_address  = var.app_ip
-  tags              = var.common_tags
-
-  security_groups = [samsungcloudplatformv2_security_group_security_group.app_sg.id]
-
-  depends_on = [
-    samsungcloudplatformv2_security_group_security_group.app_sg,
-    samsungcloudplatformv2_vpc_subnet.subnets
-  ]
-}
-
-resource "samsungcloudplatformv2_vpc_port" "db_port" {
-  name              = "dbport"
-  description       = "db port"
-  subnet_id         = samsungcloudplatformv2_vpc_subnet.subnets["Subnet13"].id
-  fixed_ip_address  = var.db_ip
-  tags              = var.common_tags
-
-  security_groups = [samsungcloudplatformv2_security_group_security_group.db_sg.id]
-
-  depends_on = [
-    samsungcloudplatformv2_security_group_security_group.db_sg,
-    samsungcloudplatformv2_vpc_subnet.subnets
-  ]
-}
-
-########################################################
-# Virtual Server Standard Image ID 조회
-########################################################
-# Windows 이미지 조회
-data "samsungcloudplatformv2_virtualserver_images" "windows" {
-  os_distro = var.image_windows_os_distro
-  status    = "active"
-
-  filter {
-    name      = "os_distro"
-    values    = [var.image_windows_os_distro]
-    use_regex = false
-  }
-  filter {
-    name      = "scp_os_version"
-    values    = [var.image_windows_scp_os_version]
-    use_regex = false
-  }
-}
-
-# Rocky 이미지 조회
-data "samsungcloudplatformv2_virtualserver_images" "rocky" {
-  os_distro = var.image_rocky_os_distro
-  status    = "active"
-
-  filter {
-    name      = "os_distro"
-    values    = [var.image_rocky_os_distro]
-    use_regex = false
-  }
-  filter {
-    name      = "scp_os_version"
-    values    = [var.image_rocky_scp_os_version]
-    use_regex = false
-  }
-}
-
-# 이미지 Local 변수 지정
-locals {
-  windows_ids = try(data.samsungcloudplatformv2_virtualserver_images.windows.ids, [])
-  rocky_ids   = try(data.samsungcloudplatformv2_virtualserver_images.rocky.ids, [])
-
-  windows_image_id_first = length(local.windows_ids) > 0 ? local.windows_ids[0] : ""
-  rocky_image_id_first   = length(local.rocky_ids)   > 0 ? local.rocky_ids[0]   : ""
-}
-
-########################################################
-# DNS Private Hosted Zone 설정
-########################################################
-data "samsungcloudplatformv2_dns_hosted_zone" "private_zone" {
-  count      = var.private_hosted_zone_id != "" ? 1 : 0
-  hosted_zone_id = var.private_hosted_zone_id
-}
 
 ########################################################
 # Virtual Server 자원 생성 (DB → APP → WEB 순서)
 ########################################################
 
-# 1. bastion VM (Windows)
+# 1. bastion VM (Windows - 마지막에 생성)
 resource "samsungcloudplatformv2_virtualserver_server" "vm_bastion" {
   name           = var.vm_bastion.name
   keypair_name   = data.samsungcloudplatformv2_virtualserver_keypair.kp.name
@@ -606,19 +492,20 @@ resource "samsungcloudplatformv2_virtualserver_server" "vm_bastion" {
     type                  = var.boot_volume_windows.type
     delete_on_termination = var.boot_volume_windows.delete_on_termination
   }
-  image_id = local.windows_image_id_first
+  image_id = var.windows_image_id
   networks = {
     nic0 = {
       public_ip_id = samsungcloudplatformv2_vpc_publicip.publicips["PIP1"].id,
-      port_id      = samsungcloudplatformv2_vpc_port.bastion_port.id
+      subnet_id = samsungcloudplatformv2_vpc_subnet.subnets["Subnet11"].id,
+      fixed_ip = var.bastion_ip
     }
   }
   security_groups = [samsungcloudplatformv2_security_group_security_group.bastion_sg.id]
   depends_on = [
+    samsungcloudplatformv2_virtualserver_server.vm_web,
     samsungcloudplatformv2_vpc_subnet.subnets,
     samsungcloudplatformv2_security_group_security_group.bastion_sg,
     samsungcloudplatformv2_vpc_publicip.publicips,
-    samsungcloudplatformv2_vpc_port.bastion_port,
     samsungcloudplatformv2_security_group_security_group_rule.db_https_out_sg
   ]
 }
@@ -636,36 +523,18 @@ resource "samsungcloudplatformv2_virtualserver_server" "vm_db" {
     type                  = var.boot_volume_rocky.type
     delete_on_termination = var.boot_volume_rocky.delete_on_termination
   }
-  image_id = local.rocky_image_id_first
+  image_id = var.rocky_image_id
   networks = {
     nic0 = {
-      port_id = samsungcloudplatformv2_vpc_port.db_port.id
+      subnet_id = samsungcloudplatformv2_vpc_subnet.subnets["Subnet13"].id,
+      fixed_ip = var.db_ip
     }
   }
   security_groups = [samsungcloudplatformv2_security_group_security_group.db_sg.id]
-  user_data = base64encode(templatefile("${path.module}/master_config.json.tpl", {
-    timestamp = timestamp()
-    public_domain_name = var.public_domain_name
-    private_domain_name = var.private_domain_name
-    private_hosted_zone_id = var.private_hosted_zone_id
-    vpc_cidr = var.vpc_cidr
-    web_subnet_cidr = var.web_subnet_cidr
-    app_subnet_cidr = var.app_subnet_cidr
-    db_subnet_cidr = var.db_subnet_cidr
-    web_ip = var.web_ip
-    app_ip = var.app_ip
-    db_ip = var.db_ip
-    bastion_ip = var.bastion_ip
-    user_public_ip = var.user_public_ip
-    keypair_name = var.keypair_name
-    object_storage_access_key_id = var.object_storage_access_key_id
-    object_storage_secret_access_key = var.object_storage_secret_access_key
-    object_storage_bucket_string = var.object_storage_bucket_string
-  }))
+  user_data = base64encode(file("${path.module}/scripts/generated_userdata/userdata_db.sh"))
   depends_on = [
     samsungcloudplatformv2_vpc_subnet.subnets,
     samsungcloudplatformv2_security_group_security_group.db_sg,
-    samsungcloudplatformv2_vpc_port.db_port,
     samsungcloudplatformv2_vpc_nat_gateway.db_natgateway
   ]
 }
@@ -682,36 +551,18 @@ resource "samsungcloudplatformv2_virtualserver_server" "vm_app" {
     type                  = var.boot_volume_rocky.type
     delete_on_termination = var.boot_volume_rocky.delete_on_termination
   } 
-  image_id = local.rocky_image_id_first
+  image_id = var.rocky_image_id
   networks = {
     nic0 = {
-      port_id = samsungcloudplatformv2_vpc_port.app_port.id
+      subnet_id = samsungcloudplatformv2_vpc_subnet.subnets["Subnet12"].id,
+      fixed_ip = var.app_ip
     }
   }
   security_groups = [samsungcloudplatformv2_security_group_security_group.app_sg.id]
-  user_data = base64encode(templatefile("${path.module}/master_config.json.tpl", {
-    timestamp = timestamp()
-    public_domain_name = var.public_domain_name
-    private_domain_name = var.private_domain_name
-    private_hosted_zone_id = var.private_hosted_zone_id
-    vpc_cidr = var.vpc_cidr
-    web_subnet_cidr = var.web_subnet_cidr
-    app_subnet_cidr = var.app_subnet_cidr
-    db_subnet_cidr = var.db_subnet_cidr
-    web_ip = var.web_ip
-    app_ip = var.app_ip
-    db_ip = var.db_ip
-    bastion_ip = var.bastion_ip
-    user_public_ip = var.user_public_ip
-    keypair_name = var.keypair_name
-    object_storage_access_key_id = var.object_storage_access_key_id
-    object_storage_secret_access_key = var.object_storage_secret_access_key
-    object_storage_bucket_string = var.object_storage_bucket_string
-  }))
+  user_data = base64encode(file("${path.module}/scripts/generated_userdata/userdata_app.sh"))
   depends_on = [
     samsungcloudplatformv2_vpc_subnet.subnets,
     samsungcloudplatformv2_security_group_security_group.app_sg,
-    samsungcloudplatformv2_vpc_port.app_port,
     samsungcloudplatformv2_vpc_nat_gateway.app_natgateway,
     samsungcloudplatformv2_virtualserver_server.vm_db
   ]
@@ -729,82 +580,20 @@ resource "samsungcloudplatformv2_virtualserver_server" "vm_web" {
     type                  = var.boot_volume_rocky.type
     delete_on_termination = var.boot_volume_rocky.delete_on_termination
   }
-  image_id = local.rocky_image_id_first
+  image_id = var.rocky_image_id
   networks = {
     nic0 = {
-      port_id = samsungcloudplatformv2_vpc_port.web_port.id
+      public_ip_id = samsungcloudplatformv2_vpc_publicip.publicips["PIP2"].id,
+      subnet_id = samsungcloudplatformv2_vpc_subnet.subnets["Subnet11"].id,
+      fixed_ip = var.web_ip
     }
   }
   security_groups = [samsungcloudplatformv2_security_group_security_group.web_sg.id] 
-  user_data = base64encode(templatefile("${path.module}/master_config.json.tpl", {
-    timestamp = timestamp()
-    public_domain_name = var.public_domain_name
-    private_domain_name = var.private_domain_name
-    private_hosted_zone_id = var.private_hosted_zone_id
-    vpc_cidr = var.vpc_cidr
-    web_subnet_cidr = var.web_subnet_cidr
-    app_subnet_cidr = var.app_subnet_cidr
-    db_subnet_cidr = var.db_subnet_cidr
-    web_ip = var.web_ip
-    app_ip = var.app_ip
-    db_ip = var.db_ip
-    bastion_ip = var.bastion_ip
-    user_public_ip = var.user_public_ip
-    keypair_name = var.keypair_name
-    object_storage_access_key_id = var.object_storage_access_key_id
-    object_storage_secret_access_key = var.object_storage_secret_access_key
-    object_storage_bucket_string = var.object_storage_bucket_string
-  }))
+  user_data = base64encode(file("${path.module}/scripts/generated_userdata/userdata_web.sh"))
   depends_on = [
     samsungcloudplatformv2_vpc_subnet.subnets,
     samsungcloudplatformv2_security_group_security_group.web_sg,
-    samsungcloudplatformv2_vpc_port.web_port,
     samsungcloudplatformv2_vpc_nat_gateway.web_natgateway,
     samsungcloudplatformv2_virtualserver_server.vm_app
   ]
 }
-
-########################################################
-# DNS 레코드 설정 (Private Domain)
-########################################################
-
-resource "samsungcloudplatformv2_dns_record" "www_record" {
-  count           = var.private_hosted_zone_id != "" ? 1 : 0
-  hosted_zone_id  = var.private_hosted_zone_id
-  name            = "www"
-  type            = "A"
-  ttl             = 300
-  records         = [var.web_ip]
-  description     = "Web server A record"
-
-  depends_on = [samsungcloudplatformv2_virtualserver_server.vm_web]
-}
-
-resource "samsungcloudplatformv2_dns_record" "app_record" {
-  count           = var.private_hosted_zone_id != "" ? 1 : 0
-  hosted_zone_id  = var.private_hosted_zone_id
-  name            = "app"
-  type            = "A"
-  ttl             = 300
-  records         = [var.app_ip]
-  description     = "App server A record"
-
-  depends_on = [samsungcloudplatformv2_virtualserver_server.vm_app]
-}
-
-resource "samsungcloudplatformv2_dns_record" "db_record" {
-  count           = var.private_hosted_zone_id != "" ? 1 : 0
-  hosted_zone_id  = var.private_hosted_zone_id
-  name            = "db"
-  type            = "A"
-  ttl             = 300
-  records         = [var.db_ip]
-  description     = "Database server A record"
-
-  depends_on = [samsungcloudplatformv2_virtualserver_server.vm_db]
-}
-
-########################################################
-# DNS 레코드 설정 (Public Domain) - 선택사항
-########################################################
-

@@ -24,11 +24,6 @@ variable "private_domain_name" {
   default     = "your_internal.local"
 }
 
-variable "private_hosted_zone_id" {
-  type        = string
-  description = "[USER_INPUT] Private Hosted Zone ID for domain"
-  default     = "your_private_hosted_zone_id"
-}
 
 variable "public_domain_name" {
   type        = string
@@ -94,19 +89,19 @@ variable "database_name" {
 variable "database_user" {
   type        = string
   description = "[CEWEB_REQUIRED] Database admin user"
-  default     = "ceadmin"
+  default     = "cedbadmin"
 }
 
 variable "database_password" {
   type        = string
   description = "[CEWEB_REQUIRED] Database admin password"
-  default     = "ceadmin123!"
+  default     = "cedbadmin123!"
 }
 
 variable "database_host" {
   type        = string
-  description = "[CEWEB_REQUIRED] Database server hostname"
-  default     = "db.cesvc.net"
+  description = "[CEWEB_REQUIRED] Database server hostname (auto-generated from private_domain_name)"
+  default     = ""  # Will be dynamically set in variables_manager.ps1
 }
 
 variable "nginx_port" {
@@ -179,7 +174,7 @@ variable "app_ip" {
 variable "db_ip" {
   type        = string
   description = "[CEWEB_REQUIRED]Private IP address of db VM"
-  default     = "10.1.3.31"
+  default     = "10.1.3.131"
 }
 
 variable "web_lb_service_ip" {
@@ -417,27 +412,31 @@ variable "security_group_db" {
   default     = "dbSG"
 }
 
+# Legacy image lookup variables (replaced by SCP CLI integration)
+# These variables are kept for reference but will be replaced by
+# auto-generated image ID variables from variables_manager.ps1
+
 variable "image_windows_os_distro" {
   type        = string
-  description = "Windows OS distribution [TERRAFORM_INFRA]"
+  description = "Windows OS distribution [TERRAFORM_INFRA] (Legacy - for SCP CLI lookup)"
   default     = "windows"
 }
 
 variable "image_windows_scp_os_version" {
   type        = string
-  description = "Windows SCP OS version [TERRAFORM_INFRA]"
+  description = "Windows SCP OS version [TERRAFORM_INFRA] (Legacy - for SCP CLI lookup)"
   default     = "2022 Std."
 }
 
 variable "image_rocky_os_distro" {
   type        = string
-  description = "Rocky OS distribution [TERRAFORM_INFRA]"
+  description = "Rocky OS distribution [TERRAFORM_INFRA] (Legacy - for SCP CLI lookup)"
   default     = "rocky"
 }
 
 variable "image_rocky_scp_os_version" {
   type        = string
-  description = "Rocky SCP OS version [TERRAFORM_INFRA]"
+  description = "Rocky SCP OS version [TERRAFORM_INFRA] (Legacy - for SCP CLI lookup)"
   default     = "9.4"
 }
 
@@ -556,6 +555,7 @@ variable "rocky_boot_volume_delete_on_termination" {
   description = "Delete Rocky boot volume on termination [TERRAFORM_INFRA]"
   default     = true
 }
+
 
 
 

@@ -482,50 +482,10 @@ resource "time_sleep" "wait_for_ports" {
 }
 
 ########################################################
-# Virtual Server Standard Image ID 조회
+# Virtual Server Image IDs (From SCP CLI Cache)
 ########################################################
-# Windows 이미지 조회
-data "samsungcloudplatformv2_virtualserver_images" "windows" {
-  os_distro = var.image_windows_os_distro
-  status    = "active"
-
-  filter {
-    name      = "os_distro"
-    values    = [var.image_windows_os_distro]
-    use_regex = false
-  }
-  filter {
-    name      = "scp_os_version"
-    values    = [var.image_windows_scp_os_version]
-    use_regex = false
-  }
-}
-
-# Rocky Linux 이미지 조회
-data "samsungcloudplatformv2_virtualserver_images" "rocky" {
-  os_distro = var.image_rocky_os_distro
-  status    = "active"
-
-  filter {
-    name      = "os_distro"
-    values    = [var.image_rocky_os_distro]
-    use_regex = false
-  }
-  filter {
-    name      = "scp_os_version"
-    values    = [var.image_rocky_scp_os_version]
-    use_regex = false
-  }
-}
-
-# 이미지 Local 변수 지정
-locals {
-  windows_ids = try(data.samsungcloudplatformv2_virtualserver_images.windows.ids, [])
-  rocky_ids   = try(data.samsungcloudplatformv2_virtualserver_images.rocky.ids, [])
-
-  windows_image_id_first = length(local.windows_ids) > 0 ? local.windows_ids[0] : ""
-  rocky_image_id_first   = length(local.rocky_ids) > 0 ? local.rocky_ids[0] : ""
-}
+# Image IDs are automatically retrieved and cached by variables_manager.ps1
+# using SCP CLI commands and stored in variables.tf as terraform variables
 
 ########################################################
 # Virtual Server 자원 생성
@@ -544,7 +504,7 @@ resource "samsungcloudplatformv2_virtualserver_server" "vm4" {
     type                  = var.rocky_boot_volume_type
     delete_on_termination = var.rocky_boot_volume_delete_on_termination
   }
-  image_id = local.rocky_image_id_first
+  image_id = var.rocky_image_id
   networks = {
     nic0 = {
       port_id = samsungcloudplatformv2_vpc_port.db_port.id
@@ -573,7 +533,7 @@ resource "samsungcloudplatformv2_virtualserver_server" "vm3" {
     type                  = var.rocky_boot_volume_type
     delete_on_termination = var.rocky_boot_volume_delete_on_termination
   }
-  image_id = local.rocky_image_id_first
+  image_id = var.rocky_image_id
   networks = {
     nic0 = {
       port_id = samsungcloudplatformv2_vpc_port.app_port.id
@@ -602,7 +562,7 @@ resource "samsungcloudplatformv2_virtualserver_server" "vm3_2" {
     type                  = var.rocky_boot_volume_type
     delete_on_termination = var.rocky_boot_volume_delete_on_termination
   }
-  image_id = local.rocky_image_id_first
+  image_id = var.rocky_image_id
   networks = {
     nic0 = {
       port_id = samsungcloudplatformv2_vpc_port.app_port2.id
@@ -630,7 +590,7 @@ resource "samsungcloudplatformv2_virtualserver_server" "vm2" {
     type                  = var.rocky_boot_volume_type
     delete_on_termination = var.rocky_boot_volume_delete_on_termination
   }
-  image_id = local.rocky_image_id_first
+  image_id = var.rocky_image_id
   networks = {
     nic0 = {
       port_id = samsungcloudplatformv2_vpc_port.web_port.id
@@ -658,7 +618,7 @@ resource "samsungcloudplatformv2_virtualserver_server" "vm2_2" {
     type                  = var.rocky_boot_volume_type
     delete_on_termination = var.rocky_boot_volume_delete_on_termination
   }
-  image_id = local.rocky_image_id_first
+  image_id = var.rocky_image_id
   networks = {
     nic0 = {
       port_id = samsungcloudplatformv2_vpc_port.web_port2.id
@@ -686,7 +646,7 @@ resource "samsungcloudplatformv2_virtualserver_server" "vm1" {
     type                  = var.windows_boot_volume_type
     delete_on_termination = var.windows_boot_volume_delete_on_termination
   }
-  image_id = local.windows_image_id_first
+  image_id = var.windows_image_id
   networks = {
     nic0 = {
       public_ip_id = samsungcloudplatformv2_vpc_publicip.pip1.id,
@@ -936,47 +896,6 @@ resource "samsungcloudplatformv2_loadbalancer_lb_listener" "app_listener" {
   ]
 }
 
-########################################################
-# Private DNS Records (After Load Balancers)
-########################################################
-resource "samsungcloudplatformv2_dns_record" "www_record" {
-  hosted_zone_id = var.private_hosted_zone_id
-  record_create = {
-    name        = "www.${var.private_domain_name}"
-    type        = "A"
-    records     = [var.web_lb_service_ip]
-    ttl         = 300
-    description = "DNS record for web load balancer"
-  }
-
-  depends_on = [samsungcloudplatformv2_loadbalancer_lb_listener.app_listener]
-}
-
-resource "samsungcloudplatformv2_dns_record" "app_record" {
-  hosted_zone_id = var.private_hosted_zone_id
-  record_create = {
-    name        = "app.${var.private_domain_name}"
-    type        = "A"
-    records     = [var.app_lb_service_ip]
-    ttl         = 300
-    description = "DNS record for app load balancer"
-  }
-
-  depends_on = [samsungcloudplatformv2_loadbalancer_lb_listener.app_listener]
-}
-
-resource "samsungcloudplatformv2_dns_record" "db_record" {
-  hosted_zone_id = var.private_hosted_zone_id
-  record_create = {
-    name        = "db.${var.private_domain_name}"
-    type        = "A"
-    records     = [var.db_ip]
-    ttl         = 300
-    description = "DNS record for database server"
-  }
-
-  depends_on = [samsungcloudplatformv2_loadbalancer_lb_listener.app_listener]
-}
 
 
 ########################################################

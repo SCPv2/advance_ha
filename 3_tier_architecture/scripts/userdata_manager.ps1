@@ -5,7 +5,7 @@
 # Referenced GitHub installation scripts:
 # - Web Server: https://github.com/SCPv2/ceweb/blob/main/web-server/install_web_server.sh
 # - App Server: https://github.com/SCPv2/ceweb/blob/main/app-server/install_app_server.sh
-# - DB Server: https://github.com/SCPv2/ceweb/blob/main/db-server/vm_db/install_postgresql_vm.sh
+# Note: DB Server replaced by PostgreSQL DBaaS - managed by Samsung SDS
 
 param(
     [switch]$Debug
@@ -24,7 +24,7 @@ $GeneratedDir = Join-Path $ScriptDir "generated_userdata"
 $EmergencyDir = Join-Path $ScriptDir "emergency_scripts"
 $OpenStackSizeLimit = 45000  # 45KB
 
-# Server types
+# Server types (3-tier architecture with VM-based database)
 $ServerTypes = @("web", "app", "db")
 
 # Color functions
@@ -95,7 +95,7 @@ function New-EmergencyScript {
 # Referenced GitHub installation scripts:
 # - Web Server: https://github.com/SCPv2/ceweb/blob/main/web-server/install_web_server.sh
 # - App Server: https://github.com/SCPv2/ceweb/blob/main/app-server/install_app_server.sh
-# - DB Server: https://github.com/SCPv2/ceweb/blob/main/db-server/vm_db/install_postgresql_vm.sh
+# Note: DB Server replaced by PostgreSQL DBaaS - managed by Samsung SDS
 
 set -euo pipefail
 
@@ -265,47 +265,30 @@ show_test_commands() {
     echo "5. View application logs:"
     echo "   sudo -u rocky pm2 logs"
     echo ""
-    echo "6. Test database connection:"
-    echo "   cd /home/rocky/ceweb/app-server"
-    echo "   sudo -u rocky node -e 'console.log(process.env.DB_HOST)'"
-    echo ""
-    echo "7. Check environment file:"
+    echo "6. Check environment file:"
     echo "   sudo -u rocky cat /home/rocky/ceweb/app-server/.env"
     echo ""
-    echo "8. Restart application if needed:"
-    echo "   sudo -u rocky pm2 restart all"
-'@
-        }
-        "db" {
-            $testCommands = @'
-    echo "$(yellow "DATABASE SERVER TESTING:")"
+    echo "7. Test PostgreSQL DBaaS connection:"
+    echo "   cd /home/rocky/ceweb/app-server"
+    echo "   sudo -u rocky node -e 'console.log(\"DB Host:\", process.env.DB_HOST)'"
+    echo "   PGPASSWORD=\$DB_PASSWORD psql -h db.your_internal.local -p 2866 -U cedbadmin -d cedb -c 'SELECT version();'"
     echo ""
-    echo "1. Check PostgreSQL status:"
-    echo "   systemctl status postgresql-16"
+    echo "8. Test DBaaS connectivity and schema:"
+    echo "   PGPASSWORD=cedbadmin123! psql -h db.your_internal.local -p 2866 -U cedbadmin -d cedb -c '\\dt'"
+    echo "   PGPASSWORD=cedbadmin123! psql -h db.your_internal.local -p 2866 -U cedbadmin -d cedb -c 'SELECT COUNT(*) FROM products;'"
     echo ""
-    echo "2. Check database port:"
-    echo "   netstat -tlnp | grep :2866"
+    echo "9. Test application database integration:"
+    echo "   curl http://localhost:3000/api/products"
+    echo "   curl -X POST -H \"Content-Type: application/json\" -d '{\"test\":\"data\"}' http://localhost:3000/api/test"
     echo ""
-    echo "3. Test database connection:"
-    echo "   sudo -u postgres psql -h localhost -p 2866 -d cedb -c 'SELECT version();'"
+    echo "10. Check DBaaS connection pool status:"
+    echo "    PGPASSWORD=cedbadmin123! psql -h db.your_internal.local -p 2866 -U cedbadmin -d cedb -c 'SELECT count(*) FROM pg_stat_activity;'"
     echo ""
-    echo "4. Check database users:"
-    echo "   sudo -u postgres psql -c '\du'"
+    echo "11. Restart application if needed:"
+    echo "    sudo -u rocky pm2 restart all"
     echo ""
-    echo "5. List databases:"
-    echo "   sudo -u postgres psql -c '\l'"
-    echo ""
-    echo "6. Check tables in cedb:"
-    echo "   sudo -u postgres psql -d cedb -c '\dt'"
-    echo ""
-    echo "7. View PostgreSQL configuration:"
-    echo "   cat /var/lib/pgsql/16/data/postgresql.conf | grep -E '(listen_addresses|port)'"
-    echo ""
-    echo "8. Check connection permissions:"
-    echo "   cat /var/lib/pgsql/16/data/pg_hba.conf"
-    echo ""
-    echo "9. Test with application credentials:"
-    echo "   PGPASSWORD=cedbadmin123 psql -h localhost -p 2866 -U cedbadmin -d cedb -c 'SELECT now();'"
+    echo "12. Monitor DBaaS connection logs:"
+    echo "    sudo -u rocky pm2 logs | grep -i database"
 '@
         }
     }
@@ -375,7 +358,7 @@ function New-ServerUserData {
     $privateDomain = $variables.user_input_variables.private_domain_name
     $webIp = $variables.ceweb_required_variables.web_ip
     $appIp = $variables.ceweb_required_variables.app_ip
-    $dbIp = $variables.ceweb_required_variables.db_ip
+    $dbIp = $variables.ceweb_required_variables.db_ip  # Now points to DBaaS endpoint
     
     # Substitute template variables
     $userdataContent = $baseTemplate
@@ -472,7 +455,7 @@ function New-AllUserData {
     Write-Host "If UserData fails during VM boot, SSH to the VM and run:"
     Write-Host "  • Web Server: sudo bash emergency_web.sh"
     Write-Host "  • App Server: sudo bash emergency_app.sh"
-    Write-Host "  • DB Server:  sudo bash emergency_db.sh"
+    Write-Host "  • Note: DB Server replaced by PostgreSQL DBaaS (managed service)"
     Write-Host ""
     Yellow "📋 Next Steps:"
     Write-Host "1. Review generated UserData files in $GeneratedDir"

@@ -1,0 +1,17 @@
+{
+  "metadata": {
+    "description": "Default user input values for Samsung Cloud Platform v2 deployment",
+    "created": "2025-08-27",
+    "purpose": "Used to reset user input variables to their original default state",
+    "note": "These values should match the defaults in variables.tf USER_INPUT section"
+  },
+  "user_input_variables": {
+    "private_domain_name": "your_private_domain.name",
+    "public_domain_name": "your_public_domain.name",
+    "keypair_name": "mykey",
+    "user_public_ip": "your_public_ip/32",
+    "object_storage_access_key_id": "put_your_authentificate_access_key_here",
+    "object_storage_secret_access_key": "put_your_authentificate_secret_key_here",
+    "object_storage_bucket_string": "put_your_account_id_here",
+  }
+}

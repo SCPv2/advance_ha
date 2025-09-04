@@ -1,0 +1,39 @@
+========================================
+Samsung Cloud Platform v2 Deployment Log
+File Storage Lab Environment
+Started: 2025-09-04 08:43:57
+========================================
+
+2025-09-04 08:43:57 [SUCCESS] Deployment environment initialized
+2025-09-04 08:43:57 [INFO] Master log file: D:\scpv2\advance_ha\file_storage\lab_logs\deployment_20250904_084356.log
+2025-09-04 08:43:57 [INFO] Changes tracking initialized: logs.log
+2025-09-04 08:43:57 [INFO] 🔍 Scanning for previous deployment attempts...
+2025-09-04 08:43:57 [INFO] No previous deployment status markers found
+2025-09-04 08:43:58 [INFO] NORMALIZE mode selected - Variables and UserData preparation
+2025-09-04 08:43:58 [INFO] Debug mode enabled - verbose output will be shown
+2025-09-04 08:43:58 [INFO] 🚀 SAMSUNG CLOUD PLATFORM v2 FILE STORAGE NORMALIZATION STARTED
+2025-09-04 08:43:58 [INFO] Tracked: DEPLOYMENT_START infrastructure
+2025-09-04 08:43:58 [INFO] [1/3] Executing variables_manager...
+2025-09-04 08:43:58 [INFO] Starting variables_manager (log: D:\scpv2\advance_ha\file_storage\lab_logs\variables_manager_20250904_084358.log)
+2025-09-04 08:43:59 [WARNING] Could not find TERRAFORM_INFRASTRUCTURE_VARIABLES section in variables.tf
+2025-09-04 08:43:59 [WARNING] Image/Engine IDs will be available in variables.json but not injected into variables.tf
+2025-09-04 08:44:11 [SUCCESS] variables_manager completed successfully in 13.053548s
+
+=== variables_manager Output ===
+Module log file not found: D:\scpv2\advance_ha\file_storage\lab_logs\variables_manager_20250904_084358.log
+
+2025-09-04 08:44:11 [INFO] Tracked: CREATE variables.json
+2025-09-04 08:44:11 [INFO] [2/3] Executing userdata_manager...
+2025-09-04 08:44:11 [INFO] Starting userdata_manager (log: D:\scpv2\advance_ha\file_storage\lab_logs\userdata_manager_20250904_084411.log)
+2025-09-04 08:44:12 [SUCCESS] userdata_manager completed successfully in 0.2772317s
+
+=== userdata_manager Output ===
+Module log file not found: D:\scpv2\advance_ha\file_storage\lab_logs\userdata_manager_20250904_084411.log
+
+2025-09-04 08:44:12 [INFO] Tracked: CREATE userdata_files
+2025-09-04 08:44:12 [SUCCESS] 🎉 NORMALIZATION COMPLETED SUCCESSFULLY!
+2025-09-04 08:44:12 [INFO] 📊 Final Status:
+2025-09-04 08:44:12 [INFO]   - Variables: D:\scpv2\advance_ha\file_storage\scripts\variables.json
+2025-09-04 08:44:12 [INFO]   - UserData: D:\scpv2\advance_ha\file_storage\scripts\generated_userdata\
+2025-09-04 08:44:12 [INFO]   - Lab Logs: D:\scpv2\advance_ha\file_storage\lab_logs\
+2025-09-04 08:44:12 [INFO]   - Master Log: D:\scpv2\advance_ha\file_storage\lab_logs\deployment_20250904_084356.log
