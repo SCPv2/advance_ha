@@ -200,7 +200,7 @@ Set_ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
 
 |Deployment|Security Group|Direction|Target Address/Remote SG|Service|Description|
 |:-----:|:-----:|:-----:|:-----:|:-----:|:-----|
-|User Input|webSG|Outbound|10.1.10.10(VPC Endpoint IP)|443|HTTPS Private Outbound to Object Storage Bucket|
+|User Input|appSG|Outbound|10.1.10.10(VPC Endpoint IP)|443|HTTPS Private Outbound to Object Storage Bucket|
 
 ## AWS CLI 설치(웹서버)
 
