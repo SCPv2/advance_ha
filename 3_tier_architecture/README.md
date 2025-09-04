@@ -168,6 +168,7 @@ sudo bash install_web_server.sh
 - LB 헬스 체크 : HTTP_Default_Port80
 
 - 연결된 자원 : webvm111r, webvm112r
+- 포트 : 80
 - 가중치 : 1
 
 ### web Listener 생성
@@ -212,9 +213,9 @@ sudo bash install_web_server.sh
 - Service Subnet : Subnet12
 - 부하 분산 : Round Robin
 - 프로토콜 : TCP
-- LB 헬스 체크 : Happ_healthcheck
-
+- LB 헬스 체크 : app_healthcheck
 - 연결된 자원 : appvm121r, appvm122r
+- 포트 : 3000
 - 가중치 : 1
 
 ### app Listener 생성
@@ -225,7 +226,7 @@ sudo bash install_web_server.sh
 - 서비스 포트 : 3000
 - LB 서버 그룹 : applbgrp
 - 세션 유지 시간 : 120초
-- 지속성 : 소스 IP
+- 지속성 : 선택 안함
 - Insert Client IP : 미사용
 
 ## 통신 제어 규칙 추가

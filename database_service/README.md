@@ -57,7 +57,6 @@ Set_ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
 |Terraform|web Load Balancer|webLB Source NAT IP|10.1.1.111, 10.1.1.112 (webvm IP)|TCP 80|Allow|Inbound|LB → 멤버 연결|
 |Terraform|web Load Balancer|webLB 헬스 체크 IP|10.1.1.111, 10.1.1.112 (webvm IP)|TCP 80|Allow|Inbound|LB → 멤버 헬스 체크|
 |Terraform||app Load Balancer|10.1.1.111, 10.1.1.112 (webvm IP)|10.1.2.100 (Service IP)|3000|Allow|Outbound 클라이언트 → LB 연결|
-
 |Terraform|app Load Balancer|appLB Source NAT IP|10.1.2.121, 10.1.2.122 (appvm IP)|3000|Allow|Inbound|LB → 멤버 연결|
 |Terraform|app Load Balancer|appLB 헬스 체크 IP|10.1.2.121, 10.1.2.122 (appvm IP)|3000|Allow|Inbound|LB → 멤버 헬스 체크|
 
@@ -100,11 +99,15 @@ Set_ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
 - 서버 타입 : db1v2m4
 - Block Storage : 기본 OS : SSD , DATA : SSD 16GB
 - 이중화 구성 : 사용
-- 네트워크 : 공통 설정
+- 네트워크 : 서버별 설정
 - VPC : VPC1
+- VIP : 10.1.3.100
 - Subnet : Subnet13
-- IP : 10.1.3.132
-- IP 접근 제어 : 10.1.2.0/24, 10.1.1.110   # appVM의 Subnet 대역과 Bastion Host IP
+- 서버명 : cedbserver001
+  - IP : 10.1.3.132
+- 서버명 : cedbserver002
+  - IP : 10.1.3.133
+- IP 접근 제어 : 10.1.2.0/24, 10.1.1.110   # appVM의 서브넷 대역과 Bastion Host IP
 - 유지 관리 기간 : 사용안함
 - Database명 : cedb       # 이름 변경 불가
 - Database 사용자명 : cedbadmin    # 이름 변경 불가
