@@ -556,6 +556,20 @@ variable "rocky_boot_volume_delete_on_termination" {
   default     = true
 }
 
+# Virtual Server Standard Image 변수 정의
+variable "windows_image_id" {
+  type        = string
+  description = "[TERRAFORM_INFRA] Windows Server image ID"
+  default     = "28d98f66-44ca-4858-904f-636d4f674a62"
+}
+
+variable "rocky_image_id" {
+  type        = string
+  description = "[TERRAFORM_INFRA] Rocky Linux image ID"
+  default     = "253a91ea-1221-49d7-af53-a45c389e7e1a"
+}
+
+
 
 
 

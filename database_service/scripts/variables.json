@@ -48,13 +48,13 @@
                                      "object_storage_bucket_name":  "ceweb",
                                      "node_env":  "production",
                                      "web_ip":  "10.1.1.111",
-                                     "database_host":  "db.cesvc.net",
+                                     "database_host":  "db.your_internal.local",
                                      "ssl_enabled":  "false"
                                  },
     "image_engine_metadata":  {
                                   "cache_file":  "image_engine_id.json",
                                   "scpcli_available":  true,
-                                  "last_updated":  "2025-08-31T06:21:58Z"
+                                  "last_updated":  "2025-09-04T07:52:31Z"
                               },
     "terraform_infra_variables":  {
                                       "postgresql_engine_id":  "feebbfb2e7164b83a9855cacd0b64fde",
@@ -68,12 +68,11 @@
                             "version":  "4.1.0",
                             "description":  "Samsung Cloud Platform 3-Tier Architecture Master Configuration",
                             "image_engine_cache":  "image_engine_id.json",
-                            "created":  "2025-08-31 17:22:38",
+                            "created":  "2025-09-04 11:26:33",
                             "usage":  "This file contains all environment-specific settings for the application deployment",
                             "generator":  "variables_manager.ps1"
                         },
     "user_input_variables":  {
-                                 "user_public_ip":  "your_public_ip/32",
                                  "object_storage_bucket_string":  "put_the_value_if_you_use_object_storage_in_this_lab",
                                  "public_domain_name":  "yourdomain.com",
                                  "object_storage_secret_access_key":  "put_the_value_if_you_use_object_storage_in_this_labs",
@@ -81,7 +80,7 @@
                                  "_source":  "variables.tf USER_INPUT category",
                                  "private_domain_name":  "your_internal.local",
                                  "object_storage_access_key_id":  "put_the_value_if_you_use_object_storage_in_this_labs",
-                                 "private_hosted_zone_id":  "your_private_hosted_zone_id",
+                                 "user_public_ip":  "your_public_ip/32",
                                  "_comment":  "Variables that users input interactively during deployment"
                              }
 }
