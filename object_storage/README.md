@@ -230,7 +230,7 @@ aws cofigure
 ```bash
 cd /home/rocky/ceweb/
 
-aws s3 cp media s3://{버킷명}/media --endpoint-url [Private Endpoint명]
+aws s3 cp media s3://{버킷명}/media --recursive --endpoint-url [Private Endpoint명]
 
 # aws s3 cp media s3://ceweb/media --recursive --endpoint-url https://object-store.private.kr-west1.e.samsungsdscloud.com
 ```
