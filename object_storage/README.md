@@ -246,16 +246,15 @@ aws s3 cp files s3://{버킷명}/files --recursive --endpoint-url [Private Endpo
 # aws s3 cp files s3://ceweb/files --recursive --endpoint-url https://object-store.private.kr-west1.e.samsungsdscloud.com
 ```
 
-- 객체의 Public URL, Private URL 구조 확인
-
-[CEWEB](https://github.com/SCPv2/ceweb) 애플리케이션 구조 확인
+- [CEWEB](https://github.com/SCPv2/ceweb) 애플리케이션 구조 확인
 
 - Web 서버 경로 변경
- 기존:  `./media`
+  
+  - 기존:  `./media`
 
- 변경: `https://object-store.kr-west1.e.samsungsdscloud.com)/{Account_id}:ceweb/media`
+  - 변경: `https://object-store.kr-west1.e.samsungsdscloud.com)/{Account_id}:ceweb/media`
 
-- index.html 파일 수정
+- 애플리케이션 전환
 
 ```bash
 mv index.html index_bk.html
