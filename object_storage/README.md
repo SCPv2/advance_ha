@@ -204,11 +204,13 @@ Set_ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
 
 ## AWS CLI 설치
 
+Object Storage의 [Amazon S3 활용 가이드](https://docs.e.samsungsdscloud.com/userguide/storage/object_storage/overview/amazons3/) 검토
+
 ```bash
 # 기존 설치 삭제
 sudo yum remove awscli
 
-# Object Storage를 위한 AWS CLI 설치(Amazon S3 활용 가이드 참조)
+# Object Storage를 위한 AWS CLI 설치
 sudo dnf install unzip -y
 curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64-2.22.35.zip" -o "awscliv2.zip"
 unzip awscliv2.zip
@@ -224,8 +226,6 @@ aws cofigure
 ```
 
 ## 웹 콘텐츠 마이그레이션
-
-Object Storage의 [Amazon S3 활용 가이드](https://docs.e.samsungsdscloud.com/userguide/storage/object_storage/overview/amazons3/) 검토
 
 ```bash
 cd /home/rocky/ceweb/
