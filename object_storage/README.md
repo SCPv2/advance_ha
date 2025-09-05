@@ -241,6 +241,7 @@ aws s3 cp media s3://{버킷명}/media --recursive --endpoint-url [Private Endpo
 
 - Web 서버 경로 변경
  기존:  `./media`
+
  변경: `https://object-store.kr-west1.e.samsungsdscloud.com)/{Account_id}:ceweb/media`
 
 - index.html 파일 수정
