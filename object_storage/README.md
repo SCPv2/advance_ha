@@ -237,13 +237,20 @@ aws s3 cp media s3://{버킷명}/media --recursive --endpoint-url [Private Endpo
 
 - 객체의 Public URL, Private URL 구조 확인
 
+[CEWEB](https://github.com/SCPv2/ceweb) 애플리케이션 구조 확인
 
+- Web 서버 경로 변경
+ 기존:  `./media`
+ 변경: `https://object-store.kr-west1.e.samsungsdscloud.com)/{Account_id}:ceweb/media`
 
+- index.html 파일 수정
 
+```bash
+mv index.html index_bk.html
+mv index_obj.html index.html
+```
 
-
-
-.
+- 웹사이트 테스트
 .
 
 .
