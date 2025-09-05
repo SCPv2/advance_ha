@@ -202,7 +202,7 @@ Set_ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
 |:-----:|:-----:|:-----:|:-----:|:-----:|:-----|
 |User Input|appSG|Outbound|10.1.10.10(VPC Endpoint IP)|443|HTTPS Private Outbound to Object Storage Bucket|
 
-## AWS CLI 설치(웹서버)
+## AWS CLI 설치
 
 ```bash
 # 기존 설치 삭제
