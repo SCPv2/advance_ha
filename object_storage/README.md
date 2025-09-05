@@ -194,7 +194,7 @@ Set_ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
 - Subnet : Subnet110
 - IP : 10.1.10.10
 
-## webSG Outbound 규칙 구성
+## Security Group 규칙 구성
 
 * 기존에 443 Outbound to Internet(0.0.0.0/0) 규칙이 있을 경우 생략
 
