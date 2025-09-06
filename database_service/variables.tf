@@ -1,4 +1,4 @@
-﻿########################################################
+########################################################
 # 공통 태그 설정
 ########################################################
 variable "common_tags" {
@@ -21,14 +21,14 @@ variable "common_tags" {
 variable "private_domain_name" {
   type        = string
   description = "[USER_INPUT] Private domain name (e.g., internal.local)"
-  default     = "your_internal.local"
+  default     = "your_private_domain.name"
 }
 
 
 variable "public_domain_name" {
   type        = string
   description = "[USER_INPUT] Public domain name (e.g., example.com)"
-  default     = "yourdomain.com"
+  default     = "your_public_domain.name"
 }
 
 variable "keypair_name" {
@@ -46,19 +46,19 @@ variable "user_public_ip" {
 variable "object_storage_access_key_id" {
   type        = string
   description = "[USER_INPUT] Object Storage access key ID"
-  default     = "put_the_value_if_you_use_object_storage_in_this_labs"
+  default     = "put_your_authentificate_access_key_here"
 }
 
 variable "object_storage_secret_access_key" {
   type        = string
   description = "[USER_INPUT] Object Storage secret access key"
-  default     = "put_the_value_if_you_use_object_storage_in_this_labs"
+  default     = "put_your_authentificate_secret_key_here"
 }
 
 variable "object_storage_bucket_string" {
   type        = string
   description = "[USER_INPUT] Object Storage bucket string"
-  default     = "put_the_value_if_you_use_object_storage_in_this_lab"
+  default     = "put_your_account_id_here"
 }
 
 ########################################################
@@ -568,6 +568,9 @@ variable "rocky_image_id" {
   description = "[TERRAFORM_INFRA] Rocky Linux image ID"
   default     = "253a91ea-1221-49d7-af53-a45c389e7e1a"
 }
+
+
+
 
 
 

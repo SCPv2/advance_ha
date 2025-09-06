@@ -12,6 +12,6 @@
     "user_public_ip": "your_public_ip/32",
     "object_storage_access_key_id": "put_your_authentificate_access_key_here",
     "object_storage_secret_access_key": "put_your_authentificate_secret_key_here",
-    "object_storage_bucket_string": "put_your_account_id_here",
+    "object_storage_bucket_string": "put_your_account_id_here"
   }
 }

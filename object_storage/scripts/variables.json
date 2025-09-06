@@ -46,39 +46,39 @@
                                      "object_storage_bucket_name":  "ceweb",
                                      "node_env":  "production",
                                      "web_ip":  "10.1.1.111",
-                                     "database_host":  "db.your_internal.local",
+                                     "database_host":  "db.your_private_domain.name",
                                      "ssl_enabled":  "false"
                                  },
     "image_engine_metadata":  {
                                   "cache_file":  "image_engine_id.json",
-                                  "scpcli_available":  true,
-                                  "last_updated":  "2025-09-04T07:52:31Z"
+                                  "scpcli_available":  false,
+                                  "last_updated":  "2025-09-06T11:36:22Z"
                               },
     "terraform_infra_variables":  {
                                       "_comment":  "Variables used by terraform for infrastructure deployment",
                                       "db_ip2":  "10.1.3.33",
-                                      "windows_image_id":  "28d98f66-44ca-4858-904f-636d4f674a62",
-                                      "rocky_image_id":  "253a91ea-1221-49d7-af53-a45c389e7e1a",
+                                      "windows_image_id":  "fallback-windows-id",
+                                      "rocky_image_id":  "fallback-rocky-id",
                                       "_source":  "variables.tf TERRAFORM_INFRA category and SCP CLI",
-                                      "postgresql_engine_id":  "feebbfb2e7164b83a9855cacd0b64fde"
+                                      "postgresql_engine_id":  "8a463aa4b1dc4f279c3f53b94dc45e74"
                                   },
     "config_metadata":  {
                             "template_source":  "variables.tf",
                             "version":  "4.1.0",
                             "description":  "Samsung Cloud Platform 3-Tier Architecture Master Configuration with DBaaS",
                             "image_engine_cache":  "image_engine_id.json",
-                            "created":  "2025-09-04 08:34:56",
+                            "created":  "2025-09-06 11:36:27",
                             "usage":  "This file contains all environment-specific settings for the application deployment",
                             "generator":  "variables_manager.ps1"
                         },
     "user_input_variables":  {
-                                 "object_storage_bucket_string":  "put_the_value_if_you_use_object_storage_in_this_lab",
-                                 "public_domain_name":  "yourdomain.com",
-                                 "object_storage_secret_access_key":  "put_the_value_if_you_use_object_storage_in_this_labs",
+                                 "object_storage_bucket_string":  "put_your_account_id_here",
+                                 "public_domain_name":  "your_public_domain.name",
+                                 "object_storage_secret_access_key":  "put_your_authentificate_secret_key_here",
                                  "keypair_name":  "mykey",
                                  "_source":  "variables.tf USER_INPUT category",
-                                 "private_domain_name":  "your_internal.local",
-                                 "object_storage_access_key_id":  "put_the_value_if_you_use_object_storage_in_this_labs",
+                                 "private_domain_name":  "your_private_domain.name",
+                                 "object_storage_access_key_id":  "put_your_authentificate_access_key_here",
                                  "user_public_ip":  "your_public_ip/32",
                                  "_comment":  "Variables that users input interactively during deployment"
                              }

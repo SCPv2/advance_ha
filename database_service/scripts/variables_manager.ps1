@@ -5,7 +5,8 @@
 # Author: SCPv2 Team
 
 param(
-    [switch]$Debug
+    [switch]$Debug,
+    [switch]$Reset
 )
 
 $ErrorActionPreference = "Stop"
@@ -271,15 +272,21 @@ function Get-ImageId {
     )
     
     $images = $ImageEngineData.virtualserver_images.$OsDistro
-    if ($images -and $images.Count -gt 0) {
-        # Try to find exact version match
-        $exactMatch = $images | Where-Object { $_.scp_os_version -eq $OsVersion }
-        if ($exactMatch) {
-            return $exactMatch[0].id
+    if ($images) {
+        # Ensure we have an array
+        if ($images -is [array]) {
+            # Try to find exact version match
+            foreach ($image in $images) {
+                if ($image.scp_os_version -eq $OsVersion) {
+                    return $image.id
+                }
+            }
+            # Return first available image for the OS
+            return $images[0].id
+        } else {
+            # Single image object
+            return $images.id
         }
-        
-        # Return first available image for the OS
-        return $images[0].id
     }
     
     Write-Warning "No image found for OS: $OsDistro, Version: $OsVersion"
@@ -291,15 +298,21 @@ function Get-PostgreSQLEngineId {
     param([hashtable]$ImageEngineData)
     
     $engines = $ImageEngineData.postgresql_engines
-    if ($engines -and $engines.Count -gt 0) {
-        # Try to find latest marked engine
-        $latestEngine = $engines | Where-Object { $_.is_latest -eq $true }
-        if ($latestEngine) {
-            return $latestEngine.id
+    if ($engines) {
+        # Ensure we have an array
+        if ($engines -is [array]) {
+            # Try to find latest marked engine
+            foreach ($engine in $engines) {
+                if ($engine.is_latest -eq $true) {
+                    return $engine.id
+                }
+            }
+            # Fall back to first engine
+            return $engines[0].id
+        } else {
+            # Single engine object
+            return $engines.id
         }
-        
-        # Fall back to first engine
-        return $engines[0].id
     }
     
     Write-Warning "No PostgreSQL engine found"
@@ -700,6 +713,104 @@ function Show-FinalConfirmation {
     } while ($true)
 }
 
+# Reset user input variables to default values
+function Reset-UserInputVariables {
+    Write-Info "🔄 Resetting user input variables to default values..."
+    
+    $defaultValuesFile = Resolve-Path (Join-Path $ProjectDir "..\..\common-script\default_user_input_values.json")
+    
+    # Check if default values file exists
+    if (!(Test-Path $defaultValuesFile)) {
+        Write-Error "Default values file not found: $defaultValuesFile"
+        return $false
+    }
+    
+    # Load default values
+    try {
+        $defaultValues = Get-Content $defaultValuesFile | ConvertFrom-Json
+        Write-Info "Loaded default values from: $defaultValuesFile"
+    } catch {
+        Write-Error "Failed to parse default values file: $($_.Exception.Message)"
+        return $false
+    }
+    
+    # Create backup in lab_logs directory
+    $timestamp = Get-Date -Format 'yyyyMMdd_HHmmss'
+    $backupFile = Join-Path $LogsDir "variables.tf.backup.reset.$timestamp"
+    
+    # Ensure lab_logs directory exists
+    if (!(Test-Path $LogsDir)) {
+        New-Item -ItemType Directory -Path $LogsDir -Force | Out-Null
+    }
+    
+    Copy-Item $VariablesTf $backupFile
+    Write-Info "Backup created: $backupFile"
+    
+    # Read current variables.tf content
+    $content = Get-Content $VariablesTf -Raw
+    
+    # Reset each user input variable to its default value
+    foreach ($varName in $defaultValues.user_input_variables.PSObject.Properties.Name) {
+        $defaultValue = $defaultValues.user_input_variables.$varName
+        
+        # Pattern to match the variable block and replace the default value
+        $pattern = '(?s)(variable\s+"' + [regex]::Escape($varName) + '"\s*\{[^}]*?default\s*=\s*)"[^"]*"([^}]*?\})'
+        $replacement = '${1}"' + $defaultValue + '"${2}'
+        
+        if ($content -match $pattern) {
+            $content = $content -replace $pattern, $replacement
+            Write-Info "Reset $varName to: $defaultValue"
+        } else {
+            Write-Warning "Could not find variable pattern for: $varName"
+        }
+    }
+    
+    # Write updated content back to variables.tf
+    [System.IO.File]::WriteAllText($VariablesTf, $content, [System.Text.UTF8Encoding]::new($false))
+    Write-Success "variables.tf reset to default values"
+    
+    # Also generate a fresh variables.json with default values
+    Write-Info "Generating fresh variables.json with default values..."
+    
+    # Collect CEWEB_REQUIRED variables (non-user input)
+    $ceweb_variables = @{}
+    
+    # Extract CEWEB_REQUIRED variables
+    if ($content -match '(?s)# CEWEB_REQUIRED VARIABLES.*?(?=\n# [A-Z]|\z)') {
+        $ceweb_section = $matches[0]
+        
+        # Extract all variable blocks from CEWEB_REQUIRED section
+        $variablePattern = '(?s)variable\s+"([^"]+)"\s*\{[^}]*?default\s*=\s*"([^"]*)"[^}]*?\}'
+        $ceweb_matches = [regex]::Matches($ceweb_section, $variablePattern)
+        
+        foreach ($match in $ceweb_matches) {
+            $varName = $match.Groups[1].Value
+            $varValue = $match.Groups[2].Value
+            $ceweb_variables[$varName] = $varValue
+        }
+    }
+    
+    # Create the final variables object
+    $variables = @{
+        user_input_variables = $defaultValues.user_input_variables
+        ceweb_required_variables = $ceweb_variables
+        config_metadata = @{
+            generator = "variables_manager.ps1"
+            template_source = "variables.tf"
+            created = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
+            reset_timestamp = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
+            description = "Variables reset to default values"
+        }
+    }
+    
+    # Write variables.json
+    $jsonContent = $variables | ConvertTo-Json -Depth 10
+    [System.IO.File]::WriteAllText($VariablesJson, $jsonContent, [System.Text.UTF8Encoding]::new($false))
+    Write-Success "Generated fresh variables.json with default values"
+    
+    return $true
+}
+
 # Main execution
 function Main {
     Write-Info "🚀 Samsung Cloud Platform v2 - Variables Manager (Database Service)"
@@ -753,9 +864,21 @@ if ($Debug) {
     $env:DEBUG_MODE = "true"
 }
 
-# Run main function
+# Run appropriate function based on parameters
 try {
-    exit (Main)
+    if ($Reset) {
+        # Direct reset without user interaction
+        if (Reset-UserInputVariables) {
+            Write-Success "✅ Variables reset completed successfully!"
+            exit 0
+        } else {
+            Write-Error "❌ Variables reset failed!"
+            exit 1
+        }
+    } else {
+        # Normal interactive mode
+        exit (Main)
+    }
 } catch {
     Write-Error "Variables processing failed: $($_.Exception.Message)"
     exit 1

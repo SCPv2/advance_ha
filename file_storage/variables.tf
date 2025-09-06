@@ -17,14 +17,14 @@ variable "common_tags" {
 variable "private_domain_name" {
   type        = string
   description = "[USER_INPUT] Private domain name (e.g., internal.local)"
-  default     = "your_internal.local"                                     # 사용자 Private 도메인으로 변경
+  default     = "your_private_domain.name"                                     # 사용자 Private 도메인으로 변경
 }
 
 
 variable "public_domain_name" {
   type        = string
   description = "[USER_INPUT] Public domain name (e.g., example.com)"
-  default     = "yourdomain.com"                                     # 사용자 Public 도메인으로 변경
+  default     = "your_public_domain.name"                                     # 사용자 Public 도메인으로 변경
 }
 
 
@@ -376,6 +376,8 @@ variable "app_lb_service_ip" {
   description = "[CEWEB_REQUIRED] Service IP for App Load Balancer"
   default     = "10.1.2.100"
 }
+
+
 
 
 

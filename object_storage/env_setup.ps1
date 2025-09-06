@@ -11,8 +11,8 @@
 # Data Flow: variables.tf -> variables.json -> userdata_*.sh -> terraform apply
 # Referenced GitHub installation scripts:
 # - Web Server: https://github.com/SCPv2/ceweb/blob/main/web-server/install_web_server.sh
-# - App Server: https://github.com/SCPv2/ceweb/blob/main/app-server/install_app_server.sh  
-# - DB Server: https://github.com/SCPv2/ceweb/blob/main/db-server/vm_db/install_postgresql_vm.sh
+# - App Server: https://github.com/SCPv2/ceweb/blob/main/app-server/install_app_server_s3.sh  
+# - DB Server: DBaaS PostgreSQL (no VM installation - uses managed database service)
 
 param(
     [switch]$Debug

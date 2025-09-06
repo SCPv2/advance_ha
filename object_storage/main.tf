@@ -7,10 +7,6 @@ terraform {
       version = "1.0.3"
       source  = "SamsungSDSCloud/samsungcloudplatformv2"
     }
-    time = {
-      source  = "hashicorp/time"
-      version = "~> 0.9"
-    }
   }
   required_version = ">= 1.11"
 }
@@ -321,69 +317,10 @@ resource "samsungcloudplatformv2_vpc_nat_gateway" "app_natgateway" {
 }
 
 ########################################################
-# Ports
+# Ports - Removed (Using direct fixed_ip in VM configuration)
 ########################################################
-resource "samsungcloudplatformv2_vpc_port" "bastion_port" {
-  name             = "bastionport"
-  description      = "bastion port"
-  subnet_id        = samsungcloudplatformv2_vpc_subnet.web_subnet.id
-  fixed_ip_address = var.bastion_ip
-  tags             = var.common_tags
-
-  security_groups = [samsungcloudplatformv2_security_group_security_group.bastion_sg.id]
-
-  depends_on = [
-    samsungcloudplatformv2_security_group_security_group.bastion_sg,
-    samsungcloudplatformv2_vpc_subnet.web_subnet, samsungcloudplatformv2_vpc_subnet.app_subnet, samsungcloudplatformv2_vpc_subnet.db_subnet
-  ]
-}
-
-resource "samsungcloudplatformv2_vpc_port" "web_port" {
-  name             = "webport"
-  description      = "web port"
-  subnet_id        = samsungcloudplatformv2_vpc_subnet.web_subnet.id
-  fixed_ip_address = var.web_ip
-  tags             = var.common_tags
-
-  security_groups = [samsungcloudplatformv2_security_group_security_group.web_sg.id]
-
-  depends_on = [
-    samsungcloudplatformv2_security_group_security_group.web_sg,
-    samsungcloudplatformv2_vpc_subnet.web_subnet, samsungcloudplatformv2_vpc_subnet.app_subnet, samsungcloudplatformv2_vpc_subnet.db_subnet
-  ]
-}
-
-# Web Port 2 - Removed for single server deployment
-
-resource "samsungcloudplatformv2_vpc_port" "app_port" {
-  name             = "appport"
-  description      = "app port"
-  subnet_id        = samsungcloudplatformv2_vpc_subnet.app_subnet.id
-  fixed_ip_address = var.app_ip
-  tags             = var.common_tags
-
-  security_groups = [samsungcloudplatformv2_security_group_security_group.app_sg.id]
-
-  depends_on = [
-    samsungcloudplatformv2_security_group_security_group.app_sg,
-    samsungcloudplatformv2_vpc_subnet.web_subnet, samsungcloudplatformv2_vpc_subnet.app_subnet, samsungcloudplatformv2_vpc_subnet.db_subnet
-  ]
-}
-
-# App Port 2 - Removed for single server deployment
-
-########################################################
-# Time Sleep - Port 생성 후 20초 대기
-########################################################
-resource "time_sleep" "wait_for_ports" {
-  depends_on = [
-    samsungcloudplatformv2_vpc_port.bastion_port,
-    samsungcloudplatformv2_vpc_port.web_port,
-    samsungcloudplatformv2_vpc_port.app_port
-  ]
-
-  create_duration = "20s"
-}
+# Port resources removed - VMs now use direct subnet_id and fixed_ip configuration
+# This simplifies the infrastructure and reduces resource dependencies
 
 ########################################################
 # Virtual Server Image IDs (From SCP CLI Cache)
@@ -454,8 +391,7 @@ resource "samsungcloudplatformv2_postgresql_cluster" "dbaas_cluster" {
   }
 
   depends_on = [
-    samsungcloudplatformv2_vpc_subnet.db_subnet,
-    time_sleep.wait_for_ports
+    samsungcloudplatformv2_vpc_subnet.db_subnet
   ]
 }
 
@@ -479,20 +415,21 @@ resource "samsungcloudplatformv2_virtualserver_server" "vm3" {
   image_id = var.rocky_image_id
   networks = {
     nic0 = {
-      port_id = samsungcloudplatformv2_vpc_port.app_port.id
+      subnet_id = samsungcloudplatformv2_vpc_subnet.app_subnet.id
+      fixed_ip  = var.app_ip
     }
   }
+  security_groups = [samsungcloudplatformv2_security_group_security_group.app_sg.id]
   user_data = base64encode(file("${path.module}/scripts/generated_userdata/userdata_app.sh"))
   depends_on = [
-    time_sleep.wait_for_ports,
     samsungcloudplatformv2_postgresql_cluster.dbaas_cluster,  # DBaaS 완료 후
     samsungcloudplatformv2_vpc_subnet.web_subnet, samsungcloudplatformv2_vpc_subnet.app_subnet, samsungcloudplatformv2_vpc_subnet.db_subnet,
-    samsungcloudplatformv2_vpc_port.app_port,
+    samsungcloudplatformv2_security_group_security_group.app_sg,
     samsungcloudplatformv2_vpc_nat_gateway.app_natgateway
   ]
 }
 
-# Web VM1
+# Web VM1 (created after App VM)
 resource "samsungcloudplatformv2_virtualserver_server" "vm2" {
   name           = var.vm_web_name
   keypair_name   = data.samsungcloudplatformv2_virtualserver_keypair.kp.name
@@ -507,15 +444,16 @@ resource "samsungcloudplatformv2_virtualserver_server" "vm2" {
   image_id = var.rocky_image_id
   networks = {
     nic0 = {
-      port_id = samsungcloudplatformv2_vpc_port.web_port.id
+      subnet_id = samsungcloudplatformv2_vpc_subnet.web_subnet.id
+      fixed_ip  = var.web_ip
     }
   }
+  security_groups = [samsungcloudplatformv2_security_group_security_group.web_sg.id]
   user_data = base64encode(file("${path.module}/scripts/generated_userdata/userdata_web.sh"))
   depends_on = [
-    time_sleep.wait_for_ports,
-#    samsungcloudplatformv2_virtualserver_server.vm3,  # App VM 1 완료 후
+    samsungcloudplatformv2_virtualserver_server.vm3,  # App VM 완료 후
     samsungcloudplatformv2_vpc_subnet.web_subnet, samsungcloudplatformv2_vpc_subnet.app_subnet, samsungcloudplatformv2_vpc_subnet.db_subnet,
-    samsungcloudplatformv2_vpc_port.web_port,
+    samsungcloudplatformv2_security_group_security_group.web_sg,
     samsungcloudplatformv2_vpc_nat_gateway.web_natgateway
   ]
 }
@@ -535,17 +473,16 @@ resource "samsungcloudplatformv2_virtualserver_server" "vm1" {
   image_id = var.windows_image_id
   networks = {
     nic0 = {
-      public_ip_id = samsungcloudplatformv2_vpc_publicip.pip1.id,
-      port_id      = samsungcloudplatformv2_vpc_port.bastion_port.id
+      subnet_id    = samsungcloudplatformv2_vpc_subnet.web_subnet.id
+      fixed_ip     = var.bastion_ip
+      public_ip_id = samsungcloudplatformv2_vpc_publicip.pip1.id
     }
   }
   security_groups = [samsungcloudplatformv2_security_group_security_group.bastion_sg.id]
   depends_on = [
-    time_sleep.wait_for_ports,
     samsungcloudplatformv2_vpc_subnet.web_subnet, samsungcloudplatformv2_vpc_subnet.app_subnet, samsungcloudplatformv2_vpc_subnet.db_subnet,
     samsungcloudplatformv2_security_group_security_group.bastion_sg,
-    samsungcloudplatformv2_vpc_publicip.pip1, samsungcloudplatformv2_vpc_publicip.pip2, samsungcloudplatformv2_vpc_publicip.pip3,
-    samsungcloudplatformv2_vpc_port.bastion_port
+    samsungcloudplatformv2_vpc_publicip.pip1, samsungcloudplatformv2_vpc_publicip.pip2, samsungcloudplatformv2_vpc_publicip.pip3
   ]
 }
 

@@ -472,10 +472,6 @@ resource "samsungcloudplatformv2_vpc_nat_gateway" "db_natgateway" {
   ]
 }
 
-
-
-
-
 ########################################################
 # Virtual Server 자원 생성 (DB → APP → WEB 순서)
 ########################################################
