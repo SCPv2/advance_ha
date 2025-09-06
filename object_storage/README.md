@@ -82,13 +82,29 @@ try {
 
 ### 선택 '[고가용성 구현을 위한 File Storage 구성](../file_storage/README.md)'
 
+## DNS 설정
+
+- Hosted Zone (Private)
+
+| 유형 | 이름 | 값 | TTL|
+|----|----|----|----|
+|A|www|10.1.1.100|300|
+|A|app|10.1.2.100|300|
+|A|db|10.1.3.100|300|
+
+- Hosted Zone (Public)
+
+| 유형 | 이름 | 값 | TTL|
+|----|----|----|----|
+|A|www|Your Public IP|300|
+
 ## Object Storage 생성
 
 - 버킷명 : ceweb
 
 생성 후 점검할 항목
 
-- 버킷 스트링
+- Account ID : 버킷 스트링
 - Public URL
 - Private URL
 
@@ -109,7 +125,6 @@ Set_ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
 - object_storage_secret_access_key: ...............# Object Storage 시크릿 액세스 키
 - object_storage_bucket_string: ........................# Object Storage 버킷 스트링
 - private_domain_name: ......................................# 과정 소개에서 만든 프라이빗 도메인 이름
-- private_hosted_zone_id: ...................................# 과정 소개에서 만든 프라이빗 도메인의 Hosted Zone ID
 - public_domain_name: .......................................# 과정 소개에서 만든 퍼블릭 도메인 이름
 - user_public_ip: .....................................................# 현재 실습을 수행하고 있는 PC의 Public IP 주소
 
@@ -179,28 +194,30 @@ Set_ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
 - Subnet : Subnet110
 - IP : 10.1.10.10
 
-## webSG Outbound 규칙 구성
+## Security Group 규칙 구성
 
 * 기존에 443 Outbound to Internet(0.0.0.0/0) 규칙이 있을 경우 생략
 
 |Deployment|Security Group|Direction|Target Address/Remote SG|Service|Description|
 |:-----:|:-----:|:-----:|:-----:|:-----:|:-----|
-|User Input|webSG|Outbound|10.1.10.10(VPC Endpoint IP)|443|HTTPS Private Outbound to Object Storage Bucket|
+|User Input|appSG|Outbound|10.1.10.10(VPC Endpoint IP)|443|HTTPS Private Outbound to Object Storage Bucket|
 
-## AWS CLI 설치(웹서버)
+## AWS CLI 설치
+
+Object Storage의 [Amazon S3 활용 가이드](https://docs.e.samsungsdscloud.com/userguide/storage/object_storage/overview/amazons3/) 검토
 
 ```bash
 # 기존 설치 삭제
 sudo yum remove awscli
 
-# Object Storage를 위한 AWS CLI 설치(Amazon S3 활용 가이드 참조)
+# Object Storage를 위한 AWS CLI 설치
 sudo dnf install unzip -y
 curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64-2.22.35.zip" -o "awscliv2.zip"
 unzip awscliv2.zip
 sudo ./aws/install
 
 # AWS CLI 환경 구성
-aws cofigure
+aws configure
 
 # AWS Access Key ID [None]:                인증키의 Access Key입력
 # AWS Secret Access Key [None]:            인증키의 Secret Key입력
@@ -210,25 +227,40 @@ aws cofigure
 
 ## 웹 콘텐츠 마이그레이션
 
-Object Storage의 [Amazon S3 활용 가이드](https://docs.e.samsungsdscloud.com/userguide/storage/object_storage/overview/amazons3/) 검토
+```bash
+cd /home/rocky/ceweb/
+
+aws s3 cp media s3://{버킷명}/media --recursive --endpoint-url [Private Endpoint명]
+
+# aws s3 cp media s3://ceweb/media --recursive --endpoint-url https://object-store.private.kr-west1.e.samsungsdscloud.com
+```
+- 객체의 Public URL, Private URL 구조 확인
+
+## 애플리케이션 저장소 마이그레이션
 
 ```bash
 cd /home/rocky/ceweb/
 
-aws s3 cp media s3://{버킷명}/media --endpoint-url [Private Endpoint명]
+aws s3 cp files s3://{버킷명}/files --recursive --endpoint-url [Private Endpoint명]
 
-# aws s3 cp media s3://ceweb/media --recursive --endpoint-url https://object-store.private.kr-west1.e.samsungsdscloud.com
+# aws s3 cp files s3://ceweb/files --recursive --endpoint-url https://object-store.private.kr-west1.e.samsungsdscloud.com
 ```
 
-- 객체의 Public URL, Private URL 구조 확인
+- [CEWEB](https://github.com/SCPv2/ceweb) 애플리케이션 구조 확인
 
+- Web 서버 경로 변경
+  
+  - 기존:  `./media`
 
+  - 변경: `https://object-store.kr-west1.e.samsungsdscloud.com)/{Account_id}:ceweb/media`
 
+- 애플리케이션 전환
 
+```bash
+mv index.html index_bk.html
+mv index_obj.html index.html
+```
 
-
-
-.
 .
 
 .
