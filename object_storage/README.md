@@ -217,7 +217,7 @@ unzip awscliv2.zip
 sudo ./aws/install
 
 # AWS CLI 환경 구성
-aws cofigure
+aws configure
 
 # AWS Access Key ID [None]:                인증키의 Access Key입력
 # AWS Secret Access Key [None]:            인증키의 Secret Key입력
