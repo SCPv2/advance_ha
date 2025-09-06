@@ -225,9 +225,7 @@ aws cofigure
 # Default output format [None]:            입력없이 엔터
 ```
 
-## 데이터 마이그레이션
-
-- 웹서버(webvm111r)
+## 웹 콘텐츠 마이그레이션
 
 ```bash
 cd /home/rocky/ceweb/
@@ -236,8 +234,10 @@ aws s3 cp media s3://{버킷명}/media --recursive --endpoint-url [Private Endpo
 
 # aws s3 cp media s3://ceweb/media --recursive --endpoint-url https://object-store.private.kr-west1.e.samsungsdscloud.com
 ```
+- 객체의 Public URL, Private URL 구조 호학인
 
-- 앱서버(appvm121r)
+## 애플리케이션 저장소 마이그레이션
+
 ```bash
 cd /home/rocky/ceweb/
 
