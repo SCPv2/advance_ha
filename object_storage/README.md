@@ -234,7 +234,7 @@ aws s3 cp media s3://{버킷명}/media --recursive --endpoint-url [Private Endpo
 
 # aws s3 cp media s3://ceweb/media --recursive --endpoint-url https://object-store.private.kr-west1.e.samsungsdscloud.com
 ```
-- 객체의 Public URL, Private URL 구조 호학인
+- 객체의 Public URL, Private URL 구조 확인
 
 ## 애플리케이션 저장소 마이그레이션
 
