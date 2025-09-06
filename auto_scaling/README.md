@@ -230,6 +230,6 @@ App Server에서 실행
 ```bash
 sudo yum -y install epel-release
 sudo yum -y install stress
-stress --vm 5 --vm-bytes 512m --timeout 450s &
+stress -c 1 &
 top
 ```
