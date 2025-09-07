@@ -181,8 +181,15 @@ rm -f test_connection.js
 # Restart application
 echo ""
 echo "Restarting application..."
-pm2 start creative-energy-api
-echo "✅ Application restarted"
+if pm2 list | grep -q "creative-energy-api"; then
+    pm2 restart creative-energy-api
+    echo "✅ Application restarted"
+else
+    echo "⚠️ PM2 app 'creative-energy-api' not found. Starting with server.js..."
+    cd /home/rocky/ceweb/app-server
+    pm2 start server.js --name creative-energy-api
+    echo "✅ Application started"
+fi
 
 # Verify application status
 echo ""
