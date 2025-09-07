@@ -7,6 +7,13 @@
 - 서비스 유형 > 서버 타입 : Standard(db1) / db1v2m4
 - IP 접근 제어 : 10.1.2.0/24, 10.1.3.0/24
 
+## Replica Private DNS 레코드 등록
+
+| 유형 | 이름 | 값 | TTL|
+|----|----|----|----|
+|A|replica|Replica IP|300|
+|A|cache|10.1.2.200|300|
+
 ## PostgeSQL(DBaaS) Replica 적용을 위한 애플리케이션 수정
 
 AS-IS
@@ -85,9 +92,10 @@ sudo bash 03_test_replica.sh
 - 서비스 유형 > 서버 타입 : Standard(redis1) / redis1v1m2
 - Block Storage > 기본 OS: SSD, DATA: SSD, `56`GB
 - 고가용성 : 사용하지 않음
-- 네트워크 : 공통설정
+- 네트워크 : 서버별 설정
   - VPC : VPC1
   - Subnet : Subnet13
+  - IP :10.1.3.200
 - IP 접근 제어 : 10.1.2.0/24, 10.1.3.0/24
 - Redis Port 번호 : `6378`
 - Redis 비밀 번호 : `cedbadmin123!`
