@@ -12,7 +12,7 @@
 | 유형 | 이름 | 값 | TTL|
 |----|----|----|----|
 |A|replica|Replica IP|300|
-|A|cache|10.1.2.200|300|
+|A|cache|10.1.3.200|300|
 
 ## PostgeSQL(DBaaS) Replica 적용을 위한 애플리케이션 수정
 
@@ -101,6 +101,12 @@ sudo bash 03_test_replica.sh
 - Redis 비밀 번호 : `cedbadmin123!`
 - Parameter : Redis PISA Default
 - 시간대 : ASIA/Seoul
+
+## Security Group 규칙 
+
+|Deployment|Security Group|Direction|Target Address/Remote SG|Service|Description|
+|:-----:|:-----:|:-----:|:-----:|:-----:|:-----|
+|User Input|appSG|Outbound|dbSG|TCP 6378| Outbound to CacheStore|
 
 ## CacheStore(DBaaS) 적용을 위한 애플리케이션 수정
 
