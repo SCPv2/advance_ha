@@ -211,11 +211,6 @@ echo ""
 echo "Testing /health endpoint:"
 curl -s http://localhost:3000/health | jq '.database' 2>/dev/null || echo "⚠️ jq not installed, showing raw output:"
 
-# Test database stats endpoint
-echo ""
-echo "Testing /health/database endpoint:"
-curl -s http://localhost:3000/health/database | jq '.' 2>/dev/null || echo "⚠️ Database stats endpoint not available"
-
 # Test products endpoint
 echo ""
 echo "Testing /api/orders/products endpoint:"
