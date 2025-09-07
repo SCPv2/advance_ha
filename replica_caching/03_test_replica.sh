@@ -65,15 +65,15 @@ async function performanceTest() {
     console.log('\n2. Testing complex JOIN queries...');
     const complexQuery = `
       SELECT 
-        p.product_id,
-        p.product_name,
+        p.id,
+        p.title,
         p.price,
         COALESCE(i.stock_quantity, 0) as stock,
-        COUNT(o.order_id) as order_count
+        COUNT(o.id) as order_count
       FROM products p
-      LEFT JOIN inventory i ON p.product_id = i.product_id
-      LEFT JOIN orders o ON p.product_id = o.product_id
-      GROUP BY p.product_id, p.product_name, p.price, i.stock_quantity
+      LEFT JOIN inventory i ON p.id = i.product_id
+      LEFT JOIN orders o ON p.id = o.product_id
+      GROUP BY p.id, p.title, p.price, i.stock_quantity
       LIMIT 20
     `;
     
