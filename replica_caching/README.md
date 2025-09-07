@@ -102,6 +102,14 @@ sudo bash 03_test_replica.sh
 - Parameter : Redis PISA Default
 - 시간대 : ASIA/Seoul
 
+## Security Group 규칙 
+
+|Deployment|Security Group|Direction|Target Address/Remote SG|Service|Description|
+|:-----:|:-----:|:-----:|:-----:|:-----:|:-----|
+|User Input|appSG|Outbound|dbSG|TCP 6378| Outbound to CacheStore|
+|User Input|dbSG|Inbound|dbSG|TCP 6378| Inbound to CacheStore|
+|User Input|dbSG|Outbound|dbSG|TCP 6378| Outbound to CacheStore|
+
 ## CacheStore(DBaaS) 적용을 위한 애플리케이션 수정
 
 AS-IS
