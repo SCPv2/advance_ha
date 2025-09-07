@@ -12,7 +12,7 @@
 | 유형 | 이름 | 값 | TTL|
 |----|----|----|----|
 |A|replica|Replica IP|300|
-|A|cache|10.1.2.200|300|
+|A|cache|10.1.3.200|300|
 
 ## PostgeSQL(DBaaS) Replica 적용을 위한 애플리케이션 수정
 
