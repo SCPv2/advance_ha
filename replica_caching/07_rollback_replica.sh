@@ -133,6 +133,28 @@ if [ -f "config/database-replicated.js" ]; then
     echo "✅ Disabled database-replicated.js"
 fi
 
+# Remove cache-related files
+echo "Removing cache-related files..."
+[ -f "config/database-cached.js" ] && rm -f config/database-cached.js && echo "  ✅ Removed database-cached.js"
+[ -f "config/redis.js" ] && rm -f config/redis.js && echo "  ✅ Removed redis.js"
+[ -f "config/cachingService.js" ] && rm -f config/cachingService.js && echo "  ✅ Removed cachingService.js"
+[ -f "routes/orders-cached.js" ] && rm -f routes/orders-cached.js && echo "  ✅ Removed orders-cached.js"
+[ -f "routes/health-cached.js" ] && rm -f routes/health-cached.js && echo "  ✅ Removed health-cached.js"
+[ -f "warm_cache.js" ] && rm -f warm_cache.js && echo "  ✅ Removed warm_cache.js"
+[ -f "benchmark_cache.js" ] && rm -f benchmark_cache.js && echo "  ✅ Removed benchmark_cache.js"
+[ -f "monitor_cache.sh" ] && rm -f monitor_cache.sh && echo "  ✅ Removed monitor_cache.sh"
+[ -f "load_test_cache.sh" ] && rm -f load_test_cache.sh && echo "  ✅ Removed load_test_cache.sh"
+
+# Restore server.js from cache backup if exists
+if [ -f "server.js.backup.cache" ]; then
+    mv server.js.backup.cache server.js
+    echo "✅ Restored server.js from cache backup"
+fi
+
+# Optional: Remove Redis npm packages (uncomment if needed)
+# echo "Removing Redis npm packages..."
+# npm uninstall redis ioredis 2>/dev/null && echo "✅ Removed Redis packages"
+
 # Test database connection
 echo ""
 echo "Testing database connection..."

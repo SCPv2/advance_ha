@@ -95,15 +95,15 @@ class PerformanceTester {
         () => db.masterPool.query(`
           SELECT p.*, COALESCE(i.stock_quantity, 0) as stock
           FROM products p
-          LEFT JOIN inventory i ON p.product_id = i.product_id
-          ORDER BY p.product_id
+          LEFT JOIN inventory i ON p.id = i.product_id
+          ORDER BY p.id
         `));
       
       const direct2 = await this.measureTime('Dashboard stats (direct)', 
         () => db.masterPool.query(`
           SELECT 
-            COUNT(DISTINCT o.order_id) as total_orders,
-            SUM(o.total_amount) as total_revenue
+            COUNT(DISTINCT o.id) as total_orders,
+            SUM(o.total_price) as total_revenue
           FROM orders o
           WHERE o.order_date >= CURRENT_DATE - INTERVAL '30 days'
         `));
@@ -157,10 +157,10 @@ class PerformanceTester {
       // Complex JOIN
       const complex = await this.measureTime('Complex JOIN', 
         () => db.queryCached(`
-          SELECT p.product_name, COUNT(o.order_id) as order_count
+          SELECT p.title, COUNT(o.id) as order_count
           FROM products p
-          LEFT JOIN orders o ON p.product_id = o.product_id
-          GROUP BY p.product_id, p.product_name
+          LEFT JOIN orders o ON p.id = o.product_id
+          GROUP BY p.id, p.title
           ORDER BY order_count DESC
         `, null, {
           cachePrefix: 'complex_join',

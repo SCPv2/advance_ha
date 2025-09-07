@@ -38,6 +38,13 @@ fi
 # Step 2: Update .env with Redis configuration
 echo ""
 echo "[Step 2/6] Adding Redis configuration to .env..."
+
+# Backup .env before adding Redis configuration
+if ! grep -q "REDIS_HOST" .env 2>/dev/null; then
+    cp .env .env.backup.redis.$(date +%Y%m%d_%H%M%S)
+    echo "✅ Created .env backup before Redis configuration"
+fi
+
 if grep -q "REDIS_HOST" .env 2>/dev/null; then
     echo "⚠️ Redis configuration already exists in .env"
 else
@@ -46,7 +53,7 @@ else
 # Redis Cache Configuration
 REDIS_HOST=cache.cesvc.net
 REDIS_PORT=6378
-REDIS_PASSWORD=
+REDIS_PASSWORD=cedbadmin123!
 REDIS_DB=0
 REDIS_KEY_PREFIX=ceweb:
 REDIS_TTL_DEFAULT=3600
@@ -380,15 +387,15 @@ const products = {
   async getAll() {
     const query = `
       SELECT 
-        p.product_id,
-        p.product_name,
+        p.id as product_id,
+        p.title as product_name,
         p.price,
-        p.image_url,
-        p.description,
+        p.image,
+        p.subtitle as description,
         COALESCE(i.stock_quantity, 0) as stock
       FROM products p
-      LEFT JOIN inventory i ON p.product_id = i.product_id
-      ORDER BY p.product_id
+      LEFT JOIN inventory i ON p.id = i.product_id
+      ORDER BY p.id
     `;
     
     return await queryCached(query, null, {
@@ -404,8 +411,8 @@ const products = {
         p.*,
         COALESCE(i.stock_quantity, 0) as stock
       FROM products p
-      LEFT JOIN inventory i ON p.product_id = i.product_id
-      WHERE p.product_id = $1
+      LEFT JOIN inventory i ON p.id = i.product_id
+      WHERE p.id = $1
     `;
     
     return await queryCached(query, [productId], {
@@ -418,8 +425,8 @@ const products = {
   async search(searchTerm) {
     const query = `
       SELECT * FROM products 
-      WHERE product_name ILIKE $1 OR description ILIKE $1
-      ORDER BY product_name
+      WHERE title ILIKE $1 OR subtitle ILIKE $1
+      ORDER BY title
     `;
     
     return await queryCached(query, [`%${searchTerm}%`], {
@@ -436,9 +443,9 @@ const orders = {
     const query = `
       SELECT 
         o.*,
-        p.product_name
+        p.title as product_name
       FROM orders o
-      LEFT JOIN products p ON o.product_id = p.product_id
+      LEFT JOIN products p ON o.product_id = p.id
       ORDER BY o.order_date DESC
       LIMIT $1
     `;
@@ -454,11 +461,11 @@ const orders = {
     const query = `
       SELECT 
         o.*,
-        p.product_name,
+        p.title as product_name,
         p.price
       FROM orders o
-      LEFT JOIN products p ON o.product_id = p.product_id
-      WHERE o.order_id = $1
+      LEFT JOIN products p ON o.product_id = p.id
+      WHERE o.id = $1
     `;
     
     return await queryCached(query, [orderId], {
@@ -483,9 +490,9 @@ const orders = {
       
       // Create order
       const result = await client.query(
-        `INSERT INTO orders (customer_name, product_id, quantity, total_amount, order_date)
-         VALUES ($1, $2, $3, $4, NOW())
-         RETURNING order_id`,
+        `INSERT INTO orders (customer_name, product_id, quantity, unit_price, total_price, order_date)
+         VALUES ($1, $2, $3, $4, $5, NOW())
+         RETURNING id as order_id`,
         [customer_name, product_id, quantity, total_amount]
       );
       
@@ -509,11 +516,11 @@ const stats = {
   async getDashboard() {
     const query = `
       SELECT 
-        COUNT(DISTINCT o.order_id) as total_orders,
-        SUM(o.total_amount) as total_revenue,
+        COUNT(DISTINCT o.id) as total_orders,
+        SUM(o.total_price) as total_revenue,
         COUNT(DISTINCT o.customer_name) as unique_customers,
-        AVG(o.total_amount) as avg_order_value,
-        COUNT(DISTINCT p.product_id) as total_products
+        AVG(o.total_price) as avg_order_value,
+        COUNT(DISTINCT p.id) as total_products
       FROM orders o
       CROSS JOIN products p
       WHERE o.order_date >= CURRENT_DATE - INTERVAL '30 days'

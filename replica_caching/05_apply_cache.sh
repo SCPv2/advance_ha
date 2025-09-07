@@ -470,6 +470,13 @@ echo "✅ Health check with cache status created"
 # Step 3: Update server.js to use cached routes
 echo ""
 echo "[Step 3/4] Creating server configuration for cached routes..."
+
+# Backup server.js before modification
+if [ ! -f "server.js.backup.cache" ]; then
+    cp server.js server.js.backup.cache
+    echo "✅ Created server.js backup"
+fi
+
 cat > update_server.js << 'EOF'
 const fs = require('fs');
 const path = require('path');
@@ -490,10 +497,14 @@ const cacheComment = `
 // Using cached routes for improved performance
 `;
 
-// Replace route imports
+// Replace route imports (handle both naming conventions)
 serverContent = serverContent.replace(
   "const ordersRouter = require('./routes/orders');",
   "const ordersRouter = require('./routes/orders-cached'); // Using cached version"
+);
+serverContent = serverContent.replace(
+  "const ordersRoutes = require('./routes/orders');",
+  "const ordersRoutes = require('./routes/orders-cached'); // Using cached version"
 );
 
 serverContent = serverContent.replace(
