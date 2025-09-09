@@ -291,7 +291,7 @@ echo "========================"
 # Check Redis connection
 echo ""
 echo "1. Redis Connection Status:"
-if timeout 5 bash -c "</dev/tcp/cache.cesvc.net/6378" 2>/dev/null; then
+if timeout 5 bash -c "</dev/tcp/cache.your_private_domain.name/6378" 2>/dev/null; then
     echo "   ✅ Redis server reachable"
 else
     echo "   ❌ Redis server unreachable"

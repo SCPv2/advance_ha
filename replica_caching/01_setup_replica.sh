@@ -50,7 +50,7 @@ require('dotenv').config();
 
 // Master DB Pool (Read-Write)
 const masterPool = new Pool({
-  host: process.env.DB_HOST || 'db.cesvc.net',
+  host: process.env.DB_HOST || 'db.your_private_domain.name',
   port: process.env.DB_PORT || 2866,
   database: process.env.DB_NAME || 'cedb',
   user: process.env.DB_USER || 'cedbadmin',
@@ -69,7 +69,7 @@ const masterPool = new Pool({
 
 // Replica DB Pool (Read-Only)
 const replicaPool = new Pool({
-  host: process.env.DB_REPLICA_HOST || 'replica.cesvc.net',
+  host: process.env.DB_REPLICA_HOST || 'replica.your_private_domain.name',
   port: process.env.DB_REPLICA_PORT || 2866,
   database: process.env.DB_NAME || 'cedb',
   user: process.env.DB_REPLICA_USER || process.env.DB_USER || 'cedbadmin',
@@ -263,7 +263,7 @@ else
     cat >> .env << 'EOF'
 
 # Read Replica Configuration
-DB_REPLICA_HOST=replica.cesvc.net
+DB_REPLICA_HOST=replica.your_private_domain.name
 DB_REPLICA_PORT=2866
 DB_REPLICA_USER=cedbadmin
 DB_REPLICA_PASSWORD=cedbadmin123!
@@ -338,8 +338,8 @@ echo "✅ Read Replica Setup Complete!"
 echo "=========================================="
 echo ""
 echo "Configuration Summary:"
-echo "  Master DB: db.cesvc.net:2866"
-echo "  Replica DB: replica.cesvc.net:2866"
+echo "  Master DB: db.your_private_domain.name:2866"
+echo "  Replica DB: replica.your_private_domain.name:2866"
 echo "  Config file: $APP_DIR/config/database-replicated.js"
 echo ""
 echo "Next steps:"

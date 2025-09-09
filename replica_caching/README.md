@@ -102,7 +102,7 @@ sudo bash 03_test_replica.sh
 - Parameter : Redis PISA Default
 - 시간대 : ASIA/Seoul
 
-## Security Group 규칙 
+## Security Group 규칙
 
 |Deployment|Security Group|Direction|Target Address/Remote SG|Service|Description|
 |:-----:|:-----:|:-----:|:-----:|:-----:|:-----|

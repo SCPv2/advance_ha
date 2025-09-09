@@ -385,7 +385,7 @@ router.get('/health', async (req, res) => {
         connected: cacheStats.enabled && !cacheStats.error,
         keys: cacheStats.keys || 0,
         hitRatio: cacheStats.hitRatio || 'N/A',
-        host: process.env.REDIS_HOST || 'cache.cesvc.net'
+        host: process.env.REDIS_HOST || 'cache.your_private_domain.name'
       },
       architecture: {
         layers: ['Redis Cache', 'Read Replica', 'Master DB'],

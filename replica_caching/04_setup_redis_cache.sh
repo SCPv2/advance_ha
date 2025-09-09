@@ -51,7 +51,7 @@ else
     cat >> .env << 'EOF'
 
 # Redis Cache Configuration
-REDIS_HOST=cache.cesvc.net
+REDIS_HOST=cache.your_private_domain.name
 REDIS_PORT=6378
 REDIS_PASSWORD=cedbadmin123!
 REDIS_DB=0
@@ -73,7 +73,7 @@ require('dotenv').config();
 
 // Redis client configuration
 const redisConfig = {
-  host: process.env.REDIS_HOST || 'cache.cesvc.net',
+  host: process.env.REDIS_HOST || 'cache.your_private_domain.name',
   port: process.env.REDIS_PORT || 6378,
   password: process.env.REDIS_PASSWORD || undefined,
   db: process.env.REDIS_DB || 0,
@@ -674,7 +674,7 @@ echo "Architecture:"
 echo "  App → Redis Cache → Read Replica → Master DB"
 echo ""
 echo "Cache Configuration:"
-echo "  Host: cache.cesvc.net:6379"
+echo "  Host: cache.your_private_domain.name:6378"
 echo "  Products TTL: 2 hours"
 echo "  Stats TTL: 5 minutes"
 echo "  Default TTL: 1 hour"
@@ -682,5 +682,5 @@ echo ""
 echo "Next steps:"
 echo "1. Update routes to use database-cached module"
 echo "2. Restart application: pm2 restart creative-energy-api"
-echo "3. Monitor cache: redis-cli -h cache.cesvc.net"
+echo "3. Monitor cache: redis-cli -h cache.your_private_domain.name"
 echo "=========================================="
