@@ -4,11 +4,11 @@
 
 - CDN명 : `cecdn`
 
-- CDN 도메인 : `ceweb'
+- CDN 도메인 : `ceweb`
 - 원본 위치 >  
   - IP : your_public_ip.name  
   - 프로토콜 : HTTP
-  - Port 번호 : 80
+  - Port 번호 : `80`
   
 - 원본 경로 : 
 - Forward host header	: Incoming host header
