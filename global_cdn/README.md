@@ -10,14 +10,14 @@
   - 프로토콜 : HTTP
   - Port 번호 : `80`
   
-- 원본 경로 : 
-- Forward host header	: Origin hostname
-- Cache key hostname	: Origin hostname
+- 원본 경로 :
+- Forward host header : Origin hostname
+- Cache key hostname : Origin hostname
 - Custom header (요청) : 사용 안함
 
 - 캐싱 옵션 : Honor origin cache-control and expires
 - 컨텐츠 전송 정책 : 유효한 콘텐츠만 제공
 - Cache 만료시간 : 3,600
-- Ignore query string	: 사용 안함
+- Ignore query string : 사용 안함
 - Range request : 사용 안함
 - Custom header : 사용 안함
