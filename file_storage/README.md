@@ -42,7 +42,7 @@ sudo vi /etc/fstab                               # vi에디터에서 i를 누르
 # 마운트 실행
 cd ~/ceweb
 sudo systemctl daemon-reload
-sudo mount -t nfs -o vers=3,noresvport 198.19.64.7:/scp_cefs__8i9uf files
+sudo mount -t nfs -o vers=3,noresvport 198.19.64.7:/scp_cefs__filestorage files
 
 # 마운트 상태 확인
 df -h                                            # 마운트 상태 확인 : 마운트명 과 /home/rocky/ceweb/files가 매핑되어 있어야 함.
@@ -74,7 +74,7 @@ sudo vi /etc/fstab                               # vi에디터에서 # vi에디�
 # 마운트 실행
 cd ~/ceweb
 sudo systemctl daemon-reload
-sudo mount -t nfs -o vers=3,noresvport 198.19.64.7:/scp_cefs__8i9uf files
+sudo mount -t nfs -o vers=3,noresvport 198.19.64.7:/scp_cefs__filestorage files
 
 # 마운트 상태 확인
 df -h                                            # 마운트 상태 확인 : 마운트명 과 /home/rocky/ceweb/files가 매핑되어 있어야 함.
@@ -107,7 +107,7 @@ sudo vi /etc/fstab                               # vi에디터에서 아래 설�
 # 마운트 실행
 cd ~/ceweb
 sudo systemctl daemon-reload
-sudo mount -t nfs -o vers=3,noresvport 10.10.10.10:/filestorage media
+sudo mount -t nfs -o vers=3,noresvport 10.10.10.10:/scp_cefs__filestorage media
 
 # 마운트 상태 확인
 df -h                                            # 마운트 상태 확인 : 마운트명 과 /home/rocky/ceweb/media가 매핑되어 있어야 함.
@@ -139,7 +139,7 @@ sudo vi /etc/fstab                               # vi에디터에서 아래 설�
 # 마운트 실행
 cd ~/ceweb
 sudo systemctl daemon-reload
-sudo mount -t nfs -o vers=3,noresvport 198.19.64.7:/scp_cefs__8i9uf media
+sudo mount -t nfs -o vers=3,noresvport 198.19.64.7:/scp_cefs__filestorage media
 
 # 마운트 상태 확인
 df -h                                            # 마운트 상태 확인 : 마운트명 과 /home/rocky/ceweb/media가 매핑되어 있어야 함.
