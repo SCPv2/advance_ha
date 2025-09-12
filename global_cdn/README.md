@@ -6,13 +6,13 @@
 
 - CDN 도메인 : `ceweb`
 - 원본 위치 >  
-  - IP : your_public_ip.name  
+  - IP : your_public_domain.name  
   - 프로토콜 : HTTP
   - Port 번호 : `80`
   
 - 원본 경로 : 
-- Forward host header	: Incoming host header
-- Cache key hostname	: Incoming host header
+- Forward host header	: Origin hostname
+- Cache key hostname	: Origin hostname
 - Custom header (요청) : 사용 안함
 
 - 캐싱 옵션 : Honor origin cache-control and expires
