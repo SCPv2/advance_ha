@@ -239,7 +239,7 @@ function Initialize-ChangesTracking {
 function Show-MainBanner {
     Clear-Host
     Cyan "========================================================"
-    Cyan "Samsung Cloud Platform v2 - Lab Environment Manager"
+    Cyan "SCP v2 Advance - Lab Environment Manager"
     Cyan "File Storage Integration with Dynamic Configuration"
     Cyan "========================================================"
     Write-Host ""

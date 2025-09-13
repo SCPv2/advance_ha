@@ -238,8 +238,8 @@ function Initialize-ChangesTracking {
 function Show-MainBanner {
     Clear-Host
     Cyan "========================================================"
-    Cyan "Samsung Cloud Platform v2 - Lab Environment Manager"
-    Cyan "3-Tier Architecture with Dynamic Configuration"
+    Cyan "SCP v2 Advance - Lab Environment Manager"
+    Cyan "Database Service with Dynamic Configuration"
     Cyan "========================================================"
     Write-Host ""
     Write-Host "Choose Operation Mode:" -ForegroundColor White -BackgroundColor Black
