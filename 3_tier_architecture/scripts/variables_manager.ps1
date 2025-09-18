@@ -1,4 +1,4 @@
-# Samsung Cloud Platform v2 - Variables Manager (PowerShell)
+﻿# Samsung Cloud Platform v2 - Variables Manager (PowerShell)
 # Converts variables.tf to variables.json and handles user input
 #
 # Usage:
@@ -742,7 +742,7 @@ function Update-VariablesTfWithImageEngineIds {
     
     # Add image/engine ID variables to TERRAFORM_INFRASTRUCTURE_VARIABLES section
     $infrastructureSection = '########################################################
-# 4. Terraform 인프라 변수 (TERRAFORM_INFRASTRUCTURE_VARIABLES)'
+# 3. Terraform 인프라 변수 (TERRAFORM_INFRASTRUCTURE_VARIABLES)'
     
     if ($content -match [regex]::Escape($infrastructureSection)) {
         # Add new variables after the infrastructure section header

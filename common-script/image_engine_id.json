@@ -1,40 +1,70 @@
 ﻿{
     "postgresql_engines":  [
                                {
-                                   "status":  "active",
+                                   "id":  "9fa40db8fadc47599ee6d539fa72a597",
+                                   "name":  "PostgreSQL Community 16.8",
+                                   "is_latest":  false,
+                                   "major_version":  "COMMUNITY 16",
+                                   "end_of_service":  false,
+                                   "software_version":  "COMMUNITY 16.8"
+                               },
+                               {
+                                   "id":  "b44cfc90020b4953bd22c5e4e94ddadf",
+                                   "name":  "PostgreSQL Community 15.12",
+                                   "is_latest":  false,
+                                   "major_version":  "COMMUNITY 15",
+                                   "end_of_service":  false,
+                                   "software_version":  "COMMUNITY 15.12"
+                               },
+                               {
+                                   "id":  "feebbfb2e7164b83a9855cacd0b64fde",
+                                   "name":  "PostgreSQL Community 14.17",
                                    "is_latest":  true,
-                                   "id":  "8a463aa4b1dc4f279c3f53b94dc45e74",
-                                   "type":  "PostgreSQL Community",
-                                   "version":  "16.8"
+                                   "major_version":  "COMMUNITY 14",
+                                   "end_of_service":  false,
+                                   "software_version":  "COMMUNITY 14.17"
                                }
                            ],
     "cachestore_engines":  [
 
                            ],
     "virtualserver_images":  {
-                                 "windows":  [
-                                                 {
-                                                     "status":  "active",
-                                                     "os_distro":  "windows",
-                                                     "name":  "Windows Server 2022 Std.",
-                                                     "id":  "fallback-windows-id",
-                                                     "scp_os_version":  "2022 Std."
-                                                 }
-                                             ],
                                  "rocky":  [
                                                {
                                                    "status":  "active",
                                                    "os_distro":  "rocky",
-                                                   "name":  "Rocky Linux 9.4",
-                                                   "id":  "fallback-rocky-id",
+                                                   "name":  "Rocky 9.4",
+                                                   "id":  "253a91ea-1221-49d7-af53-a45c389e7e1a",
                                                    "scp_os_version":  "9.4"
+                                               },
+                                               {
+                                                   "status":  "active",
+                                                   "os_distro":  "rocky",
+                                                   "name":  "Rocky 8.10",
+                                                   "id":  "e0cf2914-2235-4df6-b675-89403ea9e67b",
+                                                   "scp_os_version":  "8.10"
                                                }
-                                           ]
+                                           ],
+                                 "windows":  [
+                                                 {
+                                                     "status":  "active",
+                                                     "os_distro":  "windows",
+                                                     "name":  "Windows_2022_Standard_ENG",
+                                                     "id":  "28d98f66-44ca-4858-904f-636d4f674a62",
+                                                     "scp_os_version":  "2022 Std."
+                                                 },
+                                                 {
+                                                     "status":  "active",
+                                                     "os_distro":  "windows",
+                                                     "name":  "Windows_2019_Standard_ENG",
+                                                     "id":  "c063cd65-3548-4eb9-bb84-6c076148f21c",
+                                                     "scp_os_version":  "2019 Std."
+                                                 }
+                                             ]
                              },
     "metadata":  {
                      "cache_ttl_hours":  24,
-                     "scpcli_available":  false,
-                     "fallback_mode":  true,
-                     "generated":  "2025-09-06T12:01:10Z"
+                     "scpcli_available":  true,
+                     "generated":  "2025-09-18T15:43:59Z"
                  }
 }

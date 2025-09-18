@@ -344,7 +344,7 @@ variable "rocky_image_id" {
 variable "postgresql_engine_id" {
   type        = string
   description = "[TERRAFORM_INFRA] PostgreSQL engine version ID"
-  default     = "postgresql-engine-not-found"
+  default     = "feebbfb2e7164b83a9855cacd0b64fde"
 }
 
 # Virtual Server 변수 정의
@@ -448,6 +448,8 @@ variable "db_subnet_cidr" {
   description = "DB subnet CIDR for template usage"
   default     = "10.1.3.0/24"
 }
+
+
 
 
 

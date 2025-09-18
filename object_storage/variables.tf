@@ -355,19 +355,19 @@ variable "dbaas_backup_period" {
 variable "windows_image_id" {
   type        = string
   description = "Windows Server image ID [TERRAFORM_INFRA]"
-  default     = "fallback-windows-id"
+  default     = "28d98f66-44ca-4858-904f-636d4f674a62"
 }
 
 variable "rocky_image_id" {
   type        = string
   description = "Rocky Linux image ID [TERRAFORM_INFRA]"
-  default     = "fallback-rocky-id"
+  default     = "253a91ea-1221-49d7-af53-a45c389e7e1a"
 }
 
 variable "postgresql_engine_id" {
   type        = string
   description = "PostgreSQL engine version ID [TERRAFORM_INFRA]"
-  default     = "8a463aa4b1dc4f279c3f53b94dc45e74"
+  default     = "feebbfb2e7164b83a9855cacd0b64fde"
 }
 
 variable "bastion_ip" {
@@ -636,6 +636,8 @@ variable "rocky_boot_volume_delete_on_termination" {
   description = "Delete Rocky boot volume on termination [TERRAFORM_INFRA]"
   default     = true
 }
+
+
 
 
 

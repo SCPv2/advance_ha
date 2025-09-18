@@ -1,4 +1,4 @@
-# Samsung Cloud Platform v2 - Variables Manager (PowerShell)
+﻿# Samsung Cloud Platform v2 - Variables Manager (PowerShell)
 # Converts variables.tf to variables.json and handles user input
 #
 # Usage:
