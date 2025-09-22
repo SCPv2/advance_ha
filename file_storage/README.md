@@ -6,17 +6,44 @@
 
 ### 필수 : '[고가용성 3계층 아키텍처 구성](../3_tier_architecture/README.md)'
 
+## 실습 환경 배포
+
+**&#128906; 사용자 환경 구성 (\advance_ha\file_storage\env_setup.ps1)**
+
+**&#128906; Terraform 자원 배포 템플릿 실행**
+
+```bash
+terraform init
+terraform validate
+terraform plan
+
+terraform apply --auto-approve
+```
+
+## DNS 설정
+
+- Private DNS 와 VPC1 연결 (콘솔)
+
+- Public Domain Name
+  - A 레코드, www , web Load Balancer Public IP, 300
+
+- Private Domain Name
+  - A 레코드, www , 10.1.1.100, 300
+  - A 레코드, app , 10.1.2.100, 300
+  - A 레코드, db , 10.1.3.100. 300
+  
 ## File Storage 생성
 
-- 볼륨명 : cefs
+- 볼륨명 : `cefs`
+
 - 디스크 유형 : HDD
 - 프로토콜 : NFS
 
 <생성 후>
 
-- Mount명 : (예시) 10.10.10.10:/fie_storage       # 마운트 사용을 위해 기록
+Mount명 : (예시) 10.10.10.10:/fie_storage # 마운트 사용을 위해 기록
 
-- 연결 자원 : webvm111r, webvm112r, appvm121r, appvm122r
+연결 자원 : webvm111r, webvm112r, appvm121r, appvm122r
 
 ## File Storage 연결
 
