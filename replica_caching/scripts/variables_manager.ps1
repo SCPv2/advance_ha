@@ -606,7 +606,7 @@ function New-VariablesJson {
             "_comment" = "Variables required by ceweb application for business logic and functionality"
             "_source" = "variables.tf CEWEB_REQUIRED category"
             "_database_connection" = [PSCustomObject]@{
-                "database_password" = "cedbadmin123"
+                "database_password" = "cedbadmin123!"
                 "db_ssl_enabled" = $false
                 "db_pool_min" = 20
                 "db_pool_max" = 100

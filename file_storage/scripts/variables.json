@@ -8,50 +8,73 @@
                                                     }
                                  },
     "ceweb_required_variables":  {
-                                     "web_lb_service_ip":  "10.1.1.100",
+                                     "rollback_enabled":  "true",
+                                     "nginx_port":  "80",
+                                     "file_storage_backup_enabled":  "true",
+                                     "_source":  "variables.tf CEWEB_REQUIRED category",
                                      "app_lb_service_ip":  "10.1.2.100",
-                                     "file_storage_mount_path":  "/mnt/shared",
+                                     "timezone":  "Asia/Seoul",
+                                     "database_port":  "2866",
+                                     "db_max_connections":  "100",
+                                     "database_user":  "cedbadmin",
+                                     "app_ip":  "10.1.2.121",
+                                     "web_lb_service_ip":  "10.1.1.100",
+                                     "app_server_port":  "3000",
+                                     "auto_deployment":  "true",
+                                     "database_name":  "cedb",
+                                     "git_repository":  "https://github.com/SCPv2/ceweb.git",
+                                     "admin_email":  "ars4mundus@gmail.com",
+                                     "db_type":  "postgresql",
+                                     "backup_retention_days":  "30",
+                                     "db_ip":  "10.1.3.131",
+                                     "git_branch":  "main",
+                                     "session_secret":  "your-secret-key-change-in-production",
+                                     "_comment":  "Variables required by ceweb application for business logic and functionality",
                                      "file_storage_capacity":  "100",
+                                     "database_password":  "cedbadmin123!",
+                                     "company_name":  "Creative Energy",
                                      "_database_connection":  {
                                                                   "db_ssl_enabled":  false,
-                                                                  "database_password":  null,
+                                                                  "database_password":  "cedbadmin123!",
                                                                   "db_pool_idle_timeout":  30000,
                                                                   "db_pool_min":  20,
                                                                   "db_pool_connection_timeout":  60000,
                                                                   "db_pool_max":  100
                                                               },
-                                     "_source":  "variables.tf CEWEB_REQUIRED category",
-                                     "file_storage_backup_enabled":  "true",
+                                     "node_env":  "production",
                                      "file_storage_protocol":  "NFS",
-                                     "_comment":  "Variables required by ceweb application for business logic and functionality"
+                                     "web_ip":  "10.1.1.111",
+                                     "database_host":  "10.1.3.131",
+                                     "ssl_enabled":  "false",
+                                     "file_storage_mount_path":  "/mnt/shared"
                                  },
     "image_engine_metadata":  {
                                   "cache_file":  "image_engine_id.json",
-                                  "scpcli_available":  false,
-                                  "last_updated":  "2025-09-06T12:01:10Z"
+                                  "scpcli_available":  true,
+                                  "last_updated":  "2025-09-22T16:02:20Z"
                               },
     "terraform_infra_variables":  {
                                       "_comment":  "Variables used by terraform for infrastructure deployment",
                                       "db_ip2":  "10.1.3.33",
-                                      "windows_image_id":  "fallback-windows-id",
-                                      "rocky_image_id":  "fallback-rocky-id",
+                                      "windows_image_id":  "28d98f66-44ca-4858-904f-636d4f674a62",
+                                      "rocky_image_id":  "253a91ea-1221-49d7-af53-a45c389e7e1a",
                                       "_source":  "variables.tf TERRAFORM_INFRA category and SCP CLI",
-                                      "postgresql_engine_id":  "8a463aa4b1dc4f279c3f53b94dc45e74"
+                                      "postgresql_engine_id":  "feebbfb2e7164b83a9855cacd0b64fde"
                                   },
     "config_metadata":  {
                             "template_source":  "variables.tf",
                             "version":  "4.1.0",
                             "description":  "Samsung Cloud Platform 3-Tier Architecture Master Configuration with DBaaS",
                             "image_engine_cache":  "image_engine_id.json",
-                            "created":  "2025-09-06 12:01:19",
+                            "created":  "2025-09-23 09:46:43",
                             "usage":  "This file contains all environment-specific settings for the application deployment",
                             "generator":  "variables_manager.ps1"
                         },
     "user_input_variables":  {
                                  "keypair_name":  "mykey",
-                                 "public_domain_name":  "yourdomain.com",
+                                 "public_domain_name":  "your_public_domain.name",
                                  "_source":  "variables.tf USER_INPUT category",
-                                 "private_domain_name":  "your_internal.local",
+                                 "private_domain_name":  "your_private_domain.name",
                                  "user_public_ip":  "your_public_ip/32",
                                  "_comment":  "Variables that users input interactively during deployment"
                              }

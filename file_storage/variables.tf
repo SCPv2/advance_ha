@@ -74,46 +74,241 @@ variable "file_storage_backup_enabled" {
 }
 
 ########################################################
-# VM Private IP 주소
+# CEWEB 애플리케이션 필수 변수 (CEWEB_REQUIRED_VARIABLES)
+# ceweb 애플리케이션과 Terraform에서 공통으로 사용하는 변수입니다.
 ########################################################
-variable "bastion_ip" {
+
+variable "app_server_port" {
+  type        = number
+  description = "[CEWEB_REQUIRED] Port number for application server"
+  default     = 3000
+}
+
+variable "database_port" {
+  type        = number
+  description = "[CEWEB_REQUIRED] Port number for database server"
+  default     = 2866
+}
+
+variable "database_name" {
   type        = string
-  description = "[TERRAFORM_INFRA] Private IP address of bastion VM"
-  default     = "10.1.1.110"                           
+  description = "[CEWEB_REQUIRED] Database name"
+  default     = "cedb"
+}
+
+variable "database_user" {
+  type        = string
+  description = "[CEWEB_REQUIRED] Database admin user"
+  default     = "cedbadmin"
+}
+
+variable "database_password" {
+  type        = string
+  description = "[CEWEB_REQUIRED] Database admin password"
+  default     = "cedbadmin123!"
+}
+
+variable "database_host" {
+  type        = string
+  description = "[CEWEB_REQUIRED] Database server hostname"
+  default     = "10.1.3.131"  # File storage uses VM-based DB
+}
+
+variable "nginx_port" {
+  type        = number
+  description = "[CEWEB_REQUIRED] Nginx web server port"
+  default     = 80
+}
+
+variable "ssl_enabled" {
+  type        = bool
+  description = "[CEWEB_REQUIRED] Enable SSL for web server"
+  default     = false
+}
+
+variable "git_repository" {
+  type        = string
+  description = "[CEWEB_REQUIRED] Git repository URL"
+  default     = "https://github.com/SCPv2/ceweb.git"
+}
+
+variable "git_branch" {
+  type        = string
+  description = "[CEWEB_REQUIRED] Git branch name"
+  default     = "main"
+}
+
+variable "timezone" {
+  type        = string
+  description = "[CEWEB_REQUIRED] System timezone"
+  default     = "Asia/Seoul"
+}
+
+variable "node_env" {
+  type        = string
+  description = "[CEWEB_REQUIRED] Node.js environment"
+  default     = "production"
+}
+
+variable "session_secret" {
+  type        = string
+  description = "[CEWEB_REQUIRED] Application session secret"
+  default     = "your-secret-key-change-in-production"
+}
+
+variable "db_type" {
+  type        = string
+  description = "[CEWEB_REQUIRED] Database type"
+  default     = "postgresql"
+}
+
+variable "db_max_connections" {
+  type        = number
+  description = "[CEWEB_REQUIRED] Database max connections"
+  default     = 100
+}
+
+variable "auto_deployment" {
+  type        = bool
+  description = "[CEWEB_REQUIRED] Enable auto deployment"
+  default     = true
+}
+
+variable "rollback_enabled" {
+  type        = bool
+  description = "[CEWEB_REQUIRED] Enable rollback"
+  default     = true
+}
+
+variable "backup_retention_days" {
+  type        = number
+  description = "[CEWEB_REQUIRED] Backup retention days"
+  default     = 30
+}
+
+variable "company_name" {
+  type        = string
+  description = "[CEWEB_REQUIRED] Company name"
+  default     = "Creative Energy"
+}
+
+variable "admin_email" {
+  type        = string
+  description = "[CEWEB_REQUIRED] Administrator email"
+  default     = "ars4mundus@gmail.com"
 }
 
 variable "web_ip" {
   type        = string
-  description = "[TERRAFORM_INFRA] Private IP address of web VM"
-  default     = "10.1.1.111"                           
+  description = "[CEWEB_REQUIRED] Private IP address of web VM"
+  default     = "10.1.1.111"
 }
 
 variable "app_ip" {
   type        = string
-  description = "[TERRAFORM_INFRA] Private IP address of app VM"
-  default     = "10.1.2.121"                           
+  description = "[CEWEB_REQUIRED] Private IP address of app VM"
+  default     = "10.1.2.121"
+}
+
+variable "db_ip" {
+  type        = string
+  description = "[CEWEB_REQUIRED] Private IP address of database VM"
+  default     = "10.1.3.131"
+}
+
+########################################################
+# Terraform 인프라 변수 (TERRAFORM_INFRASTRUCTURE_VARIABLES)
+# Terraform 리소스 생성에만 필요한 변수들
+########################################################
+
+variable "bastion_ip" {
+  type        = string
+  description = "[TERRAFORM_INFRA] Private IP address of bastion VM"
+  default     = "10.1.1.110"
 }
 
 variable "web_ip2" {
   type        = string
   description = "[TERRAFORM_INFRA] Private IP address of web VM2"
-  default     = "10.1.1.112"                           
+  default     = "10.1.1.112"
 }
 
 variable "app_ip2" {
   type        = string
   description = "[TERRAFORM_INFRA] Private IP address of app VM2"
-  default     = "10.1.2.122"                           
+  default     = "10.1.2.122"
 }
 
-variable "db_ip" {
+variable "db_ip2" {
   type        = string
-  description = "[TERRAFORM_INFRA] Private IP address of db VM"
-  default     = "10.1.3.131"                           
+  description = "[TERRAFORM_INFRA] Private IP address of db VM2 (standby)"
+  default     = "10.1.3.33"
+}
+
+# VPC Configuration Variables
+variable "vpc_name" {
+  type        = string
+  description = "VPC name [TERRAFORM_INFRA]"
+  default     = "VPC1"
+}
+
+variable "vpc_cidr" {
+  type        = string
+  description = "VPC CIDR block [TERRAFORM_INFRA]"
+  default     = "10.1.0.0/16"
+}
+
+variable "vpc_description" {
+  type        = string
+  description = "VPC description [TERRAFORM_INFRA]"
+  default     = "ceweb VPC"
+}
+
+# Subnet Configuration Variables
+variable "web_subnet_name" {
+  type        = string
+  description = "Web subnet name [TERRAFORM_INFRA]"
+  default     = "Subnet11"
+}
+
+variable "web_subnet_cidr" {
+  type        = string
+  description = "Web subnet CIDR block [TERRAFORM_INFRA]"
+  default     = "10.1.1.0/24"
+}
+
+variable "app_subnet_name" {
+  type        = string
+  description = "App subnet name [TERRAFORM_INFRA]"
+  default     = "Subnet12"
+}
+
+variable "app_subnet_cidr" {
+  type        = string
+  description = "App subnet CIDR block [TERRAFORM_INFRA]"
+  default     = "10.1.2.0/24"
+}
+
+variable "db_subnet_name" {
+  type        = string
+  description = "DB subnet name [TERRAFORM_INFRA]"
+  default     = "Subnet13"
+}
+
+variable "db_subnet_cidr" {
+  type        = string
+  description = "DB subnet CIDR block [TERRAFORM_INFRA]"
+  default     = "10.1.3.0/24"
+}
+
+variable "subnet_type" {
+  type        = string
+  description = "Subnet type [TERRAFORM_INFRA]"
+  default     = "GENERAL"
 }
 
 ########################################################
-# VPC 변수 정의
+# VPC 변수 정의 (기존 list 형태 유지)
 ########################################################
 variable "vpcs" {
   description = "[TERRAFORM_INFRA] VPC for Creative Energy"
@@ -149,27 +344,52 @@ variable "subnets" {
       cidr        = "10.1.1.0/24"
       type        = "GENERAL"
       vpc_name    = "VPC1"
-      description = "ceweb Subnet"
+      description = "Web Subnet"
     },
     {
       name        = "Subnet12"
       cidr        = "10.1.2.0/24"
       type        = "GENERAL"
       vpc_name    = "VPC1"
-      description = "bbweb Subnet"
+      description = "App Subnet"
     },
     {
       name        = "Subnet13"
       cidr        = "10.1.3.0/24"
       type        = "GENERAL"
       vpc_name    = "VPC1"
-      description = "bbweb Subnet"
+      description = "DB Subnet"
     }
   ]
 }
 
+# Public IP Configuration Variables
+variable "pip1_name" {
+  type        = string
+  description = "Public IP 1 name [TERRAFORM_INFRA]"
+  default     = "PIP1"
+}
+
+variable "pip2_name" {
+  type        = string
+  description = "Public IP 2 name [TERRAFORM_INFRA]"
+  default     = "PIP2"
+}
+
+variable "pip3_name" {
+  type        = string
+  description = "Public IP 3 name [TERRAFORM_INFRA]"
+  default     = "PIP3"
+}
+
+variable "public_ip_description" {
+  type        = string
+  description = "Public IP description [TERRAFORM_INFRA]"
+  default     = "Public IP for VM"
+}
+
 ########################################################
-# Public IP 변수 정의
+# Public IP 변수 정의 (기존 list 형태 유지)
 ########################################################
 
 variable "public_ips" {
@@ -182,7 +402,8 @@ variable "public_ips" {
     { name = "PIP1", description = "Public IP for VM" },
     { name = "PIP2", description = "Public IP for VM" },
     { name = "PIP3", description = "Public IP for VM" },
-    { name = "PIP4", description = "Public IP for VM" }
+    { name = "PIP4", description = "Public IP for VM" },
+    { name = "PIP5", description = "Public IP for VM" }
   ]
 }
 
@@ -239,17 +460,23 @@ variable "image_rocky_scp_os_version" {
   description = "[TERRAFORM_INFRA] Rocky Linux SCP OS version"
   default     = "9.4"
 }
-# Image IDs (Auto-generated from SCP CLI)
+# Image and Engine IDs (Auto-generated from SCP CLI)
 variable "windows_image_id" {
   type        = string
   description = "Windows Server image ID [TERRAFORM_INFRA]"
-  default     = "image-not-found"
+  default     = "2c5e1aae-2b33-425a-a6fd-b3056c4e6e1d"
 }
 
 variable "rocky_image_id" {
   type        = string
   description = "Rocky Linux image ID [TERRAFORM_INFRA]"
-  default     = "image-not-found"
+  default     = "99b329ad-14e1-4741-b3ef-2a330ef81074"
+}
+
+variable "postgresql_engine_id" {
+  type        = string
+  description = "PostgreSQL engine version ID [TERRAFORM_INFRA]"
+  default     = "feebbfb2e7164b83a9855cacd0b64fde"
 }
 
 ########################################################
@@ -376,6 +603,24 @@ variable "app_lb_service_ip" {
   description = "[CEWEB_REQUIRED] Service IP for App Load Balancer"
   default     = "10.1.2.100"
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

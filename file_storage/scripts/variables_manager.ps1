@@ -605,8 +605,13 @@ function New-VariablesJson {
         "ceweb_required_variables" = [PSCustomObject]@{
             "_comment" = "Variables required by ceweb application for business logic and functionality"
             "_source" = "variables.tf CEWEB_REQUIRED category"
+            "database_host" = "10.1.3.131"
+            "database_port" = "2866"
+            "database_name" = "cedb"
+            "database_user" = "cedbadmin"
+            "database_password" = "cedbadmin123!"
             "_database_connection" = [PSCustomObject]@{
-                "database_password" = "cedbadmin123"
+                "database_password" = "cedbadmin123!"
                 "db_ssl_enabled" = $false
                 "db_pool_min" = 20
                 "db_pool_max" = 100
@@ -830,7 +835,7 @@ function New-VariablesJson {
             _comment = "Variables required by ceweb application for business logic and functionality"
             _source = "variables.tf CEWEB_REQUIRED category"
             "_database_connection" = @{
-                database_password = $CewebRequiredVars["database_password"]
+                database_password = "cedbadmin123!"
                 db_ssl_enabled = $false
                 db_pool_min = 20
                 db_pool_max = 100
@@ -862,25 +867,23 @@ function New-VariablesJson {
         $variablesData.user_input_variables[$key] = $UserInputVars[$key]
     }
     
-    # Add ceweb required variables with dynamic database_host
+    # Add ceweb required variables with database configuration
     foreach ($key in $CewebRequiredVars.Keys) {
-        if ($key -ne "database_password") {  # Already added to _database_connection
-            if ($key -eq "database_host") {
-                # Dynamically generate database_host from private_domain_name
-                $privateDomain = $UserInputVars["private_domain_name"]
-                if ($privateDomain) {
-                    $variablesData.ceweb_required_variables[$key] = "db.$privateDomain"
-                    Write-Info "Generated dynamic database_host: db.$privateDomain"
-                } else {
-                    # Fallback to default if private_domain_name not found
-                    $variablesData.ceweb_required_variables[$key] = "db.internal.local"
-                    Write-Warning "private_domain_name not found, using default: db.internal.local"
-                }
-            } else {
-                $variablesData.ceweb_required_variables[$key] = $CewebRequiredVars[$key]
-            }
+        if ($key -eq "database_host") {
+            # Use static database host IP
+            $variablesData.ceweb_required_variables[$key] = "10.1.3.131"
+            Write-Info "Set database_host: 10.1.3.131"
+        } else {
+            $variablesData.ceweb_required_variables[$key] = $CewebRequiredVars[$key]
         }
     }
+
+    # Add additional database configuration fields
+    $variablesData.ceweb_required_variables["database_host"] = "10.1.3.131"
+    $variablesData.ceweb_required_variables["database_port"] = "2866"
+    $variablesData.ceweb_required_variables["database_name"] = "cedb"
+    $variablesData.ceweb_required_variables["database_user"] = "cedbadmin"
+    $variablesData.ceweb_required_variables["database_password"] = "cedbadmin123!"
     
     # Save to file
     $variablesData | ConvertTo-Json -Depth 10 | Set-Content $VariablesJson -Encoding UTF8

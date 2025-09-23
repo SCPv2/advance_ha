@@ -7,10 +7,7 @@
 # - object_storage: Uses PostgreSQL DBaaS (skips DB server installation)
 #
 # Template Variables (replaced by userdata_manager.ps1):
-# - ${SERVER_TYPE}: "web", "app", or "db"
-# - ${private_domain_name}, ${web_ip}, ${app_ip}, ${db_ip}: Network configuration
-# - ${APPLICATION_INSTALL_MODULE}: Server-specific installation module content
-# - ${MASTER_CONFIG_JSON_CONTENT}: Environment-specific configuration JSON
+# - SERVER_TYPE, network IPs, application modules, and configuration JSON
 
 set -euo pipefail
 SERVER_TYPE="${SERVER_TYPE}"

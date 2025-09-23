@@ -14,8 +14,8 @@ Set-StrictMode -Version Latest
 # Configuration
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $ProjectDir = Split-Path -Parent $ScriptDir
-$UserdataTemplate = Resolve-Path (Join-Path $ProjectDir "..\common-script\userdata_template_base.sh")
-$ModulesDir = Resolve-Path (Join-Path $ProjectDir "..\common-script\modules")
+$UserdataTemplate = Resolve-Path (Join-Path (Split-Path -Parent $ProjectDir) "common-script\userdata_template_base.sh")
+$ModulesDir = Resolve-Path (Join-Path (Split-Path -Parent $ProjectDir) "common-script\modules")
 $VariablesJson = Join-Path $ScriptDir "variables.json"
 $GeneratedUserdataDir = Join-Path $ScriptDir "generated_userdata"
 $EmergencyScriptsDir = Join-Path $ScriptDir "emergency_scripts"
@@ -91,7 +91,19 @@ function Generate-UserData {
     # Replace template variables
     $userdata = $template -replace '\$\{VARIABLES_JSON\}', $variablesContent
     $userdata = $userdata -replace '\$\{SERVER_TYPE\}', $ServerType.ToUpper()
+
+    # Replace network variables from variables.json or defaults
+    $variables = $Variables | ConvertTo-Json | ConvertFrom-Json
+    $privateD = if ($variables.user_input_variables.private_domain_name) { $variables.user_input_variables.private_domain_name } else { "cesvc.net" }
+    $userdata = $userdata -replace '\$\{private_domain_name\}', $privateD
+    $userdata = $userdata -replace '\$\{web_ip\}', '10.1.1.111'
+    $userdata = $userdata -replace '\$\{app_ip\}', '10.1.2.121'
+    $userdata = $userdata -replace '\$\{db_ip\}', '10.1.3.131'
+
+    # Replace module and JSON content last to avoid conflicts
+    $userdata = $userdata -replace '\$\{APPLICATION_INSTALL_MODULE\}', $moduleContent
     $userdata = $userdata -replace '\$\{SERVER_MODULE_CONTENT\}', $moduleContent
+    $userdata = $userdata -replace '\$\{MASTER_CONFIG_JSON_CONTENT\}', $variablesContent
     
     # Validate UserData size (45KB OpenStack limit)
     $userdataBytes = [System.Text.Encoding]::UTF8.GetByteCount($userdata)
@@ -106,9 +118,9 @@ function Generate-UserData {
         Write-Success "UserData size validation passed: $userdataBytes bytes"
     }
     
-    # Save UserData
+    # Save UserData without BOM
     $outputFile = Join-Path $GeneratedUserdataDir "userdata_$ServerType.sh"
-    $userdata | Out-File -FilePath $outputFile -Encoding UTF8
+    [System.IO.File]::WriteAllText($outputFile, $userdata, [System.Text.UTF8Encoding]::new($false))
     
     Write-Success "🎉 UserData generated successfully!"
     Write-Info ""
@@ -150,7 +162,7 @@ echo "✅ Emergency recovery completed: `$(date)"
 "@
 
     $emergencyFile = Join-Path $EmergencyScriptsDir "emergency_$ServerType.sh"
-    $emergencyScript | Out-File -FilePath $emergencyFile -Encoding UTF8
+    [System.IO.File]::WriteAllText($emergencyFile, $emergencyScript, [System.Text.UTF8Encoding]::new($false))
     
     Write-Success "Emergency recovery script generated: $emergencyFile"
     Write-Info ""
@@ -163,7 +175,7 @@ function New-ObjectStorageConfigScript {
     
     Write-Info "🔧 Generating Object Storage configuration script for manual deployment..."
     
-    $configScript = Join-Path $ScriptsDir "configure_web_server_for_object_storage.sh"
+    $configScript = Join-Path $ScriptDir "configure_web_server_for_object_storage.sh"
     
     $currentDate = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
     
@@ -395,7 +407,7 @@ function Main {
         $variablesContent = Get-Content $VariablesJson -Raw | ConvertFrom-Json | ConvertTo-Json -Compress
         if (New-ObjectStorageConfigScript $variablesContent) {
             Write-Success "✅ Object Storage configuration script generated!"
-            Write-Info "📁 Script location: $ScriptsDir\configure_web_server_for_object_storage.sh"
+            Write-Info "📁 Script location: $ScriptDir\configure_web_server_for_object_storage.sh"
             Write-Info "📋 Usage: Copy to web server and run from /home/rocky directory"
         }
     }

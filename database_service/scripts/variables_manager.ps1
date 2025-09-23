@@ -717,7 +717,7 @@ function Show-FinalConfirmation {
 function Reset-UserInputVariables {
     Write-Info "🔄 Resetting user input variables to default values..."
     
-    $defaultValuesFile = Resolve-Path (Join-Path $ProjectDir "..\..\common-script\default_user_input_values.json")
+    $defaultValuesFile = Resolve-Path (Join-Path $ProjectDir "..\..\advance_ha\common-script\default_user_input_values.json")
     
     # Check if default values file exists
     if (!(Test-Path $defaultValuesFile)) {
