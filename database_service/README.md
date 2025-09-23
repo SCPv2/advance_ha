@@ -16,28 +16,17 @@
 
 ## 실습 환경 배포
 
-**&#128906; Terraform 배포 스크립트 실행**
+**&#128906; 사용자 환경 구성 (\advance_ha\database_service\env_setup.ps1)**
 
-```powershell
+**&#128906; Terraform 자원 배포 템플릿 실행**
 
-cd C:\scpv2advance\advance_ha\database_service\
+```bash
+terraform init
+terraform validate
+terraform plan
 
-Set_ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
-
-.\deploy_scp_lab_environment.ps1
-
+terraform apply --auto-approve
 ```
-
-- keypair_name: mykey ........................................# 기본 키페어 값, 다른 키페어 사용시 입력
-
-- object_storage_access_key_id: .......................# 입력 없이 엔터(이번 차시 사용 안함)
-
-- object_storage_bucket_string: ........................# 입력 없이 엔터(이번 차시 사용 안함)
-- object_storage_secret_access_key: ................# 입력 없이 엔터(이번 차시 사용 안함)
-- private_domain_name: ......................................# 과정 소개에서 만든 프라이빗 도메인 이름
-- private_hosted_zone_id: ....................................# 과정 소개에서 만든 프라이빗 도메인의 Hosted Zone ID
-- public_domain_name: .........................................# 과정 소개에서 만든 퍼블릭 도메인 이름
-- user_public_ip: ........................................................# 현재 실습을 수행하고 있는 PC의 퍼블릭 IP 주소
 
 ## 환경 검토
 
