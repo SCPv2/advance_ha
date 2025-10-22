@@ -1,9 +1,3 @@
-########################################################
-# DEPRECATION NOTICE: Image ID lookups are now handled
-# by Terraform data sources. The scpcli image lookup
-# functionality in this script has been deprecated.
-# See main.tf for the new data source implementation.
-########################################################
 # Samsung Cloud Platform v2 - SCP CLI Helper Functions
 # Handles SCP CLI integration and caching for image/engine IDs
 #
@@ -67,12 +61,11 @@ function Update-ImageEngineCache {
             
             # Get Virtual Server Images
             Write-Info "Fetching virtual server images..."
-            # DEPRECATED: $imagesOutput = & "D:\scpv2cli\scpcli" virtualserver image list --output json 2>$null
+            $imagesOutput = & "D:\scpv2cli\scpcli" virtualserver image list --output json 2>$null
             if ($LASTEXITCODE -eq 0 -and $imagesOutput) {
                 $images = $imagesOutput | ConvertFrom-Json
                 
-                # DEPRECATED: Image lookup now handled by Terraform data sources
-# foreach ($image in $images) {
+                foreach ($image in $images) {
                     $imageInfo = @{
                         status = $image.status
                         os_distro = $image.os_distro

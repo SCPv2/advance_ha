@@ -2,7 +2,7 @@
 
 ## 선행 실습
 
-### 필수 '[과정 소개](https://github.com/SCPv2/ce_advance_introduction/blob/main/README.md)'
+### 필수 '[과정 소개](https://github.com/SCPv2/advance_introduction/blob/main/README.md)'
 
 - Key Pair, 인증키, DNS 등 사전 준비
 

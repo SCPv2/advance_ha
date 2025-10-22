@@ -1,4 +1,4 @@
-﻿########################################################
+########################################################
 # 공통 태그 설정
 ########################################################
 variable "common_tags" {
@@ -101,7 +101,7 @@ variable "database_password" {
 variable "database_host" {
   type        = string
   description = "[CEWEB_REQUIRED] Database server hostname (auto-generated from private_domain_name)"
-  default     = ""  # Will be dynamically set in variables_manager.ps1
+  default     = "" # Will be dynamically set in variables_manager.ps1
 }
 
 variable "nginx_port" {
@@ -352,22 +352,10 @@ variable "dbaas_backup_period" {
 ########################################################
 
 # Image and Engine IDs (Auto-generated from SCP CLI)
-variable "windows_image_id" {
-  type        = string
-  description = "Windows Server image ID [TERRAFORM_INFRA]"
-  default     = "fallback-windows-id"
-}
-
-variable "rocky_image_id" {
-  type        = string
-  description = "Rocky Linux image ID [TERRAFORM_INFRA]"
-  default     = "fallback-rocky-id"
-}
-
 variable "postgresql_engine_id" {
   type        = string
   description = "PostgreSQL engine version ID [TERRAFORM_INFRA]"
-  default     = "8a463aa4b1dc4f279c3f53b94dc45e74"
+  default     = "9fa40db8fadc47599ee6d539fa72a597"  # PostgreSQL Community 16.8
 }
 
 variable "bastion_ip" {
@@ -536,7 +524,7 @@ variable "image_rocky_scp_os_version" {
 variable "server_type_id" {
   type        = string
   description = "Server type ID [TERRAFORM_INFRA]"
-  default     = "s1v1m2"
+  default     = "s2v1m2"
 }
 
 # VM Configuration Variables
@@ -636,6 +624,7 @@ variable "rocky_boot_volume_delete_on_termination" {
   description = "Delete Rocky boot volume on termination [TERRAFORM_INFRA]"
   default     = true
 }
+
 
 
 

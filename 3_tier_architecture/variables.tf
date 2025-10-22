@@ -1,4 +1,4 @@
-﻿########################################################
+########################################################
 # 공통 태그 설정
 ########################################################
 variable "common_tags" {
@@ -142,7 +142,7 @@ variable "database_password" {
 variable "database_host" {
   type        = string
   description = "[CEWEB_REQUIRED] Database server hostname (auto-generated from private_domain_name)"
-  default     = ""  # Will be dynamically set in variables_manager.ps1
+  default     = "" # Will be dynamically set in variables_manager.ps1
 }
 
 variable "nginx_port" {
@@ -259,8 +259,8 @@ variable "subnets" {
   type = list(object({
     name        = string
     cidr        = string
-    type        = string                                  # GENERAL | LOCAL | VPC_ENDPOINT
-    vpc_name    = string   
+    type        = string # GENERAL | LOCAL | VPC_ENDPOINT
+    vpc_name    = string
     description = string
   }))
   default = [
@@ -329,18 +329,6 @@ variable "security_group_db" {
 }
 
 # Virtual Server Standard Image 변수 정의
-variable "windows_image_id" {
-  type        = string
-  description = "[TERRAFORM_INFRA] Windows Server image ID"
-  default     = "28d98f66-44ca-4858-904f-636d4f674a62"
-}
-
-variable "rocky_image_id" {
-  type        = string
-  description = "[TERRAFORM_INFRA] Rocky Linux image ID"
-  default     = "253a91ea-1221-49d7-af53-a45c389e7e1a"
-}
-
 variable "postgresql_engine_id" {
   type        = string
   description = "[TERRAFORM_INFRA] PostgreSQL engine version ID"
@@ -351,49 +339,49 @@ variable "postgresql_engine_id" {
 variable "server_type_id" {
   type        = string
   description = "[TERRAFORM_INFRA] Server type ID (instance type)"
-  default     = "s1v1m2"
+  default     = "s2v1m2"
 }
 
 variable "vm_bastion" {
   type = object({
-    name = string
+    name        = string
     description = string
   })
   default = {
-    name = "bastionvm110w"
+    name        = "bastionvm110w"
     description = "bastion VM"
   }
 }
 
 variable "vm_web" {
   type = object({
-    name = string
+    name        = string
     description = string
   })
   default = {
-    name = "webvm111r"
+    name        = "webvm111r"
     description = "web VM1"
   }
 }
 
 variable "vm_app" {
   type = object({
-    name = string
+    name        = string
     description = string
   })
   default = {
-    name = "appvm121r"
+    name        = "appvm121r"
     description = "app VM1"
   }
 }
 
 variable "vm_db" {
   type = object({
-    name = string
+    name        = string
     description = string
   })
   default = {
-    name = "dbvm131r"
+    name        = "dbvm131r"
     description = "db VM"
   }
 }
@@ -470,3 +458,30 @@ variable "db_subnet_cidr" {
 
 
 
+
+########################################################
+# Virtual Server Standard Image 변수 정의
+########################################################
+variable "image_windows_os_distro" {
+  type        = string
+  description = "[TERRAFORM_INFRA] Windows OS distribution for image lookup"
+  default     = "windows"
+}
+
+variable "image_windows_scp_os_version" {
+  type        = string
+  description = "[TERRAFORM_INFRA] Windows SCP OS version for image lookup"
+  default     = "2022 Std."
+}
+
+variable "image_rocky_os_distro" {
+  type        = string
+  description = "[TERRAFORM_INFRA] Rocky Linux OS distribution for image lookup"
+  default     = "rocky"
+}
+
+variable "image_rocky_scp_os_version" {
+  type        = string
+  description = "[TERRAFORM_INFRA] Rocky Linux SCP OS version for image lookup"
+  default     = "9.4"
+}

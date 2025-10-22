@@ -89,7 +89,7 @@ sudo bash 03_test_replica.sh
 
 - 서버명 Prefix : `cedbcache`
 - 클러스터명 : `cedbcachecluster`
-- 서비스 유형 > 서버 타입 : Standard(redis1) / redis1v1m2
+- 서비스 유형 > 서버 타입 : Standard(redis1) / redis2v1m2
 - Block Storage > 기본 OS: SSD, DATA: SSD, `56`GB
 - 고가용성 : 사용하지 않음
 - 네트워크 : 서버별 설정

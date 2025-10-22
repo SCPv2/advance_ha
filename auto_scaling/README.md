@@ -13,7 +13,7 @@
 - Custom : `web_image`
 
 - Launch Configuration명 : `weblc`
-- 서버 타입 : Standard-1 / s1v1m2
+- 서버 타입 : Standard-1 / s2v1m2
 - Block Storage / 기본 OS :  SSD / 2 Units / 16GB
 - Keypair : `mykey`
 
@@ -22,7 +22,7 @@
 - Custom : `app_image`
 
 - Launch Configuration명 : `applc`
-- 서버 타입 : Standard-1 / s1v1m2
+- 서버 타입 : Standard-1 / s2v1m2
 - Block Storage / 기본 OS :  SSD / 2 Units / 16GB
 - Keypair : `mykey`
 - Init script

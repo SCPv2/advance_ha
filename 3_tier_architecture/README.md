@@ -2,7 +2,7 @@
 
 ## 선행 실습
 
-### 선택 '[과정 소개](https://github.com/SCPv2/ce_advance_introduction/blob/main/README.md)'
+### 선택 '[과정 소개](https://github.com/SCPv2/advance_introduction/blob/main/README.md)'
 
 - Key Pair, 인증키, DNS 등 사전 준비
 
@@ -264,6 +264,7 @@ sudo bash install_web_server.sh
 - app : 10.1.2.100 (appLB Service IP)
 
 # appvm212r vm 애플리케이션 재기동 명령
+
 ```
 cd /home/rocky/ceweb/app-server
 pm2 start ecosystem.config.js

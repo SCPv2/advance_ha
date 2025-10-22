@@ -1,4 +1,4 @@
-﻿########################################################
+########################################################
 # 공통 태그 설정
 ########################################################
 variable "common_tags" {
@@ -17,14 +17,14 @@ variable "common_tags" {
 variable "private_domain_name" {
   type        = string
   description = "[USER_INPUT] Private domain name (e.g., internal.local)"
-  default     = "your_private_domain.name"                                     # 사용자 Private 도메인으로 변경
+  default     = "your_private_domain.name" # 사용자 Private 도메인으로 변경
 }
 
 
 variable "public_domain_name" {
   type        = string
   description = "[USER_INPUT] Public domain name (e.g., example.com)"
-  default     = "your_public_domain.name"                                     # 사용자 Public 도메인으로 변경
+  default     = "your_public_domain.name" # 사용자 Public 도메인으로 변경
 }
 
 
@@ -36,13 +36,13 @@ variable "public_domain_name" {
 variable "keypair_name" {
   type        = string
   description = "[USER_INPUT] Key Pair to access VM"
-  default     = "mykey"                                 # 기존 Key Pair 이름으로 변경
+  default     = "mykey" # 기존 Key Pair 이름으로 변경
 }
 
 variable "user_public_ip" {
   type        = string
   description = "[USER_INPUT] Public IP address of user PC"
-  default     = "your_public_ip/32"                                # 수강자 PC의 Public IP 주소 입력
+  default     = "your_public_ip/32" # 수강자 PC의 Public IP 주소 입력
 }
 
 ########################################################
@@ -111,7 +111,7 @@ variable "database_password" {
 variable "database_host" {
   type        = string
   description = "[CEWEB_REQUIRED] Database server hostname"
-  default     = "10.1.3.131"  # File storage uses VM-based DB
+  default     = "10.1.3.131" # File storage uses VM-based DB
 }
 
 variable "nginx_port" {
@@ -334,8 +334,8 @@ variable "subnets" {
   type = list(object({
     name        = string
     cidr        = string
-    type        = string                                  # GENERAL | LOCAL | VPC_ENDPOINT
-    vpc_name    = string   
+    type        = string # GENERAL | LOCAL | VPC_ENDPOINT
+    vpc_name    = string
     description = string
   }))
   default = [
@@ -411,28 +411,28 @@ variable "public_ips" {
 # Security Group 변수 정의
 ########################################################
 variable "security_group_bastion" {
-    type        = string
-    description = "[TERRAFORM_INFRA] Security group name for bastion host"
-    default     = "bastionSG"
-  }
+  type        = string
+  description = "[TERRAFORM_INFRA] Security group name for bastion host"
+  default     = "bastionSG"
+}
 
 variable "security_group_web" {
-    type        = string
-    description = "[TERRAFORM_INFRA] Security group name for web servers"
-    default     = "webSG"
-  }
+  type        = string
+  description = "[TERRAFORM_INFRA] Security group name for web servers"
+  default     = "webSG"
+}
 
 variable "security_group_app" {
-    type        = string
-    description = "[TERRAFORM_INFRA] Security group name for app servers"
-    default     = "appSG"
-  }
+  type        = string
+  description = "[TERRAFORM_INFRA] Security group name for app servers"
+  default     = "appSG"
+}
 
 variable "security_group_db" {
-    type        = string
-    description = "[TERRAFORM_INFRA] Security group name for database servers"
-    default     = "dbSG"
-  }
+  type        = string
+  description = "[TERRAFORM_INFRA] Security group name for database servers"
+  default     = "dbSG"
+}
 
 ########################################################
 # Virtual Server Standard Image 변수 정의
@@ -461,18 +461,6 @@ variable "image_rocky_scp_os_version" {
   default     = "9.4"
 }
 # Image and Engine IDs (Auto-generated from SCP CLI)
-variable "windows_image_id" {
-  type        = string
-  description = "Windows Server image ID [TERRAFORM_INFRA]"
-  default     = "2c5e1aae-2b33-425a-a6fd-b3056c4e6e1d"
-}
-
-variable "rocky_image_id" {
-  type        = string
-  description = "Rocky Linux image ID [TERRAFORM_INFRA]"
-  default     = "99b329ad-14e1-4741-b3ef-2a330ef81074"
-}
-
 variable "postgresql_engine_id" {
   type        = string
   description = "PostgreSQL engine version ID [TERRAFORM_INFRA]"
@@ -486,77 +474,77 @@ variable "postgresql_engine_id" {
 variable "server_type_id" {
   type        = string
   description = "[TERRAFORM_INFRA] Server type ID for virtual machines"
-  default     = "s1v1m2"
+  default     = "s2v1m2"
 }
 
 variable "vm_bastion" {
   type = object({
-    name = string
+    name        = string
     description = string
   })
   description = "[TERRAFORM_INFRA] Bastion VM configuration"
   default = {
-    name = "bastionvm110w"
+    name        = "bastionvm110w"
     description = "bastion VM"
   }
 }
 
 variable "vm_web" {
   type = object({
-    name = string
+    name        = string
     description = string
   })
   description = "[TERRAFORM_INFRA] Web VM1 configuration"
   default = {
-    name = "webvm111r"
+    name        = "webvm111r"
     description = "web VM1"
   }
 }
 
 variable "vm_web2" {
   type = object({
-    name = string
+    name        = string
     description = string
   })
   description = "[TERRAFORM_INFRA] Web VM2 configuration"
   default = {
-    name = "webvm112r"
+    name        = "webvm112r"
     description = "web VM2"
   }
 }
 
 variable "vm_app" {
   type = object({
-    name = string
+    name        = string
     description = string
   })
   description = "[TERRAFORM_INFRA] App VM1 configuration"
   default = {
-    name = "appvm121r"
+    name        = "appvm121r"
     description = "app VM1"
   }
 }
 
 variable "vm_app2" {
   type = object({
-    name = string
+    name        = string
     description = string
   })
   description = "[TERRAFORM_INFRA] App VM2 configuration"
   default = {
-    name = "appvm122r"
+    name        = "appvm122r"
     description = "app VM2"
   }
 }
 
 variable "vm_db" {
   type = object({
-    name = string
+    name        = string
     description = string
   })
   description = "[TERRAFORM_INFRA] Database VM configuration"
   default = {
-    name = "dbvm131r"
+    name        = "dbvm131r"
     description = "db VM"
   }
 }
@@ -603,6 +591,7 @@ variable "app_lb_service_ip" {
   description = "[CEWEB_REQUIRED] Service IP for App Load Balancer"
   default     = "10.1.2.100"
 }
+
 
 
 

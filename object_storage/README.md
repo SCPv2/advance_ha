@@ -6,6 +6,7 @@
 
 - **운영체제**: Windows 10/11 또는 Windows Server 2019/2022
 - **PowerShell 버전**: 5.1 이상 (권장: 7.x)
+
   ```powershell
   # PowerShell 버전 확인
   $PSVersionTable.PSVersion
@@ -14,6 +15,7 @@
 ### 필수 도구 설치
 
 1. **Samsung Cloud Platform v2 CLI**
+
    ```powershell
    # SCP CLI 버전 확인 및 설치 상태 점검
    scpcli --version
@@ -23,6 +25,7 @@
    ```
 
 2. **Terraform** (선택사항 - IaC 배포 시)
+
    ```powershell
    # Terraform 설치 확인
    terraform --version
@@ -70,7 +73,7 @@ try {
 
 ## 선행 실습
 
-### 필수 '[과정 소개](https://github.com/SCPv2/ce_advance_introduction/blob/main/README.md)'
+### 필수 '[과정 소개](https://github.com/SCPv2/advance_introduction/blob/main/README.md)'
 
 - Key Pair, 인증키, DNS 등 사전 준비
 
@@ -196,7 +199,7 @@ Set_ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
 
 ## Security Group 규칙 구성
 
-* 기존에 443 Outbound to Internet(0.0.0.0/0) 규칙이 있을 경우 생략
+- 기존에 443 Outbound to Internet(0.0.0.0/0) 규칙이 있을 경우 생략
 
 |Deployment|Security Group|Direction|Target Address/Remote SG|Service|Description|
 |:-----:|:-----:|:-----:|:-----:|:-----:|:-----|
@@ -234,6 +237,7 @@ aws s3 cp media s3://{버킷명}/media --recursive --endpoint-url [Private Endpo
 
 # aws s3 cp media s3://ceweb/media --recursive --endpoint-url https://object-store.private.kr-west1.e.samsungsdscloud.com
 ```
+
 - 객체의 Public URL, Private URL 구조 확인
 
 ## 애플리케이션 저장소 마이그레이션
@@ -286,16 +290,6 @@ mv index_obj.html index.html
 .
 
 .
-
-
-
-
-
-
-
-
-
-
 
 **Object Storage 기능:**
 

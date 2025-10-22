@@ -101,7 +101,7 @@ variable "database_password" {
 variable "database_host" {
   type        = string
   description = "[CEWEB_REQUIRED] Database server hostname (auto-generated from private_domain_name)"
-  default     = ""  # Will be dynamically set in variables_manager.ps1
+  default     = "" # Will be dynamically set in variables_manager.ps1
 }
 
 variable "nginx_port" {
@@ -443,7 +443,7 @@ variable "image_rocky_scp_os_version" {
 variable "server_type_id" {
   type        = string
   description = "Server type ID [TERRAFORM_INFRA]"
-  default     = "s1v1m2"
+  default     = "s2v1m2"
 }
 
 # VM Configuration Variables
@@ -557,103 +557,4 @@ variable "rocky_boot_volume_delete_on_termination" {
 }
 
 # Virtual Server Standard Image 변수 정의
-variable "windows_image_id" {
-  type        = string
-  description = "[TERRAFORM_INFRA] Windows Server image ID"
-  default     = "28d98f66-44ca-4858-904f-636d4f674a62"
-}
-
-variable "rocky_image_id" {
-  type        = string
-  description = "[TERRAFORM_INFRA] Rocky Linux image ID"
-  default     = "253a91ea-1221-49d7-af53-a45c389e7e1a"
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
