@@ -1,4 +1,4 @@
-# Samsung Cloud Platform v2 Advance 고가용성/고성능 3계층 아키텍처 구현
+## Samsung Cloud Platform v2 Advance 고가용성/고성능 3계층 아키텍처 구현
 
 ## 고가용성 3계층 아키텍처 구성 [/3_tier_architecture](./3_tier_architecture)
 
