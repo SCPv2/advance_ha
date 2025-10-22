@@ -1,4 +1,4 @@
-# Auto-Scaling 및 정책 구성
+# Auto Scaling 및 정책 구성
 
 ## Image 생성
 

@@ -1,4 +1,4 @@
-# 고가용성을 위한 Object Storage 구성
+# 고가용성 구현을 위한 Object Storage 구성
 
 ## 실행 환경 요구사항
 
