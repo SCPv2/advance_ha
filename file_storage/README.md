@@ -1,4 +1,4 @@
-# 고가용성을 위한 File Storage 구성
+# 고가용성 구현을 위한 File Storage 구성
 
 ## 선행 실습
 
