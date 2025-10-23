@@ -2,20 +2,11 @@
 
 ## 실습 환경 배포
 
-**&#128906; 사용자 변수 입력 (\load_balancing\variables.tf)**
-
-```hcl
-variable "user_public_ip" {
-  type        = string
-  description = "Public IP address of user PC"
-  default     = "x.x.x.x"                           # 수강자 PC의 Public IP 주소 입력
-}
-```
+**&#128906; 사용자 환경 구성** (\advance_ha\3_tier_architecture\env_setup.ps1)
 
 **&#128906; Terraform 자원 배포 템플릿 실행**
 
 ```bash
-cd C:\scpv2advance\advance_ha\3_tier_architecture\
 terraform init
 terraform validate
 terraform plan
@@ -26,6 +17,7 @@ terraform apply --auto-approve
 ## 환경 검토
 
 - Architectuer Diagram
+
 - VPC CIDR
 - Subnet CIDR
 - Virtual Server OS, Public IP, Private IP
@@ -38,36 +30,36 @@ terraform apply --auto-approve
 |:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----|
 |Terraform|IGW|10.1.1.110, 10.1.1.111, 10.1.2.121, 10.1.3.131|0.0.0.0/0|TCP 80, 443|Allow|Outbound|HTTP/HTTPS outbound from vms to Internet|
 |Terraform|IGW|Your Public IP|10.1.1.110|TCP 3389|Allow|Inbound|RDP inbound to bastion|
-|Add|IGW|Your Public IP|10.1.1.111|TCP 80|Allow|Inbound|HTTP inbound to web vm|
+|Terraform|IGW|Your Public IP|10.1.1.111|TCP 80|Allow|Inbound|HTTP inbound to web vm|
 
 ### Security Group
 
 |Deployment|Security Group|Direction|Target Address/Remote SG|Service|Description|
 |:-----:|:-----:|:-----:|:-----:|:-----:|:-----|
-|Terrafom|bastionSG|Inbound|Your Public IP|TCP 3389|RDP inbound to bastion VM|
-|Terrafom|bastionSG|Outbound|0.0.0.0/0|TCP 80|HTTP outbound to Internet|
-|Terrafom|bastionSG|Outbound|0.0.0.0/0|TCP 443|HTTPS outbound to Internet|
-|Add|bastionSG|Outbound|dbSG|TCP 22|SSH outbound to db vm |
-|Add|bastionSG|Outbound|webSG|TCP 22|SSH outbound to web vm |
-|Add|bastionSG|Outbound|appSG|TCP 22|SSH outbound to app vm |
+|Terraform|bastionSG|Inbound|Your Public IP|TCP 3389|RDP inbound to bastion VM|
+|Terraform|bastionSG|Outbound|0.0.0.0/0|TCP 80|HTTP outbound to Internet|
+|Terraform|bastionSG|Outbound|0.0.0.0/0|TCP 443|HTTPS outbound to Internet|
+|Terraform|bastionSG|Outbound|dbSG|TCP 22|SSH outbound to db vm |
+|Terraform|bastionSG|Outbound|webSG|TCP 22|SSH outbound to web vm |
+|Terraform|bastionSG|Outbound|appSG|TCP 22|SSH outbound to app vm |
 |||||||
-|Terrafom|webSG|Outbound|0.0.0.0/0|TCP 443|HTTPS outbound to Internet|
-|Terrafom|webSG|Outbound|0.0.0.0/0|TCP 80|HTTP outbound to Internet|
-|Add|webSG|Inbound|bastionSG|TCP 22|SSH inbound from bastion|
-|Add|webSG|Inbound|Your Public IP|TCP 80|HTTP inbound from your PC|
-|Add|webSG|Outbound|appSG|TCP 3000|API outbound to app vm |
+|Terraform|webSG|Outbound|0.0.0.0/0|TCP 443|HTTPS outbound to Internet|
+|Terraform|webSG|Outbound|0.0.0.0/0|TCP 80|HTTP outbound to Internet|
+|Terraform|webSG|Inbound|bastionSG|TCP 22|SSH inbound from bastion|
+|Terraform|webSG|Inbound|Your Public IP|TCP 80|HTTP inbound from your PC|
+|Terraform|webSG|Outbound|appSG|TCP 3000|API outbound to app vm |
 |Add|webSG|Inbound|bastionSG|TCP 80|HTTP inbound from bastion|
 |||||||
-|Terrafom|appSG|Outbound|0.0.0.0/0|TCP 80|HTTP outbound to Internet|
-|Terrafom|appSG|Outbound|0.0.0.0/0|TCP 443|HTTPS outbound to Internet|
-|Add|appSG|Inbound|bastionSG|TCP 22|SSH inbound from bastion|
-|Add|appSG|Outbound|dbSG|TCP 2866|db connection outbound to db vm |
-|Add|appSG|Inbound|webSG|TCP 3000|API inbound from web vm |
+|Terraform|appSG|Outbound|0.0.0.0/0|TCP 80|HTTP outbound to Internet|
+|Terraform|appSG|Outbound|0.0.0.0/0|TCP 443|HTTPS outbound to Internet|
+|Terraform|appSG|Inbound|bastionSG|TCP 22|SSH inbound from bastion|
+|Terraform|appSG|Outbound|dbSG|TCP 2866|db connection outbound to db vm |
+|Terraform|appSG|Inbound|webSG|TCP 3000|API inbound from web vm |
 |||||||
-|Terrafom|dbSG|Outbound|0.0.0.0/0|TCP 443|HTTPS outbound to Internet|
-|Terrafom|dbSG|Outbound|0.0.0.0/0|TCP 80|HTTP outbound to Internet|
-|Add|dbSG|Inbound|appSG|TCP 2866|db connection inbound from app vm |
-|Add|dbSG|Inbound|bastionSG|TCP 22|SSH inbound from bastion|
+|Terraform|dbSG|Outbound|0.0.0.0/0|TCP 443|HTTPS outbound to Internet|
+|Terraform|dbSG|Outbound|0.0.0.0/0|TCP 80|HTTP outbound to Internet|
+|Terraform|dbSG|Inbound|appSG|TCP 2866|db connection inbound from app vm |
+|Terraform|dbSG|Inbound|bastionSG|TCP 22|SSH inbound from bastion|
 
 ### Load Balancer용 Public IP 예약
 
@@ -75,12 +67,12 @@ terraform apply --auto-approve
 
 ### Private DNS 확인 - VPC1에 연결
 
-- Private DNS Name : cesvc
+- Private DNS Name : `cesvc`
 - VPC              : VPC1
 - Hosted Zone      : your_private_domain_name.net
-- www              : A 레코드, 10.1.1.111, 300
-- app              : A 레코드, 10.1.2.121, 300
-- db               : A 레코드, 10.1.3.131, 300
+- www              : A 레코드, `10.1.1.111`, 300
+- app              : A 레코드, `10.1.2.121`, 300
+- db               : A 레코드, `10.1.3.131`, 300
 
 ### Public Domian Name 확인
 
@@ -133,24 +125,24 @@ sudo bash install_web_server.sh
 
 ### webvm, appvm 이미지 생성 및 서버 생성
 
-- webvm image : webvm111r-img
-- appvm image : appvm121r-img
+- webvm image : `webvm111r-img`
+- appvm image : `appvm121r-img`
 
 ### web Load Balancer 생성
 
-- Load Balancer명: weblb
+- Load Balancer명: `weblb`
 
 - 서비스 구분 :  L4
 - VPC : VPC1
 - Service Subnet : Subnet11
-- Sevice IP      : 10.1.1.100
+- Sevice IP      : `10.1.1.100`
 - Public NAT IP  : 사용
 - Firewall 사용   : 사용
 - Firewall 로그 저장 여부 : 사용
 
 ### web LB 서버 그룹 생성
 
-- LB 서버 그룹명 : weblbgrp
+- LB 서버 그룹명 : `weblbgrp`
 - VPC           : VPC1
 - Service Subnet : Subnet11
 - 부하 분산 : Round Robin
@@ -163,7 +155,7 @@ sudo bash install_web_server.sh
 
 ### web Listener 생성
 
-- Listener명 : weblistener
+- Listener명 : `weblistener`
 
 - 프로토콜 : TCP
 - 서비스 포트 : 80
@@ -174,46 +166,46 @@ sudo bash install_web_server.sh
 
 ### app Load Balancer 생성
 
-- Load Balancer명 : applb
+- Load Balancer명 : `applb`
 
 - 서비스 구분 :  L4
 - VPC : VPC1
 - Service Subnet : Subnet12
-- Sevice IP : 10.1.2.100
+- Sevice IP : `10.1.2.100`
 - Public NAT IP : 사용 안함
 - Firewall 사용 : 사용
 - Firewall 로그 저장 여부 : 사용
 
 ### app 헬스 체크 생성
 
-- LB 헬스 체크명: app_healthcheck
+- LB 헬스 체크명: `app_healthcheck`
 - VPC : VPC1
 - Service Subnet : Subnet12
 - 헬스 체크 방식
 - 프로토콜 : TCP
-- 헬스 체크 포트 : 3000
-- 주기 : 5
-- 대기 시간 : 5
-- 탐지 횟수 : 3
+- 헬스 체크 포트 : `3000`
+- 주기 : `5`
+- 대기 시간 : `5`
+- 탐지 횟수 : `3`
 
 ### app LB 서버 그룹
 
-- LB 서버 그룹명 : applbgrp
+- LB 서버 그룹명 : `applbgrp`
 - VPC           : VPC1
 - Service Subnet : Subnet12
 - 부하 분산 : Round Robin
 - 프로토콜 : TCP
 - LB 헬스 체크 : app_healthcheck
 - 연결된 자원 : appvm121r, appvm122r
-- 포트 : 3000
+- 포트 : `3000`
 - 가중치 : 1
 
 ### app Listener 생성
 
-- Listener명 : applistener
+- Listener명 : `applistener`
 
 - 프로토콜 : TCP
-- 서비스 포트 : 3000
+- 서비스 포트 : `3000`
 - LB 서버 그룹 : applbgrp
 - 세션 유지 시간 : 120초
 - 지속성 : 선택 안함
@@ -250,19 +242,22 @@ sudo bash install_web_server.sh
 
 ## DNS 변경
 
-- www : 10.1.1.100 (webLB Service IP)
-- app : 10.1.2.100 (appLB Service IP)
+- www : `10.1.1.100` (webLB Service IP)
+
+- app : `10.1.2.100` (appLB Service IP)
 
 # appvm212r vm 애플리케이션 재기동 명령
 
-```
+```bash
 cd /home/rocky/ceweb/app-server
 pm2 start ecosystem.config.js
 ```
 
 ## 자원 삭제
 
-이번 Chapter는 차시별 작업이 다음 차시로 계속 이어집니다. 자원 삭제가 필요한 경우 아래 작업을 수행하십시오.
+이번 Chapter는 차시별 작업이 다음 차시로 계속 이어집니다. 자원을 삭제하지 않고 다음 차시를 수행하시길 권장합니다. 
+
+만약, 자원 삭제가 필요한 경우 아래 작업을 수행하십시오.
 
 ### Load Balancer 삭제
 

@@ -1,4 +1,4 @@
-########################################################
+﻿########################################################
 # 공통 태그 설정
 ########################################################
 variable "common_tags" {
@@ -485,3 +485,7 @@ variable "image_rocky_scp_os_version" {
   description = "[TERRAFORM_INFRA] Rocky Linux SCP OS version for image lookup"
   default     = "9.4"
 }
+
+
+
+

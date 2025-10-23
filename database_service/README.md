@@ -45,32 +45,32 @@ terraform apply --auto-approve
 
 |Deployment|Security Group|Direction|Target Address/Remote SG|Service|Description|
 |:-----:|:-----:|:-----:|:-----:|:-----:|:-----|
-|Terrafom|bastionSG|Inbound|Your Public IP|TCP 3389|RDP inbound to bastion VM|
-|Terrafom|bastionSG|Outbound|0.0.0.0/0|TCP 80|HTTP outbound to Internet|
-|Terrafom|bastionSG|Outbound|0.0.0.0/0|TCP 443|HTTPS outbound to Internet|
+|Terraform|bastionSG|Inbound|Your Public IP|TCP 3389|RDP inbound to bastion VM|
+|Terraform|bastionSG|Outbound|0.0.0.0/0|TCP 80|HTTP outbound to Internet|
+|Terraform|bastionSG|Outbound|0.0.0.0/0|TCP 443|HTTPS outbound to Internet|
 |Add|bastionSG|Outbound|dbSG|TCP 22|SSH outbound to db vm |
 |Add|bastionSG|Outbound|webSG|TCP 22|SSH outbound to web vm |
 |Add|bastionSG|Outbound|appSG|TCP 22|SSH outbound to app vm |
 |||||||
-|Terrafom|webSG|Outbound|0.0.0.0/0|TCP 443|HTTPS outbound to Internet|
-|Terrafom|webSG|Outbound|0.0.0.0/0|TCP 80|HTTP outbound to Internet|
-|Terrafom|webSG|Inbound|bastionSG|TCP 22|SSH inbound from bastion|
-|Terrafom|webSG|Inbound|bastionSG|TCP 80|HTTP inbound from bastion|
-|Terrafom|webSG|Inbound|webLB Source NAT IP|TCP 80|HTTP inbound from Load Balancer|
-|Terrafom|webSG|Inbound|webLB Healthcheck IP|TCP 80|Healthcheck HTTP inbound from Load Balancer|
-|Terrafom|webSG|Outbound|appLB Service IP|3000|API connection outbound to app LB|
+|Terraform|webSG|Outbound|0.0.0.0/0|TCP 443|HTTPS outbound to Internet|
+|Terraform|webSG|Outbound|0.0.0.0/0|TCP 80|HTTP outbound to Internet|
+|Terraform|webSG|Inbound|bastionSG|TCP 22|SSH inbound from bastion|
+|Terraform|webSG|Inbound|bastionSG|TCP 80|HTTP inbound from bastion|
+|Terraform|webSG|Inbound|webLB Source NAT IP|TCP 80|HTTP inbound from Load Balancer|
+|Terraform|webSG|Inbound|webLB Healthcheck IP|TCP 80|Healthcheck HTTP inbound from Load Balancer|
+|Terraform|webSG|Outbound|appLB Service IP|3000|API connection outbound to app LB|
 |||||||
-|Terrafom|appSG|Outbound|0.0.0.0/0|TCP 80|HTTP outbound to Internet|
-|Terrafom|appSG|Outbound|0.0.0.0/0|TCP 443|HTTPS outbound to Internet|
-|Terrafom|appSG|Inbound|bastionSG|TCP 22|SSH inbound from bastion|
-|Terrafom|appSG|Outbound|dbSG|TCP 2866|db connection outbound to db vm|
-|Terrafom|appSG|Inbound|appLB Source NAT IP|3000|API connection inbound from Load Balancer|
-|Terrafom|webSG|Inbound|appLB Healthcheck IP|3000|Healthcheck 3000 inbound from Load Balancer|
+|Terraform|appSG|Outbound|0.0.0.0/0|TCP 80|HTTP outbound to Internet|
+|Terraform|appSG|Outbound|0.0.0.0/0|TCP 443|HTTPS outbound to Internet|
+|Terraform|appSG|Inbound|bastionSG|TCP 22|SSH inbound from bastion|
+|Terraform|appSG|Outbound|dbSG|TCP 2866|db connection outbound to db vm|
+|Terraform|appSG|Inbound|appLB Source NAT IP|3000|API connection inbound from Load Balancer|
+|Terraform|webSG|Inbound|appLB Healthcheck IP|3000|Healthcheck 3000 inbound from Load Balancer|
 |||||||
-|Terrafom|dbSG|Outbound|0.0.0.0/0|TCP 443|HTTPS outbound to Internet|
-|Terrafom|dbSG|Outbound|0.0.0.0/0|TCP 80|HTTP outbound to Internet|
-|Terrafom|dbSG|Inbound|appSG|TCP 2866|db connection inbound from app vm|
-|Terrafom|dbSG|Inbound|bastionSG|TCP 22|SSH inbound from bastion|
+|Terraform|dbSG|Outbound|0.0.0.0/0|TCP 443|HTTPS outbound to Internet|
+|Terraform|dbSG|Outbound|0.0.0.0/0|TCP 80|HTTP outbound to Internet|
+|Terraform|dbSG|Inbound|appSG|TCP 2866|db connection inbound from app vm|
+|Terraform|dbSG|Inbound|bastionSG|TCP 22|SSH inbound from bastion|
 
 ## PostgreSQL(DBaaS) 생성
 
