@@ -2,7 +2,8 @@
 
 ## 선행 실습
 
-이 실습은 아래의 실습에 이어 수행해야 합니다. 이 실습을 시작하기 전에 아래 실습을 완료하십시오.
+이 실습은 아래의 실습에 이어 수행해야 합니다. 이 실습을 시작하기 전에 아래 실습을 완료하는 것을 권장합니다.  
+아래 실습을 완료하지 않고 본 실습을 진행하시고자 할 경우, Terraform을 실행하여 자원을 배포하십시오.
 
 ### 필수 : '[고가용성 3계층 아키텍처 구성](../3_tier_architecture/README.md)'
 
@@ -25,12 +26,12 @@ terraform apply --auto-approve
 - Private DNS 와 VPC1 연결 (콘솔)
 
 - Public Domain Name
-  - A 레코드, www , web Load Balancer Public IP, 300
+  - A 레코드, `www` , web Load Balancer Public IP, 300
 
 - Private Domain Name
-  - A 레코드, www , 10.1.1.100, 300
-  - A 레코드, app , 10.1.2.100, 300
-  - A 레코드, db , 10.1.3.100. 300
+  - A 레코드, `www` , `10.1.1.100`, 300
+  - A 레코드, `app` , `10.1.2.100`, 300
+  - A 레코드, `db` , `10.1.3.100`, 300
   
 ## File Storage 생성
 
