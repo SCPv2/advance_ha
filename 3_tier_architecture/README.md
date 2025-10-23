@@ -246,7 +246,7 @@ sudo bash install_web_server.sh
 
 - app : `10.1.2.100` (appLB Service IP)
 
-# appvm212r vm 애플리케이션 재기동 명령
+## appvm212r vm 애플리케이션 재기동 명령
 
 ```bash
 cd /home/rocky/ceweb/app-server
@@ -255,7 +255,7 @@ pm2 start ecosystem.config.js
 
 ## 자원 삭제
 
-이번 Chapter는 차시별 작업이 다음 차시로 계속 이어집니다. 자원을 삭제하지 않고 다음 차시를 수행하시길 권장합니다. 
+이번 Chapter는 차시별 작업이 다음 차시로 계속 이어집니다. 자원을 삭제하지 않고 다음 차시를 수행하시길 권장합니다.
 
 만약, 자원 삭제가 필요한 경우 아래 작업을 수행하십시오.
 
