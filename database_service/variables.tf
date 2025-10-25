@@ -1,4 +1,4 @@
-########################################################
+﻿########################################################
 # 공통 태그 설정
 ########################################################
 variable "common_tags" {
@@ -21,14 +21,14 @@ variable "common_tags" {
 variable "private_domain_name" {
   type        = string
   description = "[USER_INPUT] Private domain name (e.g., internal.local)"
-  default     = "your_private_domain.name"
+  default     = "cesvc.net"
 }
 
 
 variable "public_domain_name" {
   type        = string
   description = "[USER_INPUT] Public domain name (e.g., example.com)"
-  default     = "your_public_domain.name"
+  default     = "creative-energy.net"
 }
 
 variable "keypair_name" {
@@ -40,25 +40,25 @@ variable "keypair_name" {
 variable "user_public_ip" {
   type        = string
   description = "[USER_INPUT] Public IP address of user PC"
-  default     = "your_public_ip/32"
+  default     = "14.39.93.74"
 }
 
 variable "object_storage_access_key_id" {
   type        = string
   description = "[USER_INPUT] Object Storage access key ID"
-  default     = "put_your_authentificate_access_key_here"
+  default     = "15cc3495e2ed42359e0af04da858a2bc"
 }
 
 variable "object_storage_secret_access_key" {
   type        = string
   description = "[USER_INPUT] Object Storage secret access key"
-  default     = "put_your_authentificate_secret_key_here"
+  default     = "78061ff8-e70d-44e1-b641-0a491dccaf50"
 }
 
 variable "object_storage_bucket_string" {
   type        = string
   description = "[USER_INPUT] Object Storage bucket string"
-  default     = "put_your_account_id_here"
+  default     = "89097ddf09b84d96af496aded95dac29"
 }
 
 ########################################################
@@ -555,6 +555,3 @@ variable "rocky_boot_volume_delete_on_termination" {
   description = "Delete Rocky boot volume on termination [TERRAFORM_INFRA]"
   default     = true
 }
-
-# Virtual Server Standard Image 변수 정의
-

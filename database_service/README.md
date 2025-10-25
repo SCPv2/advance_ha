@@ -33,7 +33,7 @@ terraform apply --auto-approve
 |:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----|
 |Terraform|IGW|10.1.1.110, 10.1.1.111, 10.1.1.112, 10.1.2.121, 10.1.2.122, 10.1.3.131|0.0.0.0/0|TCP 80, 443|Allow|Outbound|HTTP/HTTPS outbound from vms to Internet|
 |Terraform|IGW|Your Public IP|10.1.1.110|TCP 3389|Allow|Inbound|RDP inbound to bastion|
-|Terraform|IGW|Your Public IP|10.1.1.111|TCP 80|Allow|Inbound|HTTP inbound to web vm|
+|Terraform|IGW|Your Public IP|10.1.1.100|TCP 80|Allow|Inbound|HTTP inbound to web vm|
 |Terraform|web Load Balancer|Your Public IP|10.1.1.100 (Service IP)|TCP 80|Allow|Outbound|클라이언트 → LB 연결|
 |Terraform|web Load Balancer|webLB Source NAT IP|10.1.1.111, 10.1.1.112 (webvm IP)|TCP 80|Allow|Inbound|LB → 멤버 연결|
 |Terraform|web Load Balancer|webLB 헬스 체크 IP|10.1.1.111, 10.1.1.112 (webvm IP)|TCP 80|Allow|Inbound|LB → 멤버 헬스 체크|
@@ -65,7 +65,7 @@ terraform apply --auto-approve
 |Terraform|appSG|Inbound|bastionSG|TCP 22|SSH inbound from bastion|
 |Terraform|appSG|Outbound|dbSG|TCP 2866|db connection outbound to db vm|
 |Terraform|appSG|Inbound|appLB Source NAT IP|3000|API connection inbound from Load Balancer|
-|Terraform|webSG|Inbound|appLB Healthcheck IP|3000|Healthcheck 3000 inbound from Load Balancer|
+|Terraform|appSG|Inbound|appLB Healthcheck IP|3000|Healthcheck 3000 inbound from Load Balancer|
 |||||||
 |Terraform|dbSG|Outbound|0.0.0.0/0|TCP 443|HTTPS outbound to Internet|
 |Terraform|dbSG|Outbound|0.0.0.0/0|TCP 80|HTTP outbound to Internet|
