@@ -3,19 +3,19 @@
                             "template_source":  "variables.tf",
                             "version":  "4.1.0",
                             "description":  "Samsung Cloud Platform Object Storage Configuration with DBaaS",
-                            "created":  "2025-10-24 08:25:36",
+                            "created":  "2025-10-26 02:24:48",
                             "usage":  "This file contains all environment-specific settings for the application deployment",
                             "generator":  "variables_manager.ps1"
                         },
     "user_input_variables":  {
-                                 "object_storage_access_key_id":  "",
-                                 "public_domain_name":  "",
+                                 "object_storage_access_key_id":  "put_your_authentificate_access_key_here",
+                                 "public_domain_name":  "your_public_domain.name",
                                  "keypair_name":  "mykey",
-                                 "object_storage_secret_access_key":  "",
+                                 "object_storage_secret_access_key":  "put_your_authentificate_secret_key_here",
                                  "_source":  "variables.tf USER_INPUT category",
-                                 "private_domain_name":  "",
-                                 "object_storage_bucket_string":  "",
-                                 "user_public_ip":  "",
+                                 "private_domain_name":  "your_private_domain.name",
+                                 "object_storage_bucket_string":  "put_your_account_id_here",
+                                 "user_public_ip":  "your_public_ip/32",
                                  "_comment":  "Variables that users input interactively during deployment"
                              },
     "ceweb_required_variables":  {
@@ -57,7 +57,7 @@
                                      "object_storage_bucket_name":  "ceweb",
                                      "node_env":  "production",
                                      "web_ip":  "10.1.1.111",
-                                     "database_host":  "db.cesvc.net",
+                                     "database_host":  "db.your_private_domain.name",
                                      "ssl_enabled":  "false"
                                  },
     "_variable_classification":  {

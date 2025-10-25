@@ -21,14 +21,14 @@ variable "common_tags" {
 variable "private_domain_name" {
   type        = string
   description = "[USER_INPUT] Private domain name (e.g., internal.local)"
-  default     = ""
+  default     = "your_private_domain.name"
 }
 
 
 variable "public_domain_name" {
   type        = string
   description = "[USER_INPUT] Public domain name (e.g., example.com)"
-  default     = ""
+  default     = "your_public_domain.name"
 }
 
 variable "keypair_name" {
@@ -40,25 +40,25 @@ variable "keypair_name" {
 variable "user_public_ip" {
   type        = string
   description = "[USER_INPUT] Public IP address of user PC"
-  default     = ""
+  default     = "your_public_ip/32"
 }
 
 variable "object_storage_access_key_id" {
   type        = string
   description = "[USER_INPUT] Object Storage access key ID"
-  default     = ""
+  default     = "put_your_authentificate_access_key_here"
 }
 
 variable "object_storage_secret_access_key" {
   type        = string
   description = "[USER_INPUT] Object Storage secret access key"
-  default     = ""
+  default     = "put_your_authentificate_secret_key_here"
 }
 
 variable "object_storage_bucket_string" {
   type        = string
   description = "[USER_INPUT] Object Storage bucket string"
-  default     = ""
+  default     = "put_your_account_id_here"
 }
 
 ########################################################
@@ -624,6 +624,10 @@ variable "rocky_boot_volume_delete_on_termination" {
   description = "Delete Rocky boot volume on termination [TERRAFORM_INFRA]"
   default     = true
 }
+
+
+
+
 
 
 

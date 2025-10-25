@@ -135,15 +135,9 @@ Set_ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
 
 |Deployment|Firewall|Source|Destination|Service|Action|Direction|Description|
 |:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----|
-|Terraform|IGW|10.1.1.110, 10.1.1.111, 10.1.1.112, 10.1.2.121, 10.1.2.122|0.0.0.0/0|TCP 80, 443|Allow|Outbound|HTTP/HTTPS outbound from vms to Internet|
-|Terraform|IGW|Your Public IP|10.1.1.110|TCP 3389|Allow|Inbound|RDP inbound to bastion|
-|Terraform|IGW|Your Public IP|10.1.1.111|TCP 80|Allow|Inbound|HTTP inbound to web vm|
-|Terraform|web Load Balancer|Your Public IP|10.1.1.100 (Service IP)|TCP 80|Allow|Outbound|클라이언트 → LB 연결|
-|Terraform|web Load Balancer|webLB Source NAT IP|10.1.1.111, 10.1.1.112 (webvm IP)|TCP 80|Allow|Inbound|LB → 멤버 연결|
-|Terraform|web Load Balancer|webLB 헬스 체크 IP|10.1.1.111, 10.1.1.112 (webvm IP)|TCP 80|Allow|Inbound|LB → 멤버 헬스 체크|
-|Terraform|app Load Balancer|10.1.1.111, 10.1.1.112 (webvm IP)|10.1.2.100 (Service IP)|3000|Allow|Outbound|클라이언트 → LB 연결|
-|Terraform|app Load Balancer|appLB Source NAT IP|10.1.2.121, 10.1.2.122 (appvm IP)|3000|Allow|Inbound|LB → 멤버 연결|
-|Terraform|app Load Balancer|appLB 헬스 체크 IP|10.1.2.121, 10.1.2.122 (appvm IP)|3000|Allow|Inbound|LB → 멤버 헬스 체크|
+|Terraform|IGW|10.1.1.110 (bastion), 10.1.1.0/24 (web subnet), 10.1.2.0/24 (app subnet)|0.0.0.0/0|TCP 80, 443|Allow|Outbound|HTTP/HTTPS outbound to Internet|
+|Terraform|IGW|Your Public IP|10.1.1.110 (bastion)|TCP 3389|Allow|Inbound|RDP inbound to bastion|
+|Terraform|IGW|Your Public IP|10.1.1.100 (Web LB Service IP)|TCP 80|Allow|Inbound|HTTP inbound to Web Load Balancer|
 
 ### Security Group
 
@@ -152,22 +146,21 @@ Set_ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
 |Terraform|bastionSG|Inbound|Your Public IP|TCP 3389|RDP inbound to bastion VM|
 |Terraform|bastionSG|Outbound|0.0.0.0/0|TCP 80|HTTP outbound to Internet|
 |Terraform|bastionSG|Outbound|0.0.0.0/0|TCP 443|HTTPS outbound to Internet|
-|Add|bastionSG|Outbound|webSG|TCP 22|SSH outbound to web vm |
-|Add|bastionSG|Outbound|appSG|TCP 22|SSH outbound to app vm |
+|Terraform|bastionSG|Outbound|webSG|TCP 22|SSH outbound to web vm |
+|Terraform|bastionSG|Outbound|appSG|TCP 22|SSH outbound to app vm |
+|Terraform|bastionSG|Outbound|webSG|TCP 80|HTTP outbound to web vm for monitoring|
 |||||||
-|Terraform|webSG|Outbound|0.0.0.0/0|TCP 443|HTTPS outbound to Internet|
 |Terraform|webSG|Outbound|0.0.0.0/0|TCP 80|HTTP outbound to Internet|
+|Terraform|webSG|Outbound|0.0.0.0/0|TCP 443|HTTPS outbound to Internet|
 |Terraform|webSG|Inbound|bastionSG|TCP 22|SSH inbound from bastion|
 |Terraform|webSG|Inbound|bastionSG|TCP 80|HTTP inbound from bastion|
-|Terraform|webSG|Inbound|webLB Source NAT IP|TCP 80|HTTP inbound from Load Balancer|
-|Terraform|webSG|Inbound|webLB Healthcheck IP|TCP 80|Healthcheck HTTP inbound from Load Balancer|
-|Terraform|webSG|Outbound|appLB Service IP|3000|API connection outbound to app LB|
+|Terraform|webSG|Outbound|10.1.2.100/32 (appLB Service IP)|TCP 3000|API connection outbound to app LB|
+|Terraform|webSG|Outbound|appSG|TCP 3000|Direct API connection outbound to app servers|
 |||||||
 |Terraform|appSG|Outbound|0.0.0.0/0|TCP 80|HTTP outbound to Internet|
 |Terraform|appSG|Outbound|0.0.0.0/0|TCP 443|HTTPS outbound to Internet|
 |Terraform|appSG|Inbound|bastionSG|TCP 22|SSH inbound from bastion|
-|Terraform|appSG|Inbound|appLB Source NAT IP|3000|API connection inbound from Load Balancer|
-|Terraform|webSG|Inbound|appLB Healthcheck IP|3000|Healthcheck 3000 inbound from Load Balancer|
+|Terraform|appSG|Inbound|webSG|TCP 3000|Direct API connection inbound from web servers|
 |||||||
 |DBaaS|Internal|Access Rules|10.1.2.0/24, 10.1.1.110/32||App subnet and Bastion access to DBaaS|
 
