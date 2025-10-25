@@ -181,16 +181,16 @@ resource "samsungcloudplatformv2_firewall_firewall_rule" "bastion_rdp_in_fw" {
   }
 }
 
-# Web Load Balancer inbound rule
-resource "samsungcloudplatformv2_firewall_firewall_rule" "web_lb_in_fw" {
+# Web VM inbound rule
+resource "samsungcloudplatformv2_firewall_firewall_rule" "web_vm_in_fw" {
   firewall_id = local.igw1_firewall_id[0]
   firewall_rule_create = {
     action              = "ALLOW"
     direction           = "INBOUND"
     status              = "ENABLE"
     source_address      = [var.user_public_ip]
-    destination_address = [var.web_lb_service_ip]
-    description         = "HTTP inbound to Web Load Balancer"
+    destination_address = [var.web_ip]
+    description         = "HTTP inbound to web vm"
     service = [
       { service_type = "TCP", service_value = "80" }
     ]
@@ -713,16 +713,18 @@ resource "samsungcloudplatformv2_loadbalancer_lb_listener" "web_listener" {
     description           = "Web listener"
     loadbalancer_id       = samsungcloudplatformv2_loadbalancer_loadbalancer.web_lb.id
     protocol              = "TCP"
-    service_port          = var.nginx_port
+    service_port          = 80
     server_group_id       = samsungcloudplatformv2_loadbalancer_lb_server_group.web_server_group.id
     session_duration_time = 120
-    persistence           = "source-ip"
     insert_client_ip      = false
+    routing_action        = "LB_SERVER_GROUP"
   }
 
   depends_on = [
     samsungcloudplatformv2_loadbalancer_loadbalancer.web_lb,
-    samsungcloudplatformv2_loadbalancer_lb_server_group.web_server_group
+    samsungcloudplatformv2_loadbalancer_lb_server_group.web_server_group,
+    samsungcloudplatformv2_loadbalancer_lb_member.web_member1,
+    samsungcloudplatformv2_loadbalancer_lb_member.web_member2
   ]
 }
 
@@ -830,58 +832,57 @@ resource "samsungcloudplatformv2_loadbalancer_lb_listener" "app_listener" {
     description           = "App listener"
     loadbalancer_id       = samsungcloudplatformv2_loadbalancer_loadbalancer.app_lb.id
     protocol              = "TCP"
-    service_port          = var.app_server_port
+    service_port          = 3000
     server_group_id       = samsungcloudplatformv2_loadbalancer_lb_server_group.app_server_group.id
     session_duration_time = 120
-    persistence           = "source-ip"
     insert_client_ip      = false
+    routing_action        = "LB_SERVER_GROUP"
   }
 
   depends_on = [
     samsungcloudplatformv2_loadbalancer_loadbalancer.app_lb,
-    samsungcloudplatformv2_loadbalancer_lb_server_group.app_server_group
+    samsungcloudplatformv2_loadbalancer_lb_server_group.app_server_group,
+    samsungcloudplatformv2_loadbalancer_lb_member.app_member1,
+    samsungcloudplatformv2_loadbalancer_lb_member.app_member2
   ]
 }
 
 ########################################################
 # Load Balancer Firewall ID 조회
 ########################################################
-data "samsungcloudplatformv2_firewall_firewalls" "fw_web_lb" {
+data "samsungcloudplatformv2_firewall_firewalls" "fw_lb" {
   product_type = ["LB"]
   size         = 10
 
-  depends_on = [samsungcloudplatformv2_loadbalancer_loadbalancer.web_lb]
-}
-
-data "samsungcloudplatformv2_firewall_firewalls" "fw_app_lb" {
-  product_type = ["LB"]
-  size         = 10
-
-  depends_on = [samsungcloudplatformv2_loadbalancer_loadbalancer.app_lb]
+  depends_on = [
+    samsungcloudplatformv2_loadbalancer_loadbalancer.web_lb,
+    samsungcloudplatformv2_loadbalancer_loadbalancer.app_lb
+  ]
 }
 
 locals {
-  web_lb_firewall_ids = try(data.samsungcloudplatformv2_firewall_firewalls.fw_web_lb.ids, [])
-  app_lb_firewall_ids = try(data.samsungcloudplatformv2_firewall_firewalls.fw_app_lb.ids, [])
+  lb_firewall_ids = try(data.samsungcloudplatformv2_firewall_firewalls.fw_lb.ids, [])
 
-  web_lb_firewall_id = length(local.web_lb_firewall_ids) > 0 ? local.web_lb_firewall_ids[0] : ""
-  app_lb_firewall_id = length(local.app_lb_firewall_ids) > 0 ? local.app_lb_firewall_ids[0] : ""
+  # Web LB가 먼저 생성되므로 첫 번째 ID
+  web_lb_firewall_id = length(local.lb_firewall_ids) > 0 ? local.lb_firewall_ids[0] : ""
+  # App LB가 두 번째로 생성되므로 두 번째 ID
+  app_lb_firewall_id = length(local.lb_firewall_ids) > 1 ? local.lb_firewall_ids[1] : ""
 }
 
 ########################################################
 # Web Load Balancer Firewall 규칙
 ########################################################
 
-# Web LB Source NAT to Web VMs
-resource "samsungcloudplatformv2_firewall_firewall_rule" "web_lb_source_nat_fw" {
+# Web LB Client to Service IP
+resource "samsungcloudplatformv2_firewall_firewall_rule" "web_lb_client_fw" {
   firewall_id = local.web_lb_firewall_id
   firewall_rule_create = {
     action              = "ALLOW"
     direction           = "OUTBOUND"
     status              = "ENABLE"
     source_address      = [var.user_public_ip]
-    destination_address = ["10.1.1.0/24"]
-    description         = "Client to LB Service IP"
+    destination_address = [var.web_lb_service_ip]
+    description         = "Client to LB connection"
     service = [
       { service_type = "TCP", service_value = "80" }
     ]
@@ -909,7 +910,7 @@ resource "samsungcloudplatformv2_firewall_firewall_rule" "web_lb_healthcheck_fw"
   }
 
   depends_on = [
-    samsungcloudplatformv2_firewall_firewall_rule.web_lb_source_nat_fw
+    samsungcloudplatformv2_firewall_firewall_rule.web_lb_client_fw
   ]
 }
 
@@ -917,16 +918,16 @@ resource "samsungcloudplatformv2_firewall_firewall_rule" "web_lb_healthcheck_fw"
 # App Load Balancer Firewall 규칙
 ########################################################
 
-# App LB Source NAT to App VMs
-resource "samsungcloudplatformv2_firewall_firewall_rule" "app_lb_source_nat_fw" {
+# App LB Client to Service IP
+resource "samsungcloudplatformv2_firewall_firewall_rule" "app_lb_client_fw" {
   firewall_id = local.app_lb_firewall_id
   firewall_rule_create = {
     action              = "ALLOW"
-    direction           = "INBOUND"
+    direction           = "OUTBOUND"
     status              = "ENABLE"
     source_address      = ["10.1.1.0/24"]
-    destination_address = ["10.1.2.0/24"]
-    description         = "WebVM to LB Service IP"
+    destination_address = [var.app_lb_service_ip]
+    description         = "Client to LB connection"
     service = [
       { service_type = "TCP", service_value = tostring(var.app_server_port) }
     ]
@@ -954,7 +955,7 @@ resource "samsungcloudplatformv2_firewall_firewall_rule" "app_lb_healthcheck_fw"
   }
 
   depends_on = [
-    samsungcloudplatformv2_firewall_firewall_rule.app_lb_source_nat_fw
+    samsungcloudplatformv2_firewall_firewall_rule.app_lb_client_fw
   ]
 }
 

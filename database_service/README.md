@@ -35,11 +35,9 @@ terraform apply --auto-approve
 |Terraform|IGW|Your Public IP|10.1.1.110|TCP 3389|Allow|Inbound|RDP inbound to bastion|
 |Terraform|IGW|Your Public IP|10.1.1.100|TCP 80|Allow|Inbound|HTTP inbound to web vm|
 |Terraform|web Load Balancer|Your Public IP|10.1.1.100 (Service IP)|TCP 80|Allow|Outbound|클라이언트 → LB 연결|
-|Terraform|web Load Balancer|webLB Source NAT IP|10.1.1.111, 10.1.1.112 (webvm IP)|TCP 80|Allow|Inbound|LB → 멤버 연결|
-|Terraform|web Load Balancer|webLB 헬스 체크 IP|10.1.1.111, 10.1.1.112 (webvm IP)|TCP 80|Allow|Inbound|LB → 멤버 헬스 체크|
-|Terraform||app Load Balancer|10.1.1.111, 10.1.1.112 (webvm IP)|10.1.2.100 (Service IP)|3000|Allow|Outbound 클라이언트 → LB 연결|
-|Terraform|app Load Balancer|appLB Source NAT IP|10.1.2.121, 10.1.2.122 (appvm IP)|3000|Allow|Inbound|LB → 멤버 연결|
-|Terraform|app Load Balancer|appLB 헬스 체크 IP|10.1.2.121, 10.1.2.122 (appvm IP)|3000|Allow|Inbound|LB → 멤버 헬스 체크|
+|Terraform|web Load Balancer|10.1.1.0/24 (webLB Source NAT IP, webLB 헬스 체크 IP)|10.1.1.0/24 (webvm)|TCP 80|Allow|Inbound|LB → 멤버 연결, 멤버 헬스 체크|
+|Terraform|app Load Balancer|10.1.1.0/24 (webvm)|10.1.2.100 (Service IP)|3000|Allow|Outbound |클라이언트 → LB 연결|
+|Terraform|app Load Balancer|10.1.2.0/24(appLB Source NAT IP, appLB 헬스 체크 IP)|10.1.2.0/24 (appvm)|3000|Allow|Inbound|LB → 멤버 연결LB → 멤버 연결, 멤버 헬스 체크|
 
 ### Security Group
 
