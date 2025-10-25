@@ -50,7 +50,7 @@ orm v2
 terraform {
   required_providers {
     samsungcloudplatformv2 = {
-      version = "1.0.3"
+      version = "2.0.3"
       source  = "SamsungSDSCloud/samsungcloudplatformv2"
     }
   }

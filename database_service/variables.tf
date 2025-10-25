@@ -21,14 +21,14 @@ variable "common_tags" {
 variable "private_domain_name" {
   type        = string
   description = "[USER_INPUT] Private domain name (e.g., internal.local)"
-  default     = "cesvc.net"
+  default     = ""
 }
 
 
 variable "public_domain_name" {
   type        = string
   description = "[USER_INPUT] Public domain name (e.g., example.com)"
-  default     = "creative-energy.net"
+  default     = ""
 }
 
 variable "keypair_name" {
@@ -40,25 +40,25 @@ variable "keypair_name" {
 variable "user_public_ip" {
   type        = string
   description = "[USER_INPUT] Public IP address of user PC"
-  default     = "14.39.93.74"
+  default     = ""
 }
 
 variable "object_storage_access_key_id" {
   type        = string
   description = "[USER_INPUT] Object Storage access key ID"
-  default     = "15cc3495e2ed42359e0af04da858a2bc"
+  default     = ""
 }
 
 variable "object_storage_secret_access_key" {
   type        = string
   description = "[USER_INPUT] Object Storage secret access key"
-  default     = "78061ff8-e70d-44e1-b641-0a491dccaf50"
+  default     = ""
 }
 
 variable "object_storage_bucket_string" {
   type        = string
   description = "[USER_INPUT] Object Storage bucket string"
-  default     = "89097ddf09b84d96af496aded95dac29"
+  default     = ""
 }
 
 ########################################################
