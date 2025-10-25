@@ -3,7 +3,7 @@
                             "template_source":  "variables.tf",
                             "version":  "4.1.0",
                             "description":  "Samsung Cloud Platform File Storage Configuration with DBaaS",
-                            "created":  "2025-10-23 16:16:23",
+                            "created":  "2025-10-25 22:27:59",
                             "usage":  "This file contains all environment-specific settings for the application deployment",
                             "generator":  "variables_manager.ps1"
                         },
