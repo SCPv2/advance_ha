@@ -239,7 +239,7 @@ function Show-MainBanner {
     Clear-Host
     Cyan "========================================================"
     Cyan "SCP v2 Advance - Lab Environment Manager"
-    Cyan "Database Replica & Caching with Dynamic Configuration"
+    Cyan "Object Storage Integration with Dynamic Configuration"
     Cyan "========================================================"
     Write-Host ""
     Write-Host "Choose Operation Mode:" -ForegroundColor White -BackgroundColor Black

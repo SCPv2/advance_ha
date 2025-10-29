@@ -1,4 +1,4 @@
-########################################################
+﻿########################################################
 # 공통 태그 설정
 ########################################################
 variable "common_tags" {
@@ -624,6 +624,18 @@ variable "rocky_boot_volume_delete_on_termination" {
   description = "Delete Rocky boot volume on termination [TERRAFORM_INFRA]"
   default     = true
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

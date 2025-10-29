@@ -7,6 +7,10 @@ terraform {
       version = "2.0.3"
       source  = "SamsungSDSCloud/samsungcloudplatformv2"
     }
+    time = {
+      source  = "hashicorp/time"
+      version = "~> 0.9"
+    }
   }
   required_version = ">= 1.11"
 }
@@ -532,16 +536,25 @@ resource "samsungcloudplatformv2_loadbalancer_loadbalancer" "web_lb" {
     layer_type               = "L4"
     vpc_id                   = samsungcloudplatformv2_vpc_vpc.vpc.id
     subnet_id                = samsungcloudplatformv2_vpc_subnet.web_subnet.id
-    service_ip               = var.web_lb_service_ip
     publicip_id              = samsungcloudplatformv2_vpc_publicip.pip2.id
+    service_ip               = var.web_lb_service_ip
     firewall_enabled         = true
     firewall_logging_enabled = true
   }
 
   depends_on = [
-    samsungcloudplatformv2_virtualserver_server.vm2,  # Web VM 생성 완료 후
-    samsungcloudplatformv2_vpc_subnet.web_subnet, samsungcloudplatformv2_vpc_subnet.app_subnet, samsungcloudplatformv2_vpc_subnet.db_subnet,
-    samsungcloudplatformv2_vpc_publicip.pip1, samsungcloudplatformv2_vpc_publicip.pip2, samsungcloudplatformv2_vpc_publicip.pip3
+    samsungcloudplatformv2_virtualserver_server.vm2,
+    samsungcloudplatformv2_vpc_subnet.web_subnet,
+    samsungcloudplatformv2_vpc_publicip.pip2
+  ]
+}
+
+# Wait for Web Load Balancer to be fully ready
+resource "time_sleep" "wait_for_web_lb" {
+  create_duration = "120s"
+
+  depends_on = [
+    samsungcloudplatformv2_loadbalancer_loadbalancer.web_lb
   ]
 }
 
@@ -563,8 +576,8 @@ resource "samsungcloudplatformv2_loadbalancer_lb_health_check" "web_health_check
   }
 
   depends_on = [
-    samsungcloudplatformv2_vpc_subnet.web_subnet, samsungcloudplatformv2_vpc_subnet.app_subnet, samsungcloudplatformv2_vpc_subnet.db_subnet,
-    samsungcloudplatformv2_loadbalancer_loadbalancer.web_lb
+    samsungcloudplatformv2_loadbalancer_loadbalancer.web_lb,
+    time_sleep.wait_for_web_lb
   ]
 }
 
@@ -593,16 +606,16 @@ resource "samsungcloudplatformv2_loadbalancer_lb_member" "web_member1" {
     name          = "webvm111r-member"
     object_type   = "VM"
     object_id     = samsungcloudplatformv2_virtualserver_server.vm2.id
+    member_ip     = var.web_ip
+    member_port   = var.nginx_port
     member_weight = 1
   }
 
   depends_on = [
-  #  samsungcloudplatformv2_virtualserver_server.vm2,
+    samsungcloudplatformv2_virtualserver_server.vm2,
     samsungcloudplatformv2_loadbalancer_lb_server_group.web_server_group
   ]
 }
-
-# Web LB Member 2 - Removed for single server deployment
 
 # Web Listener
 resource "samsungcloudplatformv2_loadbalancer_lb_listener" "web_listener" {
@@ -611,16 +624,17 @@ resource "samsungcloudplatformv2_loadbalancer_lb_listener" "web_listener" {
     description           = "Web listener"
     loadbalancer_id       = samsungcloudplatformv2_loadbalancer_loadbalancer.web_lb.id
     protocol              = "TCP"
-    service_port          = var.nginx_port
+    service_port          = 80
     server_group_id       = samsungcloudplatformv2_loadbalancer_lb_server_group.web_server_group.id
     session_duration_time = 120
-    persistence           = "source-ip"
     insert_client_ip      = false
+    routing_action        = "LB_SERVER_GROUP"
   }
 
   depends_on = [
     samsungcloudplatformv2_loadbalancer_loadbalancer.web_lb,
-    samsungcloudplatformv2_loadbalancer_lb_server_group.web_server_group
+    samsungcloudplatformv2_loadbalancer_lb_server_group.web_server_group,
+    samsungcloudplatformv2_loadbalancer_lb_member.web_member1
   ]
 }
 
@@ -637,14 +651,22 @@ resource "samsungcloudplatformv2_loadbalancer_loadbalancer" "app_lb" {
     vpc_id                   = samsungcloudplatformv2_vpc_vpc.vpc.id
     subnet_id                = samsungcloudplatformv2_vpc_subnet.app_subnet.id
     service_ip               = var.app_lb_service_ip
-    publicip_id              = null
     firewall_enabled         = true
     firewall_logging_enabled = true
   }
 
   depends_on = [
-    samsungcloudplatformv2_virtualserver_server.vm3,  # App VM 생성 완료 후
-    samsungcloudplatformv2_vpc_subnet.web_subnet, samsungcloudplatformv2_vpc_subnet.app_subnet, samsungcloudplatformv2_vpc_subnet.db_subnet
+    samsungcloudplatformv2_virtualserver_server.vm3,
+    samsungcloudplatformv2_vpc_subnet.app_subnet
+  ]
+}
+
+# Wait for App Load Balancer to be fully ready
+resource "time_sleep" "wait_for_app_lb" {
+  create_duration = "120s"
+
+  depends_on = [
+    samsungcloudplatformv2_loadbalancer_loadbalancer.app_lb
   ]
 }
 
@@ -663,8 +685,8 @@ resource "samsungcloudplatformv2_loadbalancer_lb_health_check" "app_health_check
   }
 
   depends_on = [
-    samsungcloudplatformv2_vpc_subnet.web_subnet, samsungcloudplatformv2_vpc_subnet.app_subnet, samsungcloudplatformv2_vpc_subnet.db_subnet,
-    samsungcloudplatformv2_loadbalancer_loadbalancer.app_lb
+    samsungcloudplatformv2_loadbalancer_loadbalancer.app_lb,
+    time_sleep.wait_for_app_lb
   ]
 }
 
@@ -693,6 +715,8 @@ resource "samsungcloudplatformv2_loadbalancer_lb_member" "app_member1" {
     name          = "appvm121r-member"
     object_type   = "VM"
     object_id     = samsungcloudplatformv2_virtualserver_server.vm3.id
+    member_ip     = var.app_ip
+    member_port   = var.app_server_port
     member_weight = 1
   }
 
@@ -702,8 +726,6 @@ resource "samsungcloudplatformv2_loadbalancer_lb_member" "app_member1" {
   ]
 }
 
-# App LB Member 2 - Removed for single server deployment
-
 # App Listener
 resource "samsungcloudplatformv2_loadbalancer_lb_listener" "app_listener" {
   lb_listener_create = {
@@ -711,20 +733,133 @@ resource "samsungcloudplatformv2_loadbalancer_lb_listener" "app_listener" {
     description           = "App listener"
     loadbalancer_id       = samsungcloudplatformv2_loadbalancer_loadbalancer.app_lb.id
     protocol              = "TCP"
-    service_port          = var.app_server_port
+    service_port          = 3000
     server_group_id       = samsungcloudplatformv2_loadbalancer_lb_server_group.app_server_group.id
     session_duration_time = 120
-    persistence           = "source-ip"
     insert_client_ip      = false
+    routing_action        = "LB_SERVER_GROUP"
   }
 
   depends_on = [
     samsungcloudplatformv2_loadbalancer_loadbalancer.app_lb,
-    samsungcloudplatformv2_loadbalancer_lb_server_group.app_server_group
+    samsungcloudplatformv2_loadbalancer_lb_server_group.app_server_group,
+    samsungcloudplatformv2_loadbalancer_lb_member.app_member1
   ]
 }
 
 
+
+########################################################
+# Load Balancer Firewall ID 조회
+########################################################
+data "samsungcloudplatformv2_firewall_firewalls" "fw_lb" {
+  product_type = ["LB"]
+  size         = 10
+
+  depends_on = [
+    samsungcloudplatformv2_loadbalancer_loadbalancer.web_lb,
+    samsungcloudplatformv2_loadbalancer_loadbalancer.app_lb
+  ]
+}
+
+locals {
+  lb_firewall_ids = try(data.samsungcloudplatformv2_firewall_firewalls.fw_lb.ids, [])
+
+  # Web LB가 먼저 생성되므로 첫 번째 ID
+  web_lb_firewall_id = length(local.lb_firewall_ids) > 0 ? local.lb_firewall_ids[0] : ""
+  # App LB가 두 번째로 생성되므로 두 번째 ID
+  app_lb_firewall_id = length(local.lb_firewall_ids) > 1 ? local.lb_firewall_ids[1] : ""
+}
+
+########################################################
+# Web Load Balancer Firewall 규칙
+########################################################
+
+# Web LB Client to Service IP
+resource "samsungcloudplatformv2_firewall_firewall_rule" "web_lb_client_fw" {
+  firewall_id = local.web_lb_firewall_id
+  firewall_rule_create = {
+    action              = "ALLOW"
+    direction           = "OUTBOUND"
+    status              = "ENABLE"
+    source_address      = [var.user_public_ip]
+    destination_address = [var.web_lb_service_ip]
+    description         = "Client to LB connection"
+    service = [
+      { service_type = "TCP", service_value = "80" }
+    ]
+  }
+
+  depends_on = [
+    samsungcloudplatformv2_loadbalancer_loadbalancer.web_lb,
+    samsungcloudplatformv2_loadbalancer_lb_listener.web_listener
+  ]
+}
+
+# Web LB Health Check to Web VMs
+resource "samsungcloudplatformv2_firewall_firewall_rule" "web_lb_healthcheck_fw" {
+  firewall_id = local.web_lb_firewall_id
+  firewall_rule_create = {
+    action              = "ALLOW"
+    direction           = "INBOUND"
+    status              = "ENABLE"
+    source_address      = ["10.1.1.0/24"]
+    destination_address = ["10.1.1.0/24"]
+    description         = "Service andLB Health Check to Web VMs"
+    service = [
+      { service_type = "TCP", service_value = "80" }
+    ]
+  }
+
+  depends_on = [
+    samsungcloudplatformv2_firewall_firewall_rule.web_lb_client_fw
+  ]
+}
+
+########################################################
+# App Load Balancer Firewall 규칙
+########################################################
+
+# App LB Client to Service IP
+resource "samsungcloudplatformv2_firewall_firewall_rule" "app_lb_client_fw" {
+  firewall_id = local.app_lb_firewall_id
+  firewall_rule_create = {
+    action              = "ALLOW"
+    direction           = "OUTBOUND"
+    status              = "ENABLE"
+    source_address      = ["10.1.1.0/24"]
+    destination_address = [var.app_lb_service_ip]
+    description         = "Client to LB connection"
+    service = [
+      { service_type = "TCP", service_value = "80" }
+    ]
+  }
+
+  depends_on = [
+    samsungcloudplatformv2_loadbalancer_loadbalancer.app_lb,
+    samsungcloudplatformv2_loadbalancer_lb_listener.app_listener
+  ]
+}
+
+# App LB Health Check to App VMs
+resource "samsungcloudplatformv2_firewall_firewall_rule" "app_lb_healthcheck_fw" {
+  firewall_id = local.app_lb_firewall_id
+  firewall_rule_create = {
+    action              = "ALLOW"
+    direction           = "INBOUND"
+    status              = "ENABLE"
+    source_address      = ["10.1.2.0/24"]
+    destination_address = ["10.1.2.0/24"]
+    description         = "Service and LB Health Check to App VMs"
+    service = [
+      { service_type = "TCP", service_value = "80" }
+    ]
+  }
+
+  depends_on = [
+    samsungcloudplatformv2_firewall_firewall_rule.app_lb_client_fw
+  ]
+}
 
 ########################################################
 # 추가 Security Group 규칙 - 3-Tier 아키텍처 요구사항
@@ -828,6 +963,20 @@ resource "samsungcloudplatformv2_security_group_security_group_rule" "app_ssh_fr
   depends_on = [samsungcloudplatformv2_security_group_security_group_rule.web_api_to_app_lb_sg]
 }
 
+# App DB outbound to DBaaS (PostgreSQL)
+resource "samsungcloudplatformv2_security_group_security_group_rule" "app_db_to_dbaas_sg" {
+  direction         = "egress"
+  ethertype         = "IPv4"
+  security_group_id = samsungcloudplatformv2_security_group_security_group.app_sg.id
+  protocol          = "tcp"
+  port_range_min    = 2866
+  port_range_max    = 2866
+  description       = "PostgreSQL connection outbound to DBaaS"
+  remote_ip_prefix  = "${var.db_ip}/32"
+
+  depends_on = [samsungcloudplatformv2_security_group_security_group_rule.app_ssh_from_bastion_sg]
+}
+
 
 ########################################################
 # 추가 Security Group 규칙 - Web-to-App 직접 통신
@@ -844,7 +993,7 @@ resource "samsungcloudplatformv2_security_group_security_group_rule" "web_direct
   description       = "Direct API connection outbound to app servers"
   remote_group_id   = samsungcloudplatformv2_security_group_security_group.app_sg.id
 
-  depends_on = [samsungcloudplatformv2_security_group_security_group_rule.app_ssh_from_bastion_sg]
+  depends_on = [samsungcloudplatformv2_security_group_security_group_rule.app_db_to_dbaas_sg]
 }
 
 # App direct API inbound from Web SG (for initial deployment before LB)
@@ -862,15 +1011,51 @@ resource "samsungcloudplatformv2_security_group_security_group_rule" "app_direct
 }
 
 ########################################################
+# Load Balancer 관련 Security Group 규칙
+########################################################
+
+# Web Load Balancer Source NAT Inbound to webSG
+resource "samsungcloudplatformv2_security_group_security_group_rule" "web_lb_source_nat_in_sg" {
+  direction         = "ingress"
+  ethertype         = "IPv4"
+  security_group_id = samsungcloudplatformv2_security_group_security_group.web_sg.id
+  protocol          = "tcp"
+  port_range_min    = 80
+  port_range_max    = 80
+  description       = "HTTP inbound from Web Load Balancer Source NAT"
+  remote_ip_prefix  = "10.1.1.0/24"
+
+  depends_on = [
+    samsungcloudplatformv2_security_group_security_group_rule.app_direct_from_web_sg
+  ]
+}
+
+# App Load Balancer Source NAT Inbound to appSG
+resource "samsungcloudplatformv2_security_group_security_group_rule" "app_lb_source_nat_in_sg" {
+  direction         = "ingress"
+  ethertype         = "IPv4"
+  security_group_id = samsungcloudplatformv2_security_group_security_group.app_sg.id
+  protocol          = "tcp"
+  port_range_min    = var.app_server_port
+  port_range_max    = var.app_server_port
+  description       = "API connection inbound from App Load Balancer Source NAT"
+  remote_ip_prefix  = "10.1.2.0/24"
+
+  depends_on = [
+    samsungcloudplatformv2_security_group_security_group_rule.web_lb_source_nat_in_sg
+  ]
+}
+
+########################################################
 # File Storage Volume 구성
 ########################################################
 
 # Shared File Storage Volume 생성 (Web/App 서버 공유)
 resource "samsungcloudplatformv2_filestorage_volume" "shared_volume" {
-  name                       = "shared_storage"
+  name                       = "cefs"
   protocol                   = "NFS"
-  type_name                  = "HighPerformanceSSD"
-  file_unit_recovery_enabled = true
+  type_name                  = "HDD"
+#  file_unit_recovery_enabled = true
   tags                       = var.common_tags
 
   # 2개 서버에 대한 접근 권한 설정 (Single Server Deployment)
